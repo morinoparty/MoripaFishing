@@ -1,0 +1,57 @@
+[versions]
+paper = "1.21.4-R0.1-SNAPSHOT"
+mccoroutine = "2.21.0"
+cloud = "2.1.0-SNAPSHOT"
+cloudPaper = "2.0.0-SNAPSHOT"
+koinVersion = "4.0.2"
+coroutine = "1.10.1"
+serialization = "1.8.0"
+exposed = "0.60.0"
+arrow = "2.0.1"
+sqlite = "3.49.1.0"
+kaml = "0.72.0"
+postgresql = "42.7.5"
+
+[libraries]
+paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
+
+cloud = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
+cloud-annotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
+cloud-kotlin-coroutines-annotations = { group = "org.incendo", name = "cloud-kotlin-coroutines-annotations", version.ref = "cloud" }
+cloudPaper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloudPaper" }
+
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+kaml = { group="com.charleskorn.kaml", name="kaml", version.ref = "kaml"}
+
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutine" }
+
+mccoroutine-bukkit-api = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-api", version.ref = "mccoroutine" }
+mccoroutine-bukkit-core = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-core", version.ref = "mccoroutine" }
+
+exposed-core = { group = "org.jetbrains.exposed", name = "exposed-core", version.ref = "exposed" }
+exposed-dao = { group = "org.jetbrains.exposed", name = "exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version.ref = "exposed" }
+exposed-java-time = { group = "org.jetbrains.exposed", name = "exposed-java-time", version.ref = "exposed" }
+
+sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
+postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
+
+arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koinVersion" }
+
+vault-api = { group = "com.github.MilkBowl", name = "vaultAPI", version = "1.7.1" }
+
+[plugins]
+run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.1" }
+resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.2.0" }
+shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.1.20" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.1.20" }
+dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
+
+[bundles]
+commands = ["cloud", "cloudPaper", "cloud-annotations", "cloud-kotlin-coroutines-annotations"]
+coroutines = ["mccoroutine-bukkit-api", "mccoroutine-bukkit-core" , "kotlinx-coroutines-core"]
+database = ["exposed-core", "exposed-dao", "exposed-jdbc", "exposed-java-time","sqlite", "postgresql"]

@@ -1,0 +1,11 @@
+{
+    "position": 3,
+    "label": "フォーマット",
+    "link": {
+        "type": "generated-index",
+        "title": "フォーマット"
+    },
+    "customProps": {
+        "description": "フォーマットについての説明です。"
+    }
+}

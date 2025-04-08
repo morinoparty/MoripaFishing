@@ -1,0 +1,53 @@
+---
+title: コマンド
+sidebar_position: 2
+---
+
+export const commandList = [
+    {
+        command: "/test",
+        description: "テストコマンドです",
+        tags: ["player"],
+        aliases: [],
+        permission: "kerria.command.test",
+        status: "proposal"
+    },
+    {
+        command: "/test",
+        description: "テストコマンドです",
+        tags: ["player"],
+        aliases: [],
+        permission: "kerria.command.test",
+        status: "beta"
+    },
+    {
+        command: "/test",
+        description: "テストコマンドです",
+        tags: ["player"],
+        aliases: [],
+        permission: "kerria.command.test",
+        status: "newly"
+    },
+    {
+        command: "/test",
+        description: "テストコマンドです",
+        tags: ["player"],
+        aliases: [],
+        permission: "kerria.command.test",
+        status: "stable"
+    },
+    {
+        command: "/test",
+        description: "テストコマンドです",
+        tags: ["player"],
+        aliases: [],
+        permission: "kerria.command.test",
+        status: "deprecated"
+    }
+];
+import { CommandList } from "@site/src/components/command-list";
+
+# コマンド
+
+<CommandList list={commandList} />
+

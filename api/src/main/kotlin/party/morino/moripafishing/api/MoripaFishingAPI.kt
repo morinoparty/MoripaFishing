@@ -1,0 +1,7 @@
+/**
+ * MoripaFishingのAPI
+ */
+interface MoripaFishingAPI {
+
+}
+
