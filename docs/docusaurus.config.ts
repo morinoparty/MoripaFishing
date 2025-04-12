@@ -6,7 +6,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 
 const config: Config = {
     title: "MoripaFishing Documentation",
-    favicon: "img/favicon.ico",
+    favicon: "img/favicon.svg",
     staticDirectories: ["static"],
     trailingSlash: true,
 
@@ -73,8 +73,8 @@ const config: Config = {
                     position: "right",
                 },
                 {
-                    href: "https://github.com/morinoparty/moripafishing/releases",
-                    label: "Download",
+                    href: "https://modrinth.com/project/moripafishing",
+                    label: "Modrinth",
                     position: "right",
                 },
                 {

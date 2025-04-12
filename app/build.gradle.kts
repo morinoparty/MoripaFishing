@@ -1,3 +1,7 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.kotlin.dsl.testRuntimeOnly
+import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
+
 plugins {
     java
     alias(libs.plugins.kotlin.jvm)
@@ -30,13 +34,29 @@ dependencies {
     implementation(libs.koin.core)
 
     compileOnly(libs.vault.api)
+
+    implementation(libs.noise)
+
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mock.bukkit)
+    testImplementation(libs.mockk)
+
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.bundles.koin.test)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
-
-
 
 tasks {
     build {
         dependsOn("shadowJar")
+    }
+    test {
+        useJUnitPlatform()
+        testLogging {
+            showStandardStreams = true
+            events("passed", "skipped", "failed")
+            exceptionFormat = TestExceptionFormat.FULL
+        }
     }
     shadowJar
     runServer {
@@ -44,6 +64,7 @@ tasks {
         val plugins = runPaper.downloadPluginsSpec {
             //Vault
             url("https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar")
+            modrinth("terra", "6.6.1-BETA-bukkit")
         }
         downloadPlugins {
             downloadPlugins.from(plugins)
@@ -51,28 +72,19 @@ tasks {
     }
 }
 
-
 sourceSets.main {
     resourceFactory {
-        bukkitPluginYaml {
+        paperPluginYaml {
             name = rootProject.name
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
-            libraries = libs.bundles.coroutines.asString()
-            depend = listOf("Vault")
+            bootstrapper = "$group.moripafishing.MoripaFishingBootstrap"
+            loader = "$group.moripafishing.MoripaFishingLoader"
+            dependencies {
+                server("Vault", PaperPluginYaml.Load.BEFORE)
+            }
         }
-    }
-}
-
-fun Provider<MinimalExternalModuleDependency>.asString(): String {
-    val dependency = this.get()
-    return dependency.module.toString() + ":" + dependency.versionConstraint.toString()
-}
-
-fun Provider<ExternalModuleDependencyBundle>.asString(): List<String> {
-    return this.get().map { dependency ->
-        "${dependency.group}:${dependency.name}:${dependency.version}"
     }
 }

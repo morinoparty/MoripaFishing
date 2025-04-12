@@ -18,8 +18,6 @@ buildscript {
     }
 }
 
-val libs = rootProject.libs
-
 allprojects {
 
     apply(plugin = "java")
@@ -43,19 +41,10 @@ allprojects {
         jvmToolchain(21)
     }
 
-    tasks.register("hello") {
-        doLast {
-            println("I'm ${this.project.name}")
-        }
-    }
-
     tasks {
-        test {
-            useJUnitPlatform()
-            testLogging {
-                showStandardStreams = true
-                events("passed", "skipped", "failed")
-                exceptionFormat = TestExceptionFormat.FULL
+        register("hello") {
+            doLast {
+                println("I'm ${this.project.name}")
             }
         }
         compileKotlin {
