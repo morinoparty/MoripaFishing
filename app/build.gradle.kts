@@ -38,12 +38,13 @@ dependencies {
     implementation(libs.noise)
 
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mock.bukkit)
     testImplementation(libs.mockk)
 
-    testImplementation(libs.junit.jupiter)
+    testImplementation(platform("org.junit:junit-bom:5.12.2"))
+    testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(libs.junit.platform.launcher)
+
 }
 
 tasks {

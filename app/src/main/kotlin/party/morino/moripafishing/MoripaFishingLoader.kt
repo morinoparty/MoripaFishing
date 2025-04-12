@@ -9,10 +9,11 @@ import org.eclipse.aether.repository.RemoteRepository
 
 /**
  * MoripaFishingプラグインのローダークラス
- * プラグインの依存関係を管理するのだめのクラス
+ * プラグインの依存関係を管理するためのクラス
  */
 class MoripaFishingLoader : PluginLoader {
     override fun classloader(classpathBuilder: PluginClasspathBuilder) {
+        
         // 依存関係の追加
         val resolver = MavenLibraryResolver()
         resolver.addDependency(Dependency(DefaultArtifact("org.jetbrains.kotlin:kotlin-stdlib:1.9.0"), null))

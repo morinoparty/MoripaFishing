@@ -53,8 +53,9 @@ vault-api = { group = "com.github.MilkBowl", name = "vaultAPI", version = "1.7.1
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }
 
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
-mock-bukkit = { group = "com.github.seeseemelk", name = "MockBukkit-v1.20", version.ref = "mockBukkit" }
-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher"}
 
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koinVersion" }
 koin-test-junit5 = { group = "io.insert-koin", name = "koin-test-junit5", version.ref = "koinVersion" }
@@ -71,4 +72,5 @@ dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
 commands = ["cloud", "cloudPaper", "cloud-annotations", "cloud-kotlin-coroutines-annotations"]
 coroutines = ["mccoroutine-bukkit-api", "mccoroutine-bukkit-core" , "kotlinx-coroutines-core"]
 database = ["exposed-core", "exposed-dao", "exposed-jdbc", "exposed-java-time","sqlite", "postgresql"]
+junit-jupiter = ["junit-jupiter" ]
 koin-test = ["koin-test", "koin-test-junit5"]

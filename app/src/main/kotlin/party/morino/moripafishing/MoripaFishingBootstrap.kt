@@ -19,23 +19,35 @@ import org.incendo.cloud.paper.PaperCommandManager
  */
 class MoripaFishingBootstrap : PluginBootstrap {
 
+    /**
+     * プラグインのブートストラップ処理を行うメソッド
+     * @param context ブートストラップコンテキスト
+     */
     override fun bootstrap(context: BootstrapContext) {
+        // コマンドマネージャーのインスタンスを作成
         val commandManager: CommandManager<CommandSourceStack> = PaperCommandManager.builder()
-            .executionCoordinator(ExecutionCoordinator.asyncCoordinator())
-            .buildBootstrapped(context)
+            .executionCoordinator(ExecutionCoordinator.asyncCoordinator()) // 非同期実行コーディネーターを設定
+            .buildBootstrapped(context) // ブートストラップされたコマンドマネージャーを構築
 
+        // アノテーションパーサーのインスタンスを作成
         val annotationParser = AnnotationParser<CommandSourceStack>(commandManager, CommandSourceStack::class.java)
 
+        // アノテーションを解析
         with(annotationParser) {
             parse(
-                
+                // ここにコマンドのアノテーションを追加する
             )
         }
-        //https://jd.papermc.io/paper/1.21.4/io/papermc/paper/registry/event/RegistryEvents.html#GAME_EVENT
-
+        // ゲームイベントのレジストリに関する情報へのリンク
+        // https://jd.papermc.io/paper/1.21.4/io/papermc/paper/registry/event/RegistryEvents.html#GAME_EVENT
     }
 
+    /**
+     * プラグインのインスタンスを作成するメソッド
+     * @param context プラグインプロバイダコンテキスト
+     * @return MoripaFishingプラグインのインスタンス
+     */
     override fun createPlugin(context: PluginProviderContext): JavaPlugin {
-        return MoripaFishing()
+        return MoripaFishing() // MoripaFishingプラグインのインスタンスを返す
     }
 } 

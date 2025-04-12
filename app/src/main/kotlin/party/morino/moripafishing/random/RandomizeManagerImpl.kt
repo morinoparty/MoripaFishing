@@ -11,6 +11,10 @@ import java.util.Random
 class RandomizeManagerImpl : RandomizeManager {
     private val random = Random()
 
+    /**
+     * 天気をランダムに生成する実装クラスを返す
+     * @return 天気をランダムに生成する実装クラス
+     */
     override fun getWeatherRandomizer(): WeatherRandomizer {
         return WeatherRandomizerImpl()
     }
