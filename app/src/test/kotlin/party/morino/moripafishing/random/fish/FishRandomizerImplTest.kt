@@ -30,10 +30,10 @@ class FishRandomizerImplTest: KoinTest {
             val fish : Fish = fishRandomizer.getRandomFishWithFishData(targetFish)
             list.add(Pair(fish.getSize(), fish.getWorth()))
         }
-        list.sortBy { it.first }
-        list.map { Pair(it.first.toFix(2), it.second.toFix(2)) }.forEach {
-            println("Size: ${it.first}, Worth: ${it.second}")
-        }
+//        list.sortBy { it.first }
+//        list.map { Pair(it.first.toFix(2), it.second.toFix(2)) }.forEach {
+//            println("Size: ${it.first}, Worth: ${it.second}")
+//        }
     }
 
 

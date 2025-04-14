@@ -3,6 +3,8 @@ package party.morino.moripafishing
 import org.incendo.cloud.parser.ParserParameters.single
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.koin.core.context.GlobalContext
+import org.koin.core.context.GlobalContext.getOrNull
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import party.morino.moripafishing.api.config.ConfigManager
@@ -32,7 +34,7 @@ class MoripaFishingTest : BeforeAllCallback {
             single<PluginDirectory> { PluginDirectoryMock() }
             single<FishManager> { FishManagerImpl() }
         }
-        startKoin {
+        getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
         }
     }

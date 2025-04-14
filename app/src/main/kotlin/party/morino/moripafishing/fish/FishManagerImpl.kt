@@ -79,7 +79,6 @@ class FishManagerImpl : FishManager, KoinComponent {
         fishDir.listFiles { file -> file.isDirectory }?.forEach { rarityDir ->
             processFishFiles(rarityDir, json)
         }
-        println(fishes.map { it.value }.toList())
     }
 
     /**

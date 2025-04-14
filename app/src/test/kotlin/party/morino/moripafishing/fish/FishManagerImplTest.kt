@@ -14,7 +14,7 @@ class FishManagerImplTest: KoinTest {
     @Test
     fun getFish() {
         val fishes = fishManager.getFish()
-        println(fishes)
+        println(fishes.map { it.id.value })
     }
 
     @Test
