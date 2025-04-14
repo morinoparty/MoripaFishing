@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     `maven-publish`
 }
 
@@ -25,8 +26,11 @@ dependencies{
     implementation(libs.arrow.core)
     implementation(libs.arrow.fx.coroutines)
 
+    implementation(libs.koin.core)
+
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kaml)
+    implementation(libs.bundles.kyori)
 }
 
 kotlin {

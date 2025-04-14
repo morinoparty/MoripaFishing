@@ -1,0 +1,26 @@
+{
+  "id": "anchovy",
+  "catchCommands": [],
+  "conditions": [],
+  "displayName": {
+    "en_US": "Anchovy",
+    "ja_JP": "カタクチイワシ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 3
+    }
+  },
+  "size": {
+    "min": 8.0,
+    "max": 18.0
+  },
+  "rarity": "common",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

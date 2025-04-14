@@ -1,6 +1,6 @@
 ---
 title: さかな
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 import { FishMaker } from '@site/src/components/fish-maker';
@@ -9,26 +9,39 @@ import { FishMaker } from '@site/src/components/fish-maker';
 
 ## Format
 
-```yaml
-caught-commands:
-  - "moripa_fishing add-fatigue <angler> 10"
-conditions: []
-display-name:
-  en_US: "Luna Lionfish"
-  ja_JP: "ミノカサゴ"
-# worth-expression: 
-# score-expression: 
-icon: ""
-item-stack:
-  item-meta:
-    custom-model-data: 102
-  material: COD
-key: "moripa_fishing:luna_lionfish"
-length-max: 40
-length-min: 20
-quality: 0
-rarity-key: "moripa_fishing:rare"
-weight: 10  
+```json
+{
+    "id": "test-common",
+    "cacheCommand": [
+        "moripa_fishing add-fatigue <angler> 10"
+    ],
+    "displayName": {
+        "ja_JP": "テスト魚",
+        "en_US": "Test Fish"
+    },
+    "size": {
+        "min": 20.0,
+        "max": 40.0
+    },
+    "icon": "\uE060",
+    "itemStack": {
+        "material": "COD",
+        "itemMeta": {
+            "customModelData": 1001
+        }
+    },
+    "rarity": {
+        "id": "common",
+        "displayName": {
+            "ja_JP": "普通",
+            "en_US": "Common"
+        },
+        "weight": 50.0,
+        "worthExpression": "(<length_rate> ** 2) * 5 + 5"
+    },
+    "weight": 10.0
+}
+
 ```
 
 ## Maker

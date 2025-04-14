@@ -1,0 +1,11 @@
+{
+    "id" : "rare",
+    "color" : "#2196f3",
+    "cacheCommand" : [],
+    "displayName" : {
+        "ja-JP" : "レア",
+        "en-US" : "Rare"
+    },
+    "weight": 22.0,
+    "worthExpression" : "(<length_rate> ^ 2) * 10 + 10"
+} 

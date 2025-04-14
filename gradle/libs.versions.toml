@@ -15,6 +15,7 @@ jnoise = "4.1.0"
 mockk = "1.13.17"
 junit = "5.12.1"
 mockBukkit = "3.93.2"
+adventure = "4.20.0"
 
 
 [libraries]
@@ -60,6 +61,11 @@ junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koinVersion" }
 koin-test-junit5 = { group = "io.insert-koin", name = "koin-test-junit5", version.ref = "koinVersion" }
 
+kyori-adventure-api = {group =  "net.kyori",name = "adventure-api", version.ref = "adventure"}
+kyori-minimessage = {group =  "net.kyori",name = "adventure-text-minimessage", version.ref = "adventure"}
+
+exp4j = { group = "net.objecthunter", name = "exp4j", version = "0.4.5" }
+
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.1" }
 resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.2.0" }
@@ -74,3 +80,4 @@ coroutines = ["mccoroutine-bukkit-api", "mccoroutine-bukkit-core" , "kotlinx-cor
 database = ["exposed-core", "exposed-dao", "exposed-jdbc", "exposed-java-time","sqlite", "postgresql"]
 junit-jupiter = ["junit-jupiter" ]
 koin-test = ["koin-test", "koin-test-junit5"]
+kyori = ["kyori-adventure-api","kyori-minimessage"]

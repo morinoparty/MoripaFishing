@@ -1,0 +1,26 @@
+{
+  "id": "horse_mackerel",
+  "catchCommands": [],
+  "conditions": [],
+  "displayName": {
+    "en_US": "Japanese Horse Mackerel",
+    "ja_JP": "マアジ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 4
+    }
+  },
+  "size": {
+    "min": 12.0,
+    "max": 44.0
+  },
+  "rarity": "common",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

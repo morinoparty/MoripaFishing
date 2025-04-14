@@ -1,0 +1,11 @@
+{
+    "id" : "epic",
+    "color" : "#ab47bc",
+    "cacheCommand" : [],
+    "displayName" : {
+        "ja-JP" : "エピック",
+        "en-US" : "Epic"
+    },
+    "weight": 6.5,
+    "worthExpression" : "(<length_rate> ^ 2) * 50 + 100"
+} 

@@ -1,0 +1,41 @@
+{
+    "database": {
+        "type": "SQLITE",
+        "host": "localhost",
+        "port": 3306,
+        "database": "moripafishing",
+        "username": "root",
+        "password": "password"
+    },
+    "world": {
+        "defaultId": "default",
+        "list": [
+            {
+                "id": "default",
+                "name": "つりとぴあ",
+                "radius": 100
+            }
+        ],
+        "spawnMobs": false,
+        "spawnMonsters": false,
+        "spawnAnimals": false,
+        "receiveDamage": false,
+        "defaultWorldRadius": 100
+    },
+    "weather": {
+        "dayCycleTimeZone": "Asia/Tokyo",
+        "interval": 8,
+        "offset": 0,
+        "frequency": 0.15,
+        "weatherSetting": {
+            "SUNNY": 30,
+            "CLOUDY": 20,
+            "RAINY": 20,
+            "THUNDERSTORM": 10
+        },
+        "hashPepper": "random"
+    },
+    "fishing": {
+        "test": "test"
+    }
+}

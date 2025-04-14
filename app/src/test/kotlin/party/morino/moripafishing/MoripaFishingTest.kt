@@ -1,36 +1,39 @@
 package party.morino.moripafishing
 
-import org.junit.jupiter.api.extension.AfterEachCallback
-import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.incendo.cloud.parser.ParserParameters.single
+import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.koin.core.context.GlobalContext
-import org.koin.core.context.loadKoinModules
-import org.koin.core.context.stopKoin
+import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.config.ConfigManagerMock
+import party.morino.moripafishing.api.random.RandomizeManager
+import party.morino.moripafishing.random.RandomizeManagerImpl
+import party.morino.moripafishing.api.rarity.RarityManager
+import party.morino.moripafishing.rarity.RarityManagerImpl
+import party.morino.moripafishing.api.config.PluginDirectory
+import party.morino.moripafishing.api.fish.FishManager
+import party.morino.moripafishing.config.ConfigManagerImpl
+import party.morino.moripafishing.config.PluginDirectoryMock
+import party.morino.moripafishing.fish.FishManagerImpl
 
-class MoripaFishingTest: BeforeEachCallback, AfterEachCallback {
-
-
-    override fun beforeEach(context: ExtensionContext) {
-        println("beforeEach() executed before " + context.displayName + ".");
-        setupKoin()
-    }
-
-    override fun afterEach(context: ExtensionContext) {
-        stopKoin()
-    }
-
-    private fun setupKoin() {
-        val module = module {
-            single<ConfigManager> { ConfigManagerMock() }
+/**
+ * MoripaFishingのテスト用拡張機能
+ */
+class MoripaFishingTest : BeforeAllCallback {
+    /**
+     * テスト開始前に呼び出されるメソッド
+     * @param context 拡張機能のコンテキスト
+     */
+    override fun beforeAll(context: ExtensionContext) {
+        val appModule = module {
+            single<ConfigManager> { ConfigManagerImpl() }
+            single<RandomizeManager> { RandomizeManagerImpl() }
+            single<RarityManager> { RarityManagerImpl() }
+            single<PluginDirectory> { PluginDirectoryMock() }
+            single<FishManager> { FishManagerImpl() }
         }
-        
-        GlobalContext.getOrNull()?.let {
-            loadKoinModules(module)
-        } ?: GlobalContext.startKoin {
-            modules(module)
+        startKoin {
+            modules(appModule)
         }
     }
 }

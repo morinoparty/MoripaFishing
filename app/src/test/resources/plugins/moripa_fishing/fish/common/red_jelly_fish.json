@@ -1,0 +1,29 @@
+{
+  "id": "red_jelly_fish",
+  "catchCommands": [
+    "minecraft:effect give <angler> minecraft:poison 3 2",
+    "minecraft:tellraw <angler> {\"text\":\"クラゲがあなたに好意を持っている!\"}"
+  ],
+  "conditions": [],
+  "displayName": {
+    "en_US": "Red Jelly Fish",
+    "ja_JP": "アカクラゲ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 1
+    }
+  },
+  "size": {
+    "min": 9.0,
+    "max": 15.0
+  },
+  "rarity": "common",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

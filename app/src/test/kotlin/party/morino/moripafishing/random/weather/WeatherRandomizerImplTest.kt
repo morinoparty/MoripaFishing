@@ -27,14 +27,17 @@ class WeatherRandomizerImplTest: KoinTest {
     @Test
     @DisplayName("ランダムな天気を取得するテスト")
     fun getRandomWeather() {
-        val weatherList = weatherRandomizer.getFeatureWeather(10000)
-        val order = weatherList.map { it.ordinal }
-        // println(weatherList.map { "$it : ${it.ordinal}" })
-        val diff = order.zipWithNext { a, b -> (b - a).absoluteValue }
-        // println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")
-        // val rate = weatherList.groupingBy { it }.eachCount().map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
-        // println(rate)
-        assert(diff.max() <= 1)
+        repeat(10) {
+            weatherRandomizer.setSeed(it)
+            val weatherList = weatherRandomizer.getFeatureWeather(10000)
+            val order = weatherList.map { it.ordinal }
+            // println(weatherList.map { "$it : ${it.ordinal}" })
+            val diff = order.zipWithNext { a, b -> (b - a).absoluteValue }
+            // println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")
+            // val rate = weatherList.groupingBy { it }.eachCount().toList().sortedByDescending { (_, v) -> v }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
+            // println(rate)
+            assert(diff.max() <= 1)
+        }
     }
 
     /**

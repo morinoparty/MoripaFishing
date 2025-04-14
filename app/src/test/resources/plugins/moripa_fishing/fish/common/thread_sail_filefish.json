@@ -1,0 +1,26 @@
+{
+  "id": "thread_sail_filefish",
+  "catchCommands": [],
+  "conditions": [],
+  "displayName": {
+    "en_US": "Thread Sail Filefish",
+    "ja_JP": "カワハギ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 10
+    }
+  },
+  "size": {
+    "min": 16.0,
+    "max": 44.0
+  },
+  "rarity": "common",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

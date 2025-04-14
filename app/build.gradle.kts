@@ -35,6 +35,10 @@ dependencies {
 
     compileOnly(libs.vault.api)
 
+    implementation(libs.bundles.kyori)
+
+    implementation(libs.exp4j)
+
     implementation(libs.noise)
 
     testImplementation(libs.kotlinx.coroutines.test)

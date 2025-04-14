@@ -1,0 +1,11 @@
+{
+    "id" : "mythic",
+    "color" : "#7f0000",
+    "cacheCommand" : [],
+    "displayName" : {
+        "ja-JP" : "マボロシ",
+        "en-US" : "Mythic"
+    },
+    "weight": 0.1,
+    "worthExpression" : "(<length_rate> ^ 2) * 2000 + 2000"
+} 

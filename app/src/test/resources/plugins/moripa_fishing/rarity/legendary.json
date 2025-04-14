@@ -1,0 +1,13 @@
+{
+    "id" : "legendary",
+    "color" : "#ff9800",
+    "cacheCommand" : [
+        "minecraft:execute at <angler> run summon firework_rocket ~ ~ ~ {LifeTime:40,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;2651799],FadeColors:[I;6719955]}],Flight:2}}}}"
+    ],
+    "displayName" : {
+        "ja-JP" : "ヌシ",
+        "en-US" : "Legendary"
+    },
+    "weight": 0.4,
+    "worthExpression" : "(<length_rate> ^ 2) * 1000 + 500"
+} 

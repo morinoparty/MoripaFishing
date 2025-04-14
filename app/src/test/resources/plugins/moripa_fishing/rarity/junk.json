@@ -1,0 +1,11 @@
+{
+    "id" : "junk",
+    "color" : "#757575",
+    "cacheCommand" : [],
+    "displayName" : {
+        "ja-JP" : "ジャンク",
+        "en-US" : "Junk"
+    },
+    "weight": 1.0,
+    "worthExpression" : "1"
+} 

@@ -119,7 +119,7 @@ const config: Config = {
                     items: [
                         {
                             label: "GitHub",
-                            href: "https://github.com/morinoparty/kerria",
+                            href: "https://github.com/morinoparty/moripafishing",
                         },
                     ],
                 },

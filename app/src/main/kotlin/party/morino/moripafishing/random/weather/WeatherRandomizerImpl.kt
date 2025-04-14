@@ -9,7 +9,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.ZoneId
 import java.time.ZonedDateTime
-
+import java.security.MessageDigest
 /**
  * 天気をランダムに生成する実装クラス
  * PerlinNoiseを使用して、時間に基づいた天気の生成を行う
@@ -20,14 +20,25 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
     private val startDate = ZonedDateTime.of(
         2023, 10, 1, 0, 0, 0, 0, ZoneId.of(configManager.getConfig().weather.dayCycleTimeZone)
     )
-    private var seed: Int = 0
+
+    private var seed : Int = 0
+
+    init{
+        setSeed(0)
+    }
 
     /**
      * 乱数生成のシード値を設定する
      * @param seed 設定するシード値
      */
     fun setSeed(seed: Int) {
-        this.seed = seed
+        //papperを付けて、seedを生成し予測不能にする
+        val papper = configManager.getConfig().weather.hashPepper
+        val hashed = MessageDigest.getInstance("SHA-256").digest((papper + seed).toString().toByteArray()).let {
+            // Longに変換してからIntの範囲に収める
+            (it.take(3).joinToString("") { "%02x".format(it) }.toLong(16) and 0x7FFFFFFF).toInt()
+        }
+        this.seed = hashed
     }
 
     /**

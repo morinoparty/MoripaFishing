@@ -1,0 +1,26 @@
+{
+  "id": "herring",
+  "catchCommands": [],
+  "conditions": [],
+  "displayName": {
+    "en_US": "Herring",
+    "ja_JP": "ニシン"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 6
+    }
+  },
+  "size": {
+    "min": 14.0,
+    "max": 46.0
+  },
+  "rarity": "common",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

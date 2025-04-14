@@ -1,0 +1,26 @@
+{
+  "id": "sillago_japonica",
+  "catchCommands": [],
+  "conditions": [],
+  "displayName": {
+    "en_US": "Sillago Japonica",
+    "ja_JP": "シロギス"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 9
+    }
+  },
+  "size": {
+    "min": 15.0,
+    "max": 37.0
+  },
+  "rarity": "common",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

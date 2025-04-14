@@ -1,0 +1,11 @@
+{
+    "id" : "common",
+    "color" : "#ffffff",
+    "cacheCommand" : [],
+    "displayName" : {
+        "ja-JP" : "コモン",
+        "en-US" : "Common"
+    },
+    "weight": 70.0,
+    "worthExpression" : "(<length_rate> ^ 2) * 5 + 5"
+}

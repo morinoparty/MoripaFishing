@@ -1,0 +1,26 @@
+{
+  "id": "marbled_sole",
+  "catchCommands": [],
+  "conditions": [],
+  "displayName": {
+    "en_US": "Marbled Sole",
+    "ja_JP": "マコガレイ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 103
+    }
+  },
+  "size": {
+    "min": 30.0,
+    "max": 100.0
+  },
+  "rarity": "rare",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 
