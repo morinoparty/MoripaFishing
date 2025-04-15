@@ -13,16 +13,19 @@
             {
                 "id": "default",
                 "name": "つりとぴあ",
-                "radius": 100
+                "radius": null,
+                "weatherConfig": null
             }
         ],
-        "spawnMobs": false,
-        "spawnMonsters": false,
-        "spawnAnimals": false,
-        "receiveDamage": false,
+        "spawnConfig": {
+            "spawnMobs": false,
+            "spawnMonsters": false,
+            "spawnAnimals": false,
+            "receiveDamage": false
+        },
         "defaultWorldRadius": 100
     },
-    "weather": {
+    "defaultWeatherConfig": {
         "dayCycleTimeZone": "Asia/Tokyo",
         "interval": 8,
         "offset": 0,
@@ -33,9 +36,15 @@
             "RAINY": 20,
             "THUNDERSTORM": 10
         },
-        "hashPepper": "random"
+        "hashPepper": "hashPepper"
     },
     "fishing": {
         "test": "test"
+    },
+    "spawn": {
+        "spawnMobs": false,
+        "spawnMonsters": false,
+        "spawnAnimals": false,
+        "receiveDamage": false
     }
 }
