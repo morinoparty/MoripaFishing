@@ -1,18 +1,18 @@
 [versions]
-paper = "1.21.4-R0.1-SNAPSHOT"
+paper = "1.21.5-R0.1-SNAPSHOT"
 mccoroutine = "2.21.0"
 cloud = "2.1.0-SNAPSHOT"
 cloudPaper = "2.0.0-SNAPSHOT"
 koinVersion = "4.0.4"
-coroutine = "1.10.1"
+coroutine = "1.10.2"
 serialization = "1.8.1"
-exposed = "0.60.0"
+exposed = "0.61.0"
 arrow = "2.0.1"
 sqlite = "3.49.1.0"
-kaml = "0.74.0"
+kaml = "0.77.0"
 postgresql = "42.7.5"
 jnoise = "4.1.0"
-mockk = "1.13.17"
+mockk = "1.14.0"
 junit = "5.12.1"
 mockBukkit = "3.93.2"
 adventure = "4.20.0"
@@ -64,7 +64,7 @@ koin-test-junit5 = { group = "io.insert-koin", name = "koin-test-junit5", versio
 kyori-adventure-api = {group =  "net.kyori",name = "adventure-api", version.ref = "adventure"}
 kyori-minimessage = {group =  "net.kyori",name = "adventure-text-minimessage", version.ref = "adventure"}
 
-exp4j = { group = "net.objecthunter", name = "exp4j", version = "0.4.5" }
+exp4j = { group = "net.objecthunter", name = "exp4j", version = "0.4.8" }
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.1" }
