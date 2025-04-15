@@ -36,7 +36,7 @@ jobs:
         uses: mikepenz/action-junit-report@v5
         if: success() || failure()
         with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
+          report_paths: './app/build/test-results/test/TEST-*.xml'
 
       - uses: release-drafter/release-drafter@v6
         id: release-drafter
