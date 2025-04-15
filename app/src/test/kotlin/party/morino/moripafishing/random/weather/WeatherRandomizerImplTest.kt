@@ -1,13 +1,13 @@
 package party.morino.moripafishing.random.weather
 
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.koin.test.KoinTest
 import party.morino.moripafishing.MoripaFishingTest
+import party.morino.moripafishing.api.world.WorldId
 import java.time.ZonedDateTime
 import kotlin.math.absoluteValue
-import org.junit.jupiter.api.BeforeEach
 
 @ExtendWith(MoripaFishingTest::class)
 class WeatherRandomizerImplTest: KoinTest {
@@ -16,6 +16,7 @@ class WeatherRandomizerImplTest: KoinTest {
         WeatherRandomizerImpl()
     }
 
+    private val worldId = WorldId("default")
     /**
      * ランダムな天気を取得するテスト
      * 1000回の天気を取得し、隣接する天気の順序が1以内であることを確認する
@@ -29,13 +30,12 @@ class WeatherRandomizerImplTest: KoinTest {
     fun getRandomWeather() {
         repeat(10) {
             weatherRandomizer.setSeed(it)
-            val weatherList = weatherRandomizer.getFeatureWeather(10000)
+            val weatherList = weatherRandomizer.getFeatureWeather(10000, worldId)
             val order = weatherList.map { it.ordinal }
-//             println(weatherList.map { "$it : ${it.name}" })
             val diff = order.zipWithNext { a, b -> (b - a).absoluteValue }
             // println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")
-//             val rate = weatherList.groupingBy { it }.eachCount().toList().sortedByDescending { (_, v) -> v }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
-//             println(rate)
+             val rate = weatherList.groupingBy { it }.eachCount().toList().sortedByDescending { (_, v) -> v }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
+             println(rate)
             assert(diff.max() <= 1)
         }
     }
@@ -51,7 +51,7 @@ class WeatherRandomizerImplTest: KoinTest {
             ZonedDateTime.now().plusHours(it * 8.toLong())
         }
         val res = times.map {
-            weatherRandomizer.getRandomInt(0, 100, it)
+            weatherRandomizer.getRandomInt(0, 100, it, worldId)
         }
         println(res)
         val diff = res.zipWithNext { a, b -> b - a }

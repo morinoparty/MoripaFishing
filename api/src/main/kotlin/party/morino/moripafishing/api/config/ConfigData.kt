@@ -2,34 +2,34 @@ package party.morino.moripafishing.api.config
 
 import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.model.WeatherType
+import party.morino.moripafishing.api.world.WorldId
 
 // プラグイン全体の設定データを保持するデータクラス
 @Serializable
 data class ConfigData(
     val database: DatabaseConfig = DatabaseConfig(), // データベース設定
     val world: WorldConfig = WorldConfig(), // ワールド設定
-    val weather: WeatherConfig = WeatherConfig(), // 天候設定
-    val fishing: FishingConfig = FishingConfig() // 釣り設定
+    val defaultWeatherConfig: WeatherConfig = WeatherConfig(), // 天候設定
+    val fishing: FishingConfig = FishingConfig(), // 釣り設定
+    val spawn: SpawnConfig = SpawnConfig() // スポーン設定
 )
 
 // ワールドに関する設定を保持するデータクラス
 @Serializable
 data class WorldConfig(
-    val defaultId: String = "default", // デフォルトのワールドID
+    val defaultId: WorldId = WorldId("default"), // デフォルトのワールドID
     val list: List<WorldDetailConfig> = listOf(WorldDetailConfig()), // ワールドの詳細設定リスト
-    val spawnMobs: Boolean = false, // モブをスポーンさせるかどうか
-    val spawnMonsters: Boolean = false, // モンスターをスポーンさせるかどうか
-    val spawnAnimals: Boolean = false, // 動物をスポーンさせるかどうか
-    val receiveDamage: Boolean = false, // ダメージを受けるかどうか
+    val spawnConfig: SpawnConfig = SpawnConfig(), // スポーン設定
     val defaultWorldRadius : Int = 100
 )
 
 // ワールドの詳細設定を保持するデータクラス
 @Serializable
 data class WorldDetailConfig(
-    val id: String = "default", // ワールドのID
+    val id: WorldId = WorldId("default"), // ワールドのID
     val name: String = "つりとぴあ", // ワールドの名前
-    val radius: Int = 100 // ワールドの半径
+    val radius: Int? = null,
+    val weatherConfig : WeatherConfig? = null
 )
 
 // 天候に関する設定を保持するデータクラス
@@ -66,3 +66,18 @@ data class DatabaseConfig(
 data class FishingConfig(
     val test: String = "test"
 )
+
+/**
+ * スポーン関連の設定を管理するクラス
+ * @param spawnMobs モブをスポーンさせるかどうか
+ * @param spawnMonsters モンスターをスポーンさせるかどうか
+ * @param spawnAnimals 動物をスポーンさせるかどうか
+ * @param receiveDamage ダメージを受けるかどうか
+ */
+@Serializable
+data class SpawnConfig(
+    val spawnMobs: Boolean = false,
+    val spawnMonsters: Boolean = false,
+    val spawnAnimals: Boolean = false,
+    val receiveDamage: Boolean = false
+) 

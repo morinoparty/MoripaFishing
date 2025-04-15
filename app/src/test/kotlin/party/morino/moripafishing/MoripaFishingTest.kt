@@ -14,6 +14,7 @@ import party.morino.moripafishing.api.rarity.RarityManager
 import party.morino.moripafishing.rarity.RarityManagerImpl
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.fish.FishManager
+import party.morino.moripafishing.api.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryMock
 import party.morino.moripafishing.fish.FishManagerImpl
@@ -33,6 +34,7 @@ class MoripaFishingTest : BeforeAllCallback {
             single<RarityManager> { RarityManagerImpl() }
             single<PluginDirectory> { PluginDirectoryMock() }
             single<FishManager> { FishManagerImpl() }
+            single<WorldManager> { WorldManager() }
         }
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
