@@ -1,0 +1,30 @@
+
+{
+  "id": "giant_trevally",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Giant Trevally",
+    "ja_JP": "ロウニンアジ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 1002
+    }
+  },
+  "size": {
+    "min": 122.0,
+    "max": 180.0
+  },
+  "rarity": "epic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

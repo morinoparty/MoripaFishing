@@ -1,7 +1,10 @@
 {
   "id": "marbled_sole",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Marbled Sole",
     "ja_JP": "マコガレイ"

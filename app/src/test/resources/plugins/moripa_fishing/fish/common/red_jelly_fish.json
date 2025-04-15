@@ -4,7 +4,10 @@
     "minecraft:effect give <angler> minecraft:poison 3 2",
     "minecraft:tellraw <angler> {\"text\":\"クラゲがあなたに好意を持っている!\"}"
   ],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Red Jelly Fish",
     "ja_JP": "アカクラゲ"

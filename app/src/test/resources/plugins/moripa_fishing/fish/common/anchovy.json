@@ -1,7 +1,10 @@
 {
   "id": "anchovy",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Anchovy",
     "ja_JP": "カタクチイワシ"

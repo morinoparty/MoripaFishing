@@ -1,0 +1,33 @@
+{
+  "id": "yahiro",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "<gradient:#7f0000:#ad1457>Administrator's skull",
+    "ja_JP": "<gradient:#7f0000:#ad1457>管理人の頭蓋骨"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "PLAYER_HEAD",
+    "itemMeta": {
+      "skullTexture": "ewogICJ0aW1lc3RhbXAiIDogMTU4ODI2MzM2NjY3MCwKICAicHJvZmlsZUlkIiA6ICIzODliMWE2OGY2NDc0ZGQwYTQyMTYxYjZjMjJmZGViZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJDaG9jb2xhdHQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTE1MmJkODZhNTRjMzE1YzZkYTVhNmQ1NzJiMGZhNTIzN2E4M2QyNWQ3NGViODdkYzVjOTRmY2NmNWJlN2RhNCIKICAgIH0KICB9Cn0"
+    }
+  },
+  "size": {
+    "min": 300.0,
+    "max": 500.0
+  },
+  "rarity": "mythic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [
+      "\"What a gigantic head!!!??\""
+    ],
+    "ja_JP": [
+      "「なんて巨大な頭なんだ！！！？？」"
+    ]
+  }
+} 

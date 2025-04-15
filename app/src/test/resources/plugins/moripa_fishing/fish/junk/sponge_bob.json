@@ -1,0 +1,29 @@
+{
+  "id": "sponge_bob",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Sponge Bob",
+    "ja_JP": "スポンジボブ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "SPONGE",
+    "itemMeta": {
+      "customModelData": 1
+    }
+  },
+  "size": {
+    "min": 10.0,
+    "max": 10.0
+  },
+  "rarity": "junk",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

@@ -1,0 +1,29 @@
+{
+  "id": "fishing_rod",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "A Fishing Rod Someone Dropped",
+    "ja_JP": "誰かが落とした釣り竿"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "FISHING_ROD",
+    "itemMeta": {
+      "customModelData": 1
+    }
+  },
+  "size": {
+    "min": 60.0,
+    "max": 900.0
+  },
+  "rarity": "junk",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

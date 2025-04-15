@@ -1,0 +1,33 @@
+{
+  "id": "wooden_axe",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Wooden Axe dropped by Admin",
+    "ja_JP": "管理人が落とした木の斧"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "WOODEN_AXE",
+    "itemMeta": {
+      "customModelData": 1
+    }
+  },
+  "size": {
+    "min": 80.0,
+    "max": 90.0
+  },
+  "rarity": "junk",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [
+      "//cut"
+    ],
+    "ja_JP": [
+      "//cut"
+    ]
+  }
+} 

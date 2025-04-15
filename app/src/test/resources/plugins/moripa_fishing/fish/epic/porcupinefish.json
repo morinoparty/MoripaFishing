@@ -1,0 +1,29 @@
+{
+  "id": "porcupinefish",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Porcupinefish",
+    "ja_JP": "ハリセンボン"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "PUFFERFISH",
+    "itemMeta": {
+      "customModelData": 1
+    }
+  },
+  "size": {
+    "min": 40.0,
+    "max": 70.0
+  },
+  "rarity": "epic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

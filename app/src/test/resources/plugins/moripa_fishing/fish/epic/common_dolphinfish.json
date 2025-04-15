@@ -1,0 +1,29 @@
+{
+  "id": "common_dolphinfish",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Common Dolphinfish",
+    "ja_JP": "シイラ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 1003
+    }
+  },
+  "size": {
+    "min": 54.0,
+    "max": 211.0
+  },
+  "rarity": "epic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

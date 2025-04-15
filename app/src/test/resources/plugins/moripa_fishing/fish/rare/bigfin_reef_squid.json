@@ -1,0 +1,32 @@
+{
+  "id": "bigfin_reef_squid",
+  "catchCommands": [
+    "minecraft:effect give <angler> minecraft:blindness 5 1",
+    "tellraw <angler> {\\\"text\\\":\\\" イカがあなたにお祝いのスミを吐いた!\\\"}"
+  ],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Bigfin Reef Squid",
+    "ja_JP": "アオリイカ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 101
+    }
+  },
+  "size": {
+    "min": 25.0,
+    "max": 60.0
+  },
+  "rarity": "rare",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

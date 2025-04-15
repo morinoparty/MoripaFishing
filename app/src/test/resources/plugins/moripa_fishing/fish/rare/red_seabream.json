@@ -1,7 +1,10 @@
 {
   "id": "red_seabream",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Red_Seabream",
     "ja_JP": "マダイ"

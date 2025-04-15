@@ -1,0 +1,29 @@
+{
+  "id": "pygmy_right_whale",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Pygmy Right Whale",
+    "ja_JP": "コセミクジラ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 100001
+    }
+  },
+  "size": {
+    "min": 380.0,
+    "max": 678.0
+  },
+  "rarity": "legendary",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

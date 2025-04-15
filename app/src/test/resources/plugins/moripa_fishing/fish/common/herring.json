@@ -1,7 +1,10 @@
 {
   "id": "herring",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Herring",
     "ja_JP": "ニシン"

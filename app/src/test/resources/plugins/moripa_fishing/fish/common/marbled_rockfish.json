@@ -1,7 +1,10 @@
 {
   "id": "marbled_rockfish",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Marbled Rockfish",
     "ja_JP": "カサゴ"

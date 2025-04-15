@@ -1,0 +1,29 @@
+{
+  "id": "clown_anemonefish",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Clown Anemonefish",
+    "ja_JP": "カクレクマノミ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "TROPICAL_FISH",
+    "itemMeta": {
+      "customModelData": 1
+    }
+  },
+  "size": {
+    "min": 5.0,
+    "max": 13.0
+  },
+  "rarity": "epic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

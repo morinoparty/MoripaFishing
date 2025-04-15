@@ -1,7 +1,10 @@
 {
   "id": "acanthogobius_flavimanus",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Acanthogobius Flavimanus",
     "ja_JP": "マハゼ"

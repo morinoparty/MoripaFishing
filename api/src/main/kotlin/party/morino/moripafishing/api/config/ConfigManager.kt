@@ -13,4 +13,11 @@ interface ConfigManager {
      * 設定を取得する
      */
     fun getConfig(): ConfigData
+
+
+    /**
+     * 設定を適用する
+     * @param configData 設定データ
+     */
+    fun applyConfig(configData: ConfigData)
 }

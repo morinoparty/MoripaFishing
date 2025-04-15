@@ -12,6 +12,7 @@ import org.incendo.cloud.CommandManager
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.PaperCommandManager
+import party.morino.moripafishing.ui.command.WeatherCommand
 
 /**
  * MoripaFishingプラグインのブートストラップクラス
@@ -36,6 +37,7 @@ class MoripaFishingBootstrap : PluginBootstrap {
         with(annotationParser) {
             parse(
                 // ここにコマンドのアノテーションを追加する
+                WeatherCommand()
             )
         }
         // ゲームイベントのレジストリに関する情報へのリンク

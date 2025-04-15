@@ -1,0 +1,29 @@
+{
+  "id": "white_trevally",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "White Trevally",
+    "ja_JP": "シマアジ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 1001
+    }
+  },
+  "size": {
+    "min": 24.0,
+    "max": 122.0
+  },
+  "rarity": "epic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

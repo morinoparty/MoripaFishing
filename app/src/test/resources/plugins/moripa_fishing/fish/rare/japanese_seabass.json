@@ -1,0 +1,29 @@
+{
+  "id": "japanese_seabass",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Japanese Seabass",
+    "ja_JP": "スズキ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 106
+    }
+  },
+  "size": {
+    "min": 20.0,
+    "max": 134.0
+  },
+  "rarity": "rare",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

@@ -1,7 +1,10 @@
 {
   "id": "sillago_japonica",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Sillago Japonica",
     "ja_JP": "シロギス"

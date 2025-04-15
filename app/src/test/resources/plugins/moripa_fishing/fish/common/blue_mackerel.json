@@ -1,7 +1,10 @@
 {
   "id": "blue_mackerel",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Blue Mackerel",
     "ja_JP": "ゴマサバ"

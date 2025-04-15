@@ -1,0 +1,29 @@
+{
+  "id": "black_marlin",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Black Marlin",
+    "ja_JP": "クロマグロ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 10001
+    }
+  },
+  "size": {
+    "min": 173.0,
+    "max": 458.0
+  },
+  "rarity": "legendary",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

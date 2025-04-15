@@ -1,7 +1,10 @@
 {
   "id": "thread_sail_filefish",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Thread Sail Filefish",
     "ja_JP": "カワハギ"

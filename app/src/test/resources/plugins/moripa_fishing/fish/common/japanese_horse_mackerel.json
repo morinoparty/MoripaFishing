@@ -1,7 +1,10 @@
 {
   "id": "horse_mackerel",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Japanese Horse Mackerel",
     "ja_JP": "マアジ"

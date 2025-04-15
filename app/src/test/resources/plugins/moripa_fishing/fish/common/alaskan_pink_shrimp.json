@@ -1,7 +1,10 @@
 {
   "id": "alaskan_pink_shrimp",
   "catchCommands": [],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Alaskan Pink Shrimp",
     "ja_JP": "ホッコクアカエビ"

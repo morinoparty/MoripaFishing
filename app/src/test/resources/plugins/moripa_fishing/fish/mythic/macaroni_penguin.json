@@ -1,0 +1,33 @@
+{
+  "id": "macaroni_penguin",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "<gradient:#7f0000:#ad1457>MacaroniPenguin",
+    "ja_JP": "<gradient:#7f0000:#ad1457>マカロニペンギン"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "PLAYER_HEAD",
+    "itemMeta": {
+      "skullTexture": "ewogICJ0aW1lc3RhbXAiIDogMTU4ODI2MTUwOTg0NywKICAicHJvZmlsZUlkIiA6ICI0MmU1NWU4MmI5ODU0MTBjYjFjY2I1MTMwNzE4MWQwNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJtYWNhcm9uaXBlbmd1aW5fIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2FlYTgzNjA0OThmMGU0Mzg1MWJjNTU2MjA1NTUxZmFhM2IxMWIxYmQxYTRiMDU2NjBjNTQ4ZWQwNjI5NTEwYTMiCiAgICB9CiAgfQp9"
+    }
+  },
+  "size": {
+    "min": 3.0,
+    "max": 5.0
+  },
+  "rarity": "mythic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [
+      "\"A little penguin in macaroni\""
+    ],
+    "ja_JP": [
+      "「マカロニに入った小さなペンギン」"
+    ]
+  }
+} 

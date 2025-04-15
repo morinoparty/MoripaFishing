@@ -1,0 +1,33 @@
+{
+  "id": "fox9003",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "<gradient:#7f0000:#ad1457>Fox",
+    "ja_JP": "<gradient:#7f0000:#ad1457>キツネ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "PLAYER_HEAD",
+    "itemMeta": {
+      "skullTexture": "ewogICJ0aW1lc3RhbXAiIDogMTU4ODI2MTM1Njk5MSwKICAicHJvZmlsZUlkIiA6ICIwYWNhMmI4MDc5NzM0MWViYWMwNDc4MzllMzA0ZjNlOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJGb3g5MDAzIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Y4NDJlNWUzYWIyYTQxMTE5NGNkMTlhOTVmYTA0ZGRlZGQxOGJkYzU4N2RhZjNmYTg4N2UzOTQ0ZGM1MGIwNzciLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ"
+    }
+  },
+  "size": {
+    "min": 43.0,
+    "max": 430.0
+  },
+  "rarity": "mythic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [
+      "\"Fox to die after 430 years\""
+    ],
+    "ja_JP": [
+      "「430年後に死ぬキツネ」"
+    ]
+  }
+} 

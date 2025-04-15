@@ -1,0 +1,29 @@
+{
+  "id": "black_seabream",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Black Seabream",
+    "ja_JP": "クロダイ"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "COD",
+    "itemMeta": {
+      "customModelData": 105
+    }
+  },
+  "size": {
+    "min": 17.0,
+    "max": 70.0
+  },
+  "rarity": "rare",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

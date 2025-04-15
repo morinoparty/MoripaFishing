@@ -1,0 +1,29 @@
+{
+  "id": "atlantic_salmon",
+  "catchCommands": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
+  "displayName": {
+    "en_US": "Atlantic Salmon",
+    "ja_JP": "アトランティックサーモン"
+  },
+  "icon": "",
+  "itemStack": {
+    "material": "SALMON",
+    "itemMeta": {
+      "customModelData": 1
+    }
+  },
+  "size": {
+    "min": 90.0,
+    "max": 143.0
+  },
+  "rarity": "epic",
+  "weight": 10.0,
+  "lore": {
+    "en_US": [],
+    "ja_JP": []
+  }
+} 

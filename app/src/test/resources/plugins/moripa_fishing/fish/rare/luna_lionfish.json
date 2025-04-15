@@ -3,7 +3,10 @@
   "catchCommands": [
     "minecraft:effect give <angler> minecraft:poison 3 2"
   ],
-  "conditions": [],
+  "conditions": {
+    "weather": [],
+    "world": []
+  },
   "displayName": {
     "en_US": "Luna Lionfish",
     "ja_JP": "ミノカサゴ"
