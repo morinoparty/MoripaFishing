@@ -1,9 +1,7 @@
 package party.morino.moripafishing.api.model.world
 
 import kotlinx.serialization.Serializable
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.key.Namespaced
-import party.morino.moripafishing.api.utils.FishingWorldIdSerializer
+import party.morino.moripafishing.api.utils.serializer.FishingWorldIdSerializer
 
 /**
  * ワールドのIDを表すクラス

@@ -75,7 +75,6 @@ class FishManagerImpl : FishManager, KoinComponent {
             encodeDefaults = true
             isLenient = true
         }
-        
         // ルートディレクトリのファイルを処理
         processFishFiles(fishDir, json)
         

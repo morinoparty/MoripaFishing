@@ -3,10 +3,10 @@ package party.morino.moripafishing.api.model.fish
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
 import party.morino.moripafishing.api.model.rarity.RarityId
-import party.morino.moripafishing.api.utils.ComponentSerializer
-import party.morino.moripafishing.api.utils.LocaleSerializer
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.api.utils.serializer.ComponentSerializer
+import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
 import java.util.*
 
 @Serializable

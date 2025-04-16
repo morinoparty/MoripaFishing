@@ -31,7 +31,6 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     private lateinit var worldManager: WorldManager
     // FishManagerのインスタンスを遅延初期化する
     private lateinit var fishManager: FishManager
-
     // AnglerManagerのインスタンスを遅延初期化する
     private lateinit var anglerManager: AnglerManager
 

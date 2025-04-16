@@ -13,7 +13,7 @@ import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
-import party.morino.moripafishing.config.PluginDirectoryMock
+import party.morino.moripafishing.mocks.config.PluginDirectoryMock
 import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl

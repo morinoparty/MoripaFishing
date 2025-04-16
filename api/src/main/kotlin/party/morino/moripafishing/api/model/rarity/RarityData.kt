@@ -2,11 +2,9 @@ package party.morino.moripafishing.api.model.rarity
 
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
-import party.morino.moripafishing.api.model.rarity.RarityId
-import party.morino.moripafishing.api.utils.ComponentSerializer
-import party.morino.moripafishing.api.utils.LocaleSerializer
-import java.util.Locale
+import party.morino.moripafishing.api.utils.serializer.ComponentSerializer
+import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
+import java.util.*
 
 /**
  * 魚のレアリティを表すクラス

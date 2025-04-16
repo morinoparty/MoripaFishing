@@ -1,4 +1,3 @@
-import React from "react";
 import { Input } from "@site/src/components/ui/input";
 import { Label } from "@site/src/components/ui/label";
 import {
@@ -39,22 +38,28 @@ const RadioRarety = () => {
     return (
         <div className="pb-4">
             <Label className="text-md">レアリティ</Label>
-            <Select onValueChange={(value) => {
-                setRarity(value as Rarity)
-                console.log(value)
-            }}>
+            <Select
+                onValueChange={(value) => {
+                    setRarity(value as Rarity);
+                    console.log(value);
+                }}
+            >
                 <SelectTrigger className="w-[180px]">
                     <SelectValue
                         className="text-gray-500"
                         placeholder="Rarity"
                     />
                 </SelectTrigger>
-                <SelectContent  className="bg-white dark:bg-[var(--ifm-background-color)]">
-                    {useAtomValue(raretyExpressionAtom).map(([rarity, value]) => (
-                            <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
-                    ))}
+                <SelectContent className="bg-white dark:bg-[var(--ifm-background-color)]">
+                    {useAtomValue(raretyExpressionAtom).map(
+                        ([rarity, value]) => (
+                            <SelectItem key={rarity} value={rarity}>
+                                {rarity}
+                            </SelectItem>
+                        ),
+                    )}
                 </SelectContent>
-                </Select>
+            </Select>
         </div>
     );
 };
@@ -65,8 +70,16 @@ const SizeSelector = () => {
         <div className="pb-4">
             <Label className="text-md">サイズ</Label>
             <div className="flex flex-row gap-6 pt-2">
-                <Input type="number" value={size[0]} onChange={(e) => setSize([Number(e.target.value), size[1]])} />
-                <Input type="number" value={size[1]} onChange={(e) => setSize([size[0], Number(e.target.value)])} />
+                <Input
+                    type="number"
+                    value={size[0]}
+                    onChange={(e) => setSize([Number(e.target.value), size[1]])}
+                />
+                <Input
+                    type="number"
+                    value={size[1]}
+                    onChange={(e) => setSize([size[0], Number(e.target.value)])}
+                />
             </div>
         </div>
     );
@@ -79,7 +92,7 @@ const DisplayScore = () => {
     const list = [];
     const step = (max - min) / 10; // ステップサイズを計算
     for (let i = min; i <= max; i += step) {
-        list.push(Number((i).toFixed(2))); // 小数点以下2桁に丸めてリストに追加
+        list.push(Number(i.toFixed(2))); // 小数点以下2桁に丸めてリストに追加
     }
 
     const mid = (min + max) / 2;
@@ -100,7 +113,11 @@ const DisplayScore = () => {
         x = Math.abs(x);
 
         const t = 1.0 / (1.0 + p * x);
-        const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+        const y =
+            1.0 -
+            ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) *
+                t *
+                Math.exp(-x * x);
 
         return sign * y;
     };
@@ -112,37 +129,45 @@ const DisplayScore = () => {
         return (1 + erf(z)) / 2;
     };
 
-    const expression = rarityExpressions.find(([r, expression]) => r === rarity)[1];
-    const score : number[] = list.map((size) => {
+    const expression = rarityExpressions.find(
+        ([r, expression]) => r === rarity,
+    )[1];
+    const score: number[] = list.map((size) => {
         //evalで計算
-        console.log(size, cdf(size))
+        console.log(size, cdf(size));
         return eval(expression.replace("<length_rate>", cdf(size).toString()));
     });
-    
+
     return (
         <>
-        {expression}
-        <table className="w-2/3 pt-4">
-            <thead className="bg-gray-100">
-                <tr>
-                    <th className="w-xs">サイズ</th>
-                    <th className="w-xs">スコア </th>
-                    <th className="w-xs">CDF 累積分布関数</th>
-                </tr>
-            </thead>
-            <tbody>
-                {list.map((size, index) => {
-                    const cdfValue = cdf(size)
-                    return (
-                        <tr key={size}>
-                            <td className="w-xs text-right">{size.toFixed(2)} cm</td>
-                            <td className="w-xs text-right">{score[index].toFixed(2)}</td>
-                            <td className="w-xs text-right">{Number(cdfValue * 100).toFixed(2)} %</td>
-                        </tr>
-                    );
-                })}
-            </tbody>
-        </table>
+            {expression}
+            <table className="w-2/3 pt-4">
+                <thead className="bg-gray-100">
+                    <tr>
+                        <th className="w-xs">サイズ</th>
+                        <th className="w-xs">スコア </th>
+                        <th className="w-xs">CDF 累積分布関数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {list.map((size, index) => {
+                        const cdfValue = cdf(size);
+                        return (
+                            <tr key={size}>
+                                <td className="w-xs text-right">
+                                    {size.toFixed(2)} cm
+                                </td>
+                                <td className="w-xs text-right">
+                                    {score[index].toFixed(2)}
+                                </td>
+                                <td className="w-xs text-right">
+                                    {Number(cdfValue * 100).toFixed(2)} %
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </>
     );
 };

@@ -1,11 +1,11 @@
 package party.morino.moripafishing.core.rarity
 
-import party.morino.moripafishing.api.model.rarity.RarityData
-import party.morino.moripafishing.api.core.rarity.RarityManager
-import party.morino.moripafishing.api.config.PluginDirectory
+import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import kotlinx.serialization.json.Json
+import party.morino.moripafishing.api.config.PluginDirectory
+import party.morino.moripafishing.api.core.rarity.RarityManager
+import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.rarity.RarityId
 
 /**
@@ -27,10 +27,14 @@ class RarityManagerImpl : RarityManager, KoinComponent {
         rarities.add(rarity)
     }
 
+    /**
+     * レアリティを取得する
+     * @param id レアリティのID
+     * @return レアリティ
+     */
     override fun getRarity(id: RarityId): RarityData? {
         return rarities.find { it.id == id }
     }
-
 
     /**
      * 登録されているレアリティの一覧を取得する

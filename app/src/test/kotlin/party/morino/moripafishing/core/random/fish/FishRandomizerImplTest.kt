@@ -11,6 +11,7 @@ import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.fish.FishRandomizer
+import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
@@ -18,10 +19,13 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
 class FishRandomizerImplTest: KoinTest {
     val fishManager : FishManager by inject()
     val randomizeManager : RandomizeManager by inject()
+    val worldManager : WorldManager by inject()
     val fishRandomizer : FishRandomizer by lazy{
         randomizeManager.getFishRandomizer()
     }
-    val fishingWorldId = FishingWorldId("common")
+    val fishingWorldId : FishingWorldId by lazy {
+        worldManager.getDefaultWorldId()
+    }
 
     @Test
     fun getRandomFishWithFishData() {

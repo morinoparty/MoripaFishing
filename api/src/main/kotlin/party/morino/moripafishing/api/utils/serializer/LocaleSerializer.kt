@@ -1,4 +1,4 @@
-package party.morino.moripafishing.api.utils
+package party.morino.moripafishing.api.utils.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -6,7 +6,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.util.Locale
+import java.util.*
 
 /**
  * Localeのシリアライザ

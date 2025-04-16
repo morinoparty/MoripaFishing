@@ -5,11 +5,11 @@ import de.articdive.jnoise.pipeline.JNoise
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.api.config.WeatherConfig
-import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.api.config.weather.WeatherConfig
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
-import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.core.world.WorldManager
+import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.WeatherType
 import java.security.MessageDigest
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -24,12 +24,12 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
 
     private fun getWeatherConfig(fishingWorldId: FishingWorldId): WeatherConfig {
         return worldManager.getWorldDetails(fishingWorldId)?.weatherConfig
-            ?: configManager.getConfig().defaultWeatherConfig
+            ?: configManager.getConfig().world.defaultWeatherConfig
     }
 
     private val startDate : ZonedDateTime by lazy{
         ZonedDateTime.of(
-            2023, 10, 1, 0, 0, 0, 0, ZoneId.of(configManager.getConfig().defaultWeatherConfig.dayCycleTimeZone)
+            2023, 10, 1, 0, 0, 0, 0, ZoneId.of(configManager.getConfig().world.defaultWeatherConfig.dayCycleTimeZone)
         )
     }
 
@@ -40,7 +40,7 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
      * @param seed 設定するシード値
      */
     fun setSeed(seed: Int) {
-        val pepper = configManager.getConfig().defaultWeatherConfig.hashPepper
+        val pepper = configManager.getConfig().world.defaultWeatherConfig.hashPepper
         val hashed = MessageDigest.getInstance("SHA-256").digest((pepper + seed).toByteArray()).let {
             // Longに変換してからIntの範囲に収める
             (it.take(3).joinToString("") { "%02x".format(it) }.toLong(16) and 0x7FFFFFFF).toInt()
@@ -52,7 +52,7 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
      *
      */
     override fun setSeedWithWorldId(fishingWorldId: FishingWorldId) {
-        val pepper = configManager.getConfig().defaultWeatherConfig.hashPepper
+        val pepper = configManager.getConfig().world.defaultWeatherConfig.hashPepper
         val hashed = MessageDigest.getInstance("SHA-256").digest((pepper + fishingWorldId).toByteArray()).let {
             (it.take(3).joinToString("") { "%02x".format(it) }.toLong(16) and 0x7FFFFFFF).toInt()
         }

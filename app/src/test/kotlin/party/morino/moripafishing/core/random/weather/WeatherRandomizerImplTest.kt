@@ -4,14 +4,16 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import party.morino.moripafishing.MoripaFishingTest
+import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import java.time.ZonedDateTime
 import kotlin.math.absoluteValue
 
 @ExtendWith(MoripaFishingTest::class)
 class WeatherRandomizerImplTest: KoinTest {
-
+    private val worldManager : WorldManager by inject()
     private val weatherRandomizer by lazy {
         WeatherRandomizerImpl()
     }
@@ -35,8 +37,7 @@ class WeatherRandomizerImplTest: KoinTest {
     fun getRandomWeather() {
         repeat(10) {
             weatherRandomizer.setSeed(it)
-            val weatherList = weatherRandomizer.getFeatureWeather(10000, FishingWorldId("default")
-            )
+            val weatherList = weatherRandomizer.getFeatureWeather(10000, worldManager.getDefaultWorldId())
             val order = weatherList.map { it.ordinal }
             val diff = order.zipWithNext { a, b -> (b - a).absoluteValue }
             // println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.rarity.RarityManager
-import party.morino.moripafishing.api.utils.RarityIdSerializer
+import party.morino.moripafishing.api.utils.serializer.RarityIdSerializer
 
 @Serializable(with = RarityIdSerializer::class)
 class RarityId(val value: String) : KoinComponent { // value class からクラスに変更

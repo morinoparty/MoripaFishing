@@ -1,30 +1,26 @@
-package party.morino.moripafishing.config
+package party.morino.moripafishing.mocks.config
 
 import party.morino.moripafishing.api.config.PluginDirectory
 import java.io.File
 
 /**
  * プラグインのディレクトリを管理するモッククラス
- * テスト用のディレクトリ構造を提供する
  */
 class PluginDirectoryMock : PluginDirectory {
-    private val rootDirectory: File = File("src/test/resources/plugins/moripa_fishing")
-    private val rarityDirectory: File = File(rootDirectory, "rarity")
-    private val fishDirectory: File = File(rootDirectory, "fish")
-
-    init {
-        // テスト用のディレクトリを作成
-        rootDirectory.mkdirs()
-        rarityDirectory.mkdirs()
-        fishDirectory.mkdirs()
-    }
+    private val _rootDirectory: File = File("src/test/resources/plugins/moripa_fishing")
+    private val _rarityDirectory: File = File(_rootDirectory, "rarity")
+    private val _fishDirectory: File = File(_rootDirectory, "fish")
+    private val _worldDirectory: File = File(_rootDirectory, "world")
 
     /**
      * プラグインのルートディレクトリを取得する
      * @return プラグインのルートディレクトリ
      */
     override fun getRootDirectory(): File {
-        return rootDirectory
+        if(!_rootDirectory.exists()) {
+            _rootDirectory.mkdirs()
+        }
+        return _rootDirectory
     }
 
     /**
@@ -32,7 +28,10 @@ class PluginDirectoryMock : PluginDirectory {
      * @return レアリティの設定ファイルが格納されているディレクトリ
      */
     override fun getRarityDirectory(): File {
-        return rarityDirectory
+        if(!_rarityDirectory.exists()) {
+            _rarityDirectory.mkdirs()
+        }
+        return _rarityDirectory
     }
 
     /**
@@ -40,6 +39,20 @@ class PluginDirectoryMock : PluginDirectory {
      * @return 魚の設定ファイルが格納されているディレクトリ
      */
     override fun getFishDirectory(): File {
-        return fishDirectory
+        if(!_fishDirectory.exists()) {
+            _fishDirectory.mkdirs()
+        }
+        return _fishDirectory
+    }
+
+    /**
+     * ワールドの設定ファイルが格納されているディレクトリを取得する
+     * @return ワールドの設定ファイルが格納されているディレクトリ
+     */
+    override fun getWorldDirectory(): File {
+        if(!_worldDirectory.exists()) {
+            _worldDirectory.mkdirs()
+        }
+        return _worldDirectory
     }
 } 

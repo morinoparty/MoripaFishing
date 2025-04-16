@@ -1,7 +1,7 @@
 package party.morino.moripafishing.api.model.fish
 
 import kotlinx.serialization.Serializable
-import party.morino.moripafishing.api.utils.FishIdSerializer
+import party.morino.moripafishing.api.utils.serializer.FishIdSerializer
 
 /**
  * 魚のIDを表すクラス

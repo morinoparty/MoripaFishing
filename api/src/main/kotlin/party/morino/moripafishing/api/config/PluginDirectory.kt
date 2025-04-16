@@ -23,4 +23,10 @@ interface PluginDirectory {
      * @return 魚の設定ファイルが格納されているディレクトリ
      */
     fun getFishDirectory(): File
+
+    /**
+     * ワールドの設定ファイルが格納されているディレクトリを取得する
+     * @return ワールドの設定ファイルが格納されているディレクトリ
+     */
+    fun getWorldDirectory(): File
 } 

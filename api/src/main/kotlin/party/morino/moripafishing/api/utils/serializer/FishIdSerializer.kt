@@ -1,4 +1,4 @@
-package party.morino.moripafishing.api.utils
+package party.morino.moripafishing.api.utils.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

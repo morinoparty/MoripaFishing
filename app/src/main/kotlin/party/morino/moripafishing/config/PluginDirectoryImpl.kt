@@ -15,6 +15,7 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
     private val _rootDirectory: File by lazy { plugin.dataFolder }
     private val _rarityDirectory: File by lazy { File(_rootDirectory, "rarity") }
     private val _fishDirectory: File by lazy { File(_rootDirectory, "fish") }
+    private val _worldDirectory: File by lazy { File(_rootDirectory, "world") }
 
     /**
      * プラグインのルートディレクトリを取得する
@@ -47,5 +48,16 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
             _fishDirectory.mkdirs()
         }
         return _fishDirectory
+    }
+
+    /**
+     * ワールドの設定ファイルが格納されているディレクトリを取得する
+     * @return ワールドの設定ファイルが格納されているディレクトリ
+     */
+    override fun getWorldDirectory(): File {
+        if(!_worldDirectory.exists()) {
+            _worldDirectory.mkdirs()
+        }
+        return _worldDirectory
     }
 } 

@@ -1,6 +1,6 @@
 package party.morino.moripafishing.api.core.world
 
-import party.morino.moripafishing.api.config.WorldDetailConfig
+import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
 /**
