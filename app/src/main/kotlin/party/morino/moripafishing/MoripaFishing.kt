@@ -1,19 +1,20 @@
 package party.morino.moripafishing
 
 import org.bukkit.plugin.java.JavaPlugin
-import org.koin.core.component.KoinComponent
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.getOrNull
 import org.koin.dsl.module
 import party.morino.moripafishing.api.MoripaFishingAPI
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
+import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
+import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
@@ -30,6 +31,9 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     private lateinit var worldManager: WorldManager
     // FishManagerのインスタンスを遅延初期化する
     private lateinit var fishManager: FishManager
+
+    // AnglerManagerのインスタンスを遅延初期化する
+    private lateinit var anglerManager: AnglerManager
 
     /**
      * プラグインの有効化時に呼び出されるメソッド
@@ -52,7 +56,8 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         worldManager = GlobalContext.get().get()
         // FishManagerのインスタンスを取得
         fishManager = GlobalContext.get().get()
-        // WorldManagerのインスタンスを取得
+        // AnglerManagerのインスタンスを取得
+        anglerManager = GlobalContext.get().get()
 
         // データベースの初期化
         // databaseManager.initialize()
@@ -74,6 +79,7 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
             single<WorldManager> { WorldManagerImpl() }
             single<PluginDirectory> { PluginDirectoryImpl() }
             single<FishManager> { FishManagerImpl() }
+            single<AnglerManager> { AnglerManagerImpl() }
         }
 
         getOrNull() ?: GlobalContext.startKoin {
@@ -98,6 +104,10 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     }
 
     override fun getPluginDirectory(): PluginDirectory {
+        return GlobalContext.get().get()
+    }
+
+    override fun getAnglerManager(): AnglerManager {
         return GlobalContext.get().get()
     }
 }

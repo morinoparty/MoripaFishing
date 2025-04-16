@@ -13,7 +13,18 @@
             {
                 "id": "default",
                 "name": "つりとぴあ",
-                "radius": null,
+                "borderSize": null,
+                "borderCentral": {
+                    "first": 0.0,
+                    "second": 0.0
+                },
+                "spawnLocationData": {
+                    "x": 0.0,
+                    "y": 64.0,
+                    "z": 0.0,
+                    "yaw": 90.0,
+                    "pitch": 0.0
+                },
                 "weatherConfig": null
             }
         ],
@@ -23,7 +34,9 @@
             "spawnAnimals": false,
             "receiveDamage": false
         },
-        "defaultWorldRadius": 100
+        "defaultWorldSize": 100.0,
+        "defaultWorldGenerator": "Terra:OVERWORLD",
+        "defaultWorldBiome": null
     },
     "defaultWeatherConfig": {
         "dayCycleTimeZone": "Asia/Tokyo",

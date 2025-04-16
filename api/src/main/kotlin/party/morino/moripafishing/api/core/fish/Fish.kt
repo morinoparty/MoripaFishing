@@ -1,9 +1,9 @@
 package party.morino.moripafishing.api.core.fish
 
 import net.kyori.adventure.text.Component
-import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.fish.FishId
-import java.util.Locale
+import party.morino.moripafishing.api.model.rarity.RarityData
+import java.util.*
 
 /**
  * 魚を表すインターフェース
@@ -38,4 +38,5 @@ interface Fish {
      * @return 魚の価値
      */
     fun getWorth(): Double
-} 
+
+}

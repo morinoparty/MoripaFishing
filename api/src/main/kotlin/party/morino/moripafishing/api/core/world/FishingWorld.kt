@@ -45,10 +45,17 @@ interface FishingWorld {
     fun getWorldSpawnPosition() : LocationData
 
     /**
-     * ワールドの半径を取得する。
-     * @return Int ワールドの半径
+     * ワールドの大きさを取得する。
+     * @return Double ワールドの大きさ
+     * */
+    fun getSize(): Double
+
+
+    /**
+     * ワールドの大きさを設定する。
+     * @param size ワールドの大きさ
      */
-    fun getRadius(): Int
+    fun setSize(size : Double)
 
     /**
      * ワールドの中心位置を取得する。
@@ -56,4 +63,16 @@ interface FishingWorld {
      */
     fun getCenter(): LocationData
 
+    /**
+     * ワールドの中心位置を取得する。
+     * @param locationData ワールドの中心位置
+     */
+    fun setCenter(locationData: LocationData)
+
+    /**
+     * ワールドの設定を更新する。
+     * ワールドの設定は、ワールドの中心位置や半径、天気および時間などの情報を含む。
+     * このメソッドは、ワールドの設定を更新するために使用される。
+     */
+    fun refreshSetting()
 }

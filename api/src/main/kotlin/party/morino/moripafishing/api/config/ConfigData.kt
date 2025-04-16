@@ -1,8 +1,9 @@
 package party.morino.moripafishing.api.config
 
 import kotlinx.serialization.Serializable
-import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.LocationData
+import party.morino.moripafishing.api.model.world.WeatherType
 
 // プラグイン全体の設定データを保持するデータクラス
 @Serializable
@@ -18,9 +19,12 @@ data class ConfigData(
 @Serializable
 data class WorldConfig(
     val defaultId: FishingWorldId = FishingWorldId("default"), // デフォルトのワールドID
+    //TODO Worldを切り離して管理する
     val list: List<WorldDetailConfig> = listOf(WorldDetailConfig()), // ワールドの詳細設定リスト
     val spawnConfig: SpawnConfig = SpawnConfig(), // スポーン設定
-    val defaultWorldRadius : Int = 100
+    val defaultWorldSize: Double = 100.0,
+    val defaultWorldGenerator: String = "Terra:OVERWORLD",
+    val defaultWorldBiome: String? = null
 )
 
 // ワールドの詳細設定を保持するデータクラス
@@ -28,8 +32,9 @@ data class WorldConfig(
 data class WorldDetailConfig(
     val id:  @Serializable FishingWorldId = FishingWorldId("default"), // ワールドのID
     val name: String = "つりとぴあ", // ワールドの名前
-    val worldGenerator : String = "Terra:OVERWORLD", // ワールドの生成器
-    val radius: Int? = null,
+    val borderSize: Double? = null,
+    val borderCentral: Pair<Double, Double> = Pair(0.0, 0.0),
+    val spawnLocationData: LocationData = LocationData(0.0, 64.0, 0.0, 90.0, 0.0), // スポーン地点の座標
     val weatherConfig : WeatherConfig? = null
 )
 

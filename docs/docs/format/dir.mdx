@@ -1,6 +1,5 @@
 ---
 title: ディレクトリ
-sidebar_position: 2
 ---
 
 # ディレクトリ
@@ -12,14 +11,16 @@ Moripa Fishingは以下のディレクトリ配置をサポートしています
 ```bash
 plugins/moripa_fishing/
 ├── config.json
-├── world.json
 ├── database.db
 ├── lang/
 │   ├── en_US.properties
 │   └── ja_JP.properties
-├── fish/ ここに雑に入れると自動で移動します。
+├── fish/ 
+│    ├── <fish_name>.json ここに雑に入れると自動で<rarity_name>ディレクトリに移動します。
 │    └── <rarity_name>/
 │        └── <fish_name>.json
+├── world/
+│    └── <world_name>.json
 └── rarity/
      └── <rarity_name>.json
 ```

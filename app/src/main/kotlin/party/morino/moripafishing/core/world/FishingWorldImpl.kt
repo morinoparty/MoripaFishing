@@ -1,5 +1,8 @@
 package party.morino.moripafishing.core.world
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.World
@@ -12,6 +15,7 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.utils.coroutines.minecraft
 
 class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, KoinComponent {
     private val plugin : MoripaFishing by inject()
@@ -41,24 +45,32 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     }
 
     override fun setWeather(weatherType: WeatherType) {
-        when (weatherType) {
-            WeatherType.SUNNY -> {
-                world.setStorm(false)
-                world.isThundering = false
+        runBlocking {
+            withContext(Dispatchers.minecraft) {
+                when (weatherType) {
+                    WeatherType.SUNNY -> {
+                        world.setStorm(false)
+                        world.isThundering = false
+                    }
+
+                    WeatherType.CLOUDY -> {
+                        world.setStorm(false)
+                        world.isThundering = true
+                    }
+
+                    WeatherType.RAINY -> {
+                        world.setStorm(true)
+                        world.isThundering = false
+                    }
+
+                    WeatherType.THUNDERSTORM -> {
+                        world.setStorm(true)
+                        world.isThundering = true
+                    }
+
+                    else -> {}
+                }
             }
-            WeatherType.CLOUDY -> {
-                world.setStorm(false)
-                world.isThundering = true
-            }
-            WeatherType.RAINY -> {
-                world.setStorm(true)
-                world.isThundering = false
-            }
-            WeatherType.THUNDERSTORM -> {
-                world.setStorm(true)
-                world.isThundering = true
-            }
-            else -> {}
         }
         this.weatherType = weatherType
     }
@@ -68,11 +80,23 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
         TODO("Not yet implemented")
     }
 
-    override fun getRadius(): Int {
-        TODO("Not yet implemented")
+    override fun getSize(): Double {
+        return world.worldBorder.size
+    }
+
+    override fun setSize(size: Double) {
+        world.worldBorder.size = size
     }
 
     override fun getCenter(): LocationData {
+        TODO("Not yet implemented")
+    }
+
+    override fun setCenter(locationData: LocationData) {
+        TODO("Not yet implemented")
+    }
+
+    override fun refreshSetting() {
         TODO("Not yet implemented")
     }
 }

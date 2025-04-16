@@ -2,8 +2,9 @@ package party.morino.moripafishing.api
 
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
-import party.morino.moripafishing.api.core.random.RandomizeManager
+import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.world.WorldManager
 
 /**
@@ -41,5 +42,11 @@ interface MoripaFishingAPI {
      * @return プラグインディレクトリ
      */
     fun getPluginDirectory(): PluginDirectory
+
+    /**
+     * 釣り人マネージャーを取得する
+     * @return 釣り人マネージャー
+     */
+    fun getAnglerManager(): AnglerManager
 }
 

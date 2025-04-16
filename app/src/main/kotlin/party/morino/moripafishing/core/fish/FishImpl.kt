@@ -5,12 +5,14 @@ import net.objecthunter.exp4j.ExpressionBuilder
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.fish.Fish
-import party.morino.moripafishing.api.model.fish.FishId
-import party.morino.moripafishing.api.model.fish.FishData
-import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.core.rarity.RarityManager
-import java.util.Locale
-import kotlin.math.*
+import party.morino.moripafishing.api.model.fish.FishData
+import party.morino.moripafishing.api.model.fish.FishId
+import party.morino.moripafishing.api.model.rarity.RarityData
+import java.util.*
+import kotlin.math.abs
+import kotlin.math.exp
+import kotlin.math.sqrt
 
 
 /**
@@ -113,5 +115,9 @@ class FishImpl(
         val rarityData = rarityManager.getRarity(fishData.rarity)
         return fishData.worthExpression ?: rarityData?.worthExpression
             ?: throw IllegalStateException("Worth expression not found for fish: ${fishData.id}")
+    }
+
+    override fun toString(): String {
+        return "FishImpl(fishData=${fishData.id}, size=$size, rarity=${fishData.rarity}, worth=${getWorth()})"
     }
 } 

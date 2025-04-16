@@ -6,17 +6,19 @@ import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.getOrNull
 import org.koin.dsl.module
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.api.core.random.RandomizeManager
-import party.morino.moripafishing.core.random.RandomizeManagerImpl
-import party.morino.moripafishing.api.core.rarity.RarityManager
-import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.log.LogManager
+import party.morino.moripafishing.api.core.random.RandomizeManager
+import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryMock
 import party.morino.moripafishing.core.fish.FishManagerImpl
-import party.morino.moripafishing.core.world.WorldManagerImpl
+import party.morino.moripafishing.core.log.LogManagerImpl
+import party.morino.moripafishing.core.random.RandomizeManagerImpl
+import party.morino.moripafishing.core.rarity.RarityManagerImpl
+import party.morino.moripafishing.mocks.world.WorldManagerMock
 
 /**
  * MoripaFishingのテスト用拡張機能
@@ -33,7 +35,8 @@ class MoripaFishingTest : BeforeAllCallback {
             single<RarityManager> { RarityManagerImpl() }
             single<PluginDirectory> { PluginDirectoryMock() }
             single<FishManager> { FishManagerImpl() }
-            single<WorldManager> { WorldManagerImpl() }
+            single<WorldManager> { WorldManagerMock() }
+            single<LogManager> { LogManagerImpl() }
         }
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
