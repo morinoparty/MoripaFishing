@@ -56,6 +56,13 @@ MoripaFishingは、サーバー管理者が独自の魚、レアリティ、そ�
 
 バグ報告や機能提案は、GitHub Issuesまでお気軽にどうぞ！プルリクエストも歓迎します。
 
-## 📜 ライセンス
+```bash
+pnpm install -g commitizen git-cz cz-emoji
+commitizen init git-cz --save-dev --save-exact
+```
 
-このプロジェクトは [MIT License](https://opensource.org/licenses/MIT) の下で公開されています。
+```bash
+git add .
+git cz
+git push
+```
