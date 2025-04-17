@@ -80,7 +80,18 @@ class WorldManagerMock : WorldManager, KoinComponent {
     /**
      * ワールドを作成するのだ (モック用、常にnull)
      */
-    override fun createWorld(fishingWorldId: FishingWorldId): FishingWorld? {
-        return null // モックではワールド作成をサポートしないのだ
+    override fun createWorld(fishingWorldId: FishingWorldId): Boolean {
+        worldIdList.plus(fishingWorldId)
+        return true
+    }
+
+    override fun createWorld(fishingWorldId: FishingWorldId, generator: String?, biome: String?): Boolean {
+        worldIdList.plus(fishingWorldId)
+        return true
+    }
+
+    override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
+        worldIdList.minus(fishingWorldId)
+        return true
     }
 } 
