@@ -11,7 +11,7 @@ import {
     HandHelping,
 } from "lucide-react";
 import type React from "react";
-import type { Command } from "../types/command";
+import type { Command } from "../../types/command";
 
 interface CommandLineProps {
     command: Command;

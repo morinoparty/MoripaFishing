@@ -1,5 +1,5 @@
 import type React from "react";
-import type { Command } from "../types/command";
+import type { Command } from "../../types/command";
 import { CommandLine } from "./command-line";
 
 interface CommandListProps {

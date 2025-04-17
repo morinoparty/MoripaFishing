@@ -32,7 +32,7 @@ MoripaFishingは、サーバー管理者が独自の魚、レアリティ、そ�
     ```bash
     ./gradlew build
     ```
-    ビルドが成功すると、`app/build/libs/` ディレクトリにプラグインのJARファイル (`MoripaFishing-*.jar`) が生成されます。
+    ビルドが成功すると、`app/build/libs/` ディレクトリにプラグインのJARファイル (`app.jar`) が生成されます。
 3.  **インストール:**
     *   生成されたJARファイルを、お使いのMinecraftサーバーの `plugins/` ディレクトリに配置します。
     *   サーバーを起動（または再起動）します。初回起動時に `plugins/MoripaFishing/` ディレクトリとデフォルトの設定ファイルが生成されます。
@@ -55,14 +55,3 @@ MoripaFishingは、サーバー管理者が独自の魚、レアリティ、そ�
 ## 🤝 コントリビューション
 
 バグ報告や機能提案は、GitHub Issuesまでお気軽にどうぞ！プルリクエストも歓迎します。
-
-```bash
-pnpm install -g commitizen git-cz cz-emoji
-commitizen init git-cz --save-dev --save-exact
-```
-
-```bash
-git add .
-git cz
-git push
-```

@@ -1,0 +1,75 @@
+---
+title: ワールド管理コマンド
+---
+
+export const commandList = [
+    {
+        command: "/mf world create <id> [generator] [biome]",
+        description: "ワールドを作成します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.create",
+        status: "proposal"
+    },{
+        command: "/mf world list",
+        description: "ワールド一覧を表示します",
+        tags: ["player"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.list",
+        status: "stable"
+    },
+    {
+        command: "/mf world transfer <id> <player>",
+        description: "ワールドを移動します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.transfer",
+        status: "proposal"
+    },
+    {
+        command: "/mf world delete <id>",
+        description: "ワールドを削除します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.delete",
+        status: "proposal"
+    },
+    
+    {
+        command: "/mf world config set spawn <id>",
+        description: "ワールドのスポーン座標を設定します(Only player)",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.config.set",
+        status: "proposal"
+    },
+    {
+        command: "/mf world config set center <id> <x> <y> <z>",
+        description: "ワールドの中心座標を設定します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.config.set",
+        status: "proposal"
+    },
+    {
+        command: "/mf world config set size <id> <size>",
+        description: "ワールドのサイズを設定します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.config.set",
+        status: "proposal"
+    },
+    {
+        command: "/mf world config view <id>",
+        description: "ワールドの設定を表示します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.config.view",
+        status: "proposal"
+    }
+];
+import { CommandList } from "@site/src/components/commands/command-list";
+
+# コマンド
+
+<CommandList list={commandList} />

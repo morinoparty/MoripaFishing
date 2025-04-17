@@ -29,7 +29,7 @@ class WeatherRandomizerImplTest: KoinTest {
      * 1000回の天気を取得し、隣接する天気の順序が1以内であることを確認する
      * 実行するには、以下のコマンドを実行してください。
      * ```
-     * ./gradlew test --tests "party.morino.moripafishing.random.weather.WeatherRandomizerImplTest.getRandomWeather"
+     * ./gradlew test --tests "party.morino.moripafishing.core.random.weather.WeatherRandomizerImplTest.getRandomWeather"
      * ```
      */
     @Test

@@ -1,4 +1,4 @@
-package party.morino.moripafishing.ui.command
+package party.morino.moripafishing.ui.commands
 
 import org.koin.core.component.KoinComponent
 

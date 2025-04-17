@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.kotlin.dsl.testRuntimeOnly
 import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
+import party.morino.moripafishing.GenerateCommandListTask
 
 plugins {
     java
@@ -92,4 +93,20 @@ sourceSets.main {
             }
         }
     }
+}
+
+tasks.register<GenerateCommandListTask>("generateCommandList") {
+    // タスクの説明
+    description = "Detects classes annotated with @Command using reflection."
+    // タスクのグループ
+    group = "verification"
+
+    // appモジュールのメインソースセットを取得
+    val mainSourceSet = sourceSets.main.get()
+
+    // タスクの入力プロパティに値を設定する
+    // コンパイルされたクラスが出力されるディレクトリを指定
+    classesDirectories.from(mainSourceSet.output.classesDirs)
+    // 実行に必要な依存関係を含むクラスパスを指定
+    runtimeClasspath.from(mainSourceSet.runtimeClasspath)
 }

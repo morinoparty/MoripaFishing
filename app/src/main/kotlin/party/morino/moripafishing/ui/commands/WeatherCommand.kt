@@ -1,4 +1,4 @@
-package party.morino.moripafishing.ui.command
+package party.morino.moripafishing.ui.commands
 
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.bukkit.Bukkit

@@ -12,7 +12,7 @@ import org.incendo.cloud.CommandManager
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.PaperCommandManager
-import party.morino.moripafishing.ui.command.WeatherCommand
+import party.morino.moripafishing.ui.commands.WeatherCommand
 
 /**
  * MoripaFishingプラグインのブートストラップクラス

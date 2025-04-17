@@ -1,0 +1,11 @@
+{
+    "position": 3,
+    "label": "コマンド",
+    "link": {
+        "type": "generated-index",
+        "title": "コマンド"
+    },
+    "customProps": {
+        "description": "コマンドについての説明です。"
+    }
+}
