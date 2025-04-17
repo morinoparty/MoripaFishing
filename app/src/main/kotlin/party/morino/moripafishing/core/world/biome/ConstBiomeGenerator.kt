@@ -14,7 +14,7 @@ class ConstBiomeGenerator(val biome: String) : BiomeProvider() {
             .getOrThrow(namespace)
     }
 
-    override fun getBiomes(worldInfo: WorldInfo): List<Biome?> {
+    override fun getBiomes(worldInfo: WorldInfo): List<Biome> {
         return RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).toList()
     }
 }

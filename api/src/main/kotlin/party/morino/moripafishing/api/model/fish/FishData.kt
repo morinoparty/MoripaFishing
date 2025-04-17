@@ -12,6 +12,7 @@ import java.util.*
 @Serializable
 data class FishData(
     val id: FishId, //tuna
+    val isDisabled: Boolean = false,
     val cacheCommand: List<String> = emptyList(),
     val displayName: Map<@Serializable(with = LocaleSerializer::class) Locale, @Serializable(with = ComponentSerializer::class) Component> = mapOf(
         Locale.JAPAN to Component.text("さかな") //fallback用であり、実際には使用されない予定

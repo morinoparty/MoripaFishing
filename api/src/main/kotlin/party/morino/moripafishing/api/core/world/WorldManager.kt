@@ -40,10 +40,27 @@ interface WorldManager {
 
 
     /**
-     * ワールドを取得する
+     * ワールドを作成する
      * @param fishingWorldId ワールドID
      * @return ワールド
      */
-    fun createWorld(fishingWorldId: FishingWorldId): FishingWorld?
+    fun createWorld(fishingWorldId: FishingWorldId): Boolean
+
+    /**
+     * ワールドを作成する
+     * @param fishingWorldId ワールドID
+     * @return ワールド
+     */
+    fun createWorld(fishingWorldId: FishingWorldId, generator: String?, biome: String?):Boolean
+
+    
+
+    /**
+     * ワールドを削除する
+     * @param fishingWorldId ワールドID
+     */
+    fun deleteWorld(fishingWorldId: FishingWorldId): Boolean
+
+
 
 }

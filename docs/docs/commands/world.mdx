@@ -9,22 +9,22 @@ export const commandList = [
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.create",
-        status: "proposal"
+        status: "beta"
     },{
         command: "/mf world list",
         description: "ワールド一覧を表示します",
         tags: ["player"],
         aliases: [],
         permission: "moripa_fishing.command.world.list",
-        status: "stable"
+        status: "beta"
     },
     {
-        command: "/mf world transfer <id> <player>",
-        description: "ワールドを移動します",
+        command: "/mf world transfer <fishing_world> <player>",
+        description: "プレイヤーを別のワールドに移動します",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.transfer",
-        status: "proposal"
+        status: "beta"
     },
     {
         command: "/mf world delete <id>",

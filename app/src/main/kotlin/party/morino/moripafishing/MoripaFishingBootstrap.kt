@@ -1,23 +1,24 @@
 package party.morino.moripafishing
 
-import io.papermc.paper.command.brigadier.CommandSourceStack
 import io.papermc.paper.plugin.bootstrap.BootstrapContext
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap
 import io.papermc.paper.plugin.bootstrap.PluginProviderContext
-import io.papermc.paper.registry.event.RegistryEvents
-import io.papermc.paper.registry.keys.GameEventKeys
+import org.bukkit.command.CommandSender
 import org.bukkit.plugin.java.JavaPlugin
-import org.checkerframework.checker.units.qual.C
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
+import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import org.incendo.cloud.paper.PaperCommandManager
-import party.morino.moripafishing.ui.commands.WeatherCommand
+import party.morino.moripafishing.ui.commands.WorldCommand
+import party.morino.moripafishing.utils.commands.CommandSenderMapper
+import party.morino.moripafishing.utils.commands.parser.FishingWorldParser
 
 /**
  * MoripaFishingプラグインのブートストラップクラス
  * プラグインの初期化処理
  */
+@Suppress("unused")
 class MoripaFishingBootstrap : PluginBootstrap {
 
     /**
@@ -26,18 +27,21 @@ class MoripaFishingBootstrap : PluginBootstrap {
      */
     override fun bootstrap(context: BootstrapContext) {
         // コマンドマネージャーのインスタンスを作成
-        val commandManager: CommandManager<CommandSourceStack> = PaperCommandManager.builder()
+        val commandManager: CommandManager<CommandSender> = PaperCommandManager.builder(CommandSenderMapper())
             .executionCoordinator(ExecutionCoordinator.asyncCoordinator()) // 非同期実行コーディネーターを設定
             .buildBootstrapped(context) // ブートストラップされたコマンドマネージャーを構築
 
+        commandManager.parserRegistry().registerParser(FishingWorldParser.fishingIdParser())
+
         // アノテーションパーサーのインスタンスを作成
-        val annotationParser = AnnotationParser<CommandSourceStack>(commandManager, CommandSourceStack::class.java)
+        val annotationParser = AnnotationParser(commandManager, CommandSender::class.java)
+        annotationParser.installCoroutineSupport()
 
         // アノテーションを解析
         with(annotationParser) {
             parse(
                 // ここにコマンドのアノテーションを追加する
-                WeatherCommand()
+                WorldCommand()
             )
         }
         // ゲームイベントのレジストリに関する情報へのリンク
