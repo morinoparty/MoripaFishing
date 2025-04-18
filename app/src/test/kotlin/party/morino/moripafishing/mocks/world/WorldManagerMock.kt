@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 
 /**
- * WorldManagerのモッククラスなのだ
+ * WorldManagerのモッククラス
  */
 class WorldManagerMock : WorldManager, KoinComponent {
     private val configManager : ConfigManager by inject()
@@ -44,21 +44,21 @@ class WorldManagerMock : WorldManager, KoinComponent {
     }
 
     /**
-     * デフォルトのワールドIdを返すのだ (モック用)
+     * デフォルトのワールドIdを返す (モック用)
      */
     override fun getDefaultWorldId(): FishingWorldId {
         return worldConfig.defaultId
     }
 
     /**
-     * ワールドIDのリストを返すのだ (モック用)
+     * ワールドIDのリストを返す (モック用)
      */
     override fun getWorldIdList(): List<FishingWorldId> {
         return worldIdList
     }
 
     /**
-     * ワールドの詳細を返すのだ
+     * ワールドの詳細を返す
      */
     override fun getWorldDetails(fishingWorldId: FishingWorldId): WorldDetailConfig? {
         val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
@@ -70,15 +70,15 @@ class WorldManagerMock : WorldManager, KoinComponent {
     }
 
     /**
-     * ワールドを取得するのだ (モック用、未実装)
-     * TODO: FishingWorldのモックを返すように実装する必要があるのだ
+     * ワールドを取得する (モック用、未実装)
+     * TODO: FishingWorldのモックを返すように実装する必要がある
      */
     override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld {
-        TODO("FishingWorldのモックを返すように実装する必要があるのだ")
+        return FishingWorldMock(fishingWorldId)
     }
 
     /**
-     * ワールドを作成するのだ (モック用、常にnull)
+     * ワールドを作成する (モック用、常にnull)
      */
     override fun createWorld(fishingWorldId: FishingWorldId): Boolean {
         worldIdList.plus(fishingWorldId)
@@ -94,4 +94,4 @@ class WorldManagerMock : WorldManager, KoinComponent {
         worldIdList.minus(fishingWorldId)
         return true
     }
-} 
+}

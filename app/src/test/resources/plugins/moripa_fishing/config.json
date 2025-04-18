@@ -15,7 +15,7 @@
             "spawnAnimals": false,
             "receiveDamage": false
         },
-        "defaultWorldSize": 100.0,
+        "defaultWorldSize": 30.0,
         "defaultWorldGenerator": "Terra:OVERWORLD",
         "defaultWorldBiome": null,
         "defaultWeatherConfig": {

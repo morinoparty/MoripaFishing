@@ -2,7 +2,9 @@
   "id": "acanthogobius_flavimanus",
   "catchCommands": [],
   "conditions": {
-    "weather": [],
+    "weather": [
+      "RAINY"
+    ],
     "world": []
   },
   "displayName": {

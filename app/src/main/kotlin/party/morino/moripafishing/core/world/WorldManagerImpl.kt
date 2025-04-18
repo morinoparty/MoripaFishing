@@ -24,7 +24,7 @@ class WorldManagerImpl : WorldManager, KoinComponent {
     private val worldConfig : WorldConfig
         get() = configManager.getConfig().world
 
-    private lateinit var worldIdList : Set<FishingWorldId>
+    private lateinit var worldIdList : MutableSet<FishingWorldId>
 
     init{
         loadWorldIds()
@@ -51,7 +51,7 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             } else {
                 null
             }
-        } ?: emptyList()).toSet()
+        } ?: emptyList()).toMutableSet()
     }
 
 
@@ -114,7 +114,8 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             return false
         }
         plugin.logger.info("World ${world.name}")
-        worldIdList.plus(world)
+        worldIdList.add(fishingWorldId)
+        plugin.logger.info("Current world list: ${worldIdList}")
         return true
     }
 

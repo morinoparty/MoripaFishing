@@ -6,20 +6,29 @@ import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.World
+import org.bukkit.Location
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
+import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
 import party.morino.moripafishing.api.core.world.FishingWorld
+import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.utils.coroutines.minecraft
+import party.morino.moripafishing.api.config.ConfigManager
 
 class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, KoinComponent {
     private val plugin : MoripaFishing by inject()
     private val randomizer: RandomizeManager by inject()
+    private val worldManager : WorldManager by inject()
+    private val configManager : ConfigManager by inject()
+    private val worldDetailConfig : WorldDetailConfig by lazy{
+        worldManager.getWorldDetails(worldId) ?: throw IllegalStateException("WorldDetailConfig not found for worldId: $worldId")
+    }
     private var weatherRandomizer: WeatherRandomizer = randomizer.getWeatherRandomizer()
 
     lateinit var weatherType: WeatherType
@@ -77,26 +86,46 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
 
 
     override fun getWorldSpawnPosition(): LocationData {
-        TODO("Not yet implemented")
+        return worldDetailConfig.spawnLocationData
     }
 
-    override fun getSize(): Double {
+    override fun setWorldSpawnPosition(locationData: LocationData) {
+        runBlocking {
+            withContext(Dispatchers.minecraft) {
+                world.spawnLocation = Location(
+                    world,
+                    locationData.x,
+                    locationData.y,
+                    locationData.z,
+                    locationData.yaw.toFloat(),
+                    locationData.pitch.toFloat()
+                )
+            }
+        }
+        //TODO configに保存
+    }
+
+    override fun getRadius(): Double {
         return world.worldBorder.size
     }
 
-    override fun setSize(size: Double) {
+    override fun setRadius(size: Double) {
         world.worldBorder.size = size
+        //TODO configに保存
     }
 
-    override fun getCenter(): LocationData {
-        TODO("Not yet implemented")
+    override fun getCenter(): Pair<Double, Double> {
+        return worldDetailConfig.borderCentral
     }
 
-    override fun setCenter(locationData: LocationData) {
-        TODO("Not yet implemented")
+    override fun setCenter(x: Double, z: Double) {
+        world.worldBorder.setCenter(x, z)
+        //TODO configに保存
     }
 
     override fun refreshSetting() {
-        TODO("Not yet implemented")
+        setCenter(worldDetailConfig.borderCentral.first, worldDetailConfig.borderCentral.second)
+        setRadius(worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize)
+        setWeather(getCalculatedWeather())
     }
 }

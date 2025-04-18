@@ -61,6 +61,20 @@ class FishRandomizerImplTest: KoinTest {
 //        println(rate)
     }
 
+
+    @Test
+    @DisplayName("天気による制限がある魚を10000匹生成し、表示する")
+    //　acanthogobius_flavimanusにRAINYが設定されているので、天気による制限がある魚を10000匹生成し、表示する
+    // ./gradlew test --tests "party.morino.moripafishing.core.random.fish.FishRandomizerImplTest.getRestrictFishWithWeather"
+    fun getRestrictFishWithWeather() {
+        val set = mutableSetOf<FishId>()
+        repeat(10000) {
+            val fish: Fish = fishRandomizer.getRandomFishWithRarity(RarityId("common"), fishingWorldId)
+            set.add(fish.getId())
+        }
+        println(set.size)
+    }
+
     @Test
     fun getRandomFishWithWorld() {
         val list = arrayListOf<Fish>()

@@ -45,29 +45,35 @@ interface FishingWorld {
     fun getWorldSpawnPosition() : LocationData
 
     /**
+     * ワールドのスポーン位置を設定する。
+     * @param locationData ワールドのスポーン位置
+     */
+    fun setWorldSpawnPosition(locationData: LocationData)
+
+    /**
      * ワールドの大きさを取得する。
      * @return Double ワールドの大きさ
      * */
-    fun getSize(): Double
+    fun getRadius(): Double
 
 
     /**
      * ワールドの大きさを設定する。
      * @param size ワールドの大きさ
      */
-    fun setSize(size : Double)
+    fun setRadius(size : Double)
 
     /**
      * ワールドの中心位置を取得する。
      * @return LocationData ワールドの中心位置
      */
-    fun getCenter(): LocationData
+    fun getCenter(): Pair<Double, Double>
 
     /**
      * ワールドの中心位置を取得する。
      * @param locationData ワールドの中心位置
      */
-    fun setCenter(locationData: LocationData)
+    fun setCenter(x: Double, z: Double)
 
     /**
      * ワールドの設定を更新する。

@@ -9,6 +9,7 @@ import party.morino.moripafishing.api.core.random.fish.FishRandomizer
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.core.fish.FishBuilderImpl
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
@@ -20,10 +21,14 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
     private val random = Random()
     private val fishManager: FishManager by inject()
     private val rarityManager: RarityManager by inject()
+    private val worldManager: WorldManager by inject()
 
     private fun getRandomFishDataWithRarity(rarity: RarityId, fishingWorldId: FishingWorldId): FishData {
+        val weatherType = worldManager.getWorld(fishingWorldId).getCurrentWeather()
         val fishesData = fishManager.getFishesWithRarity(rarity).filter {
-            it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId)
+            it.isDisabled == false &&
+            (it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId))
+            && (it.conditions.weather.isEmpty() || it.conditions.weather.contains(weatherType))
         }
         val total = fishesData.sumOf { it.weight }
         val randomValue = random.nextDouble() * total

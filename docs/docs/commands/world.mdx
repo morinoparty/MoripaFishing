@@ -9,63 +9,63 @@ export const commandList = [
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.create",
-        status: "beta"
+        status: "newly"
     },{
         command: "/mf world list",
         description: "ワールド一覧を表示します",
         tags: ["player"],
         aliases: [],
         permission: "moripa_fishing.command.world.list",
-        status: "beta"
+        status: "newly"
     },
     {
-        command: "/mf world transfer <fishing_world> <player>",
+        command: "/mf world transfer <world> <player>",
         description: "プレイヤーを別のワールドに移動します",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.transfer",
-        status: "beta"
+        permission: "moripa_fishing.command.world.default",
+        status: "newly"
     },
     {
-        command: "/mf world delete <id>",
+        command: "/mf world delete <world>",
         description: "ワールドを削除します",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.delete",
-        status: "proposal"
+        status: "beta"
     },
     
     {
-        command: "/mf world config set spawn <id>",
+        command: "/mf world config set spawn <world>",
         description: "ワールドのスポーン座標を設定します(Only player)",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config.set",
-        status: "proposal"
+        permission: "moripa_fishing.command.world.config",
+        status: "beta"
     },
     {
-        command: "/mf world config set center <id> <x> <y> <z>",
+        command: "/mf world config set center <world> <x> <z>",
         description: "ワールドの中心座標を設定します",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config.set",
-        status: "proposal"
+        permission: "moripa_fishing.command.world.config",
+        status: "beta"
     },
     {
-        command: "/mf world config set size <id> <size>",
+        command: "/mf world config set radius <world> <radius>",
         description: "ワールドのサイズを設定します",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config.set",
-        status: "proposal"
+        permission: "moripa_fishing.command.world.config",
+        status: "beta"
     },
     {
-        command: "/mf world config view <id>",
+        command: "/mf world config view <world>",
         description: "ワールドの設定を表示します",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config.view",
-        status: "proposal"
+        permission: "moripa_fishing.command.world.config",
+        status: "beta"
     }
 ];
 import { CommandList } from "@site/src/components/commands/command-list";

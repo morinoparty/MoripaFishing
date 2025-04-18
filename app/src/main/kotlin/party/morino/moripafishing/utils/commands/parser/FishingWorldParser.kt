@@ -27,7 +27,6 @@ class FishingWorldParser<C> : ArgumentParser<C, FishingWorld> , BlockingSuggesti
         }
     }
 
-
     override fun stringSuggestions(commandContext: CommandContext<CommandSender?>, input: CommandInput): Iterable<String> {
         return worldManager.getWorldIdList().map { it.value }
     }
