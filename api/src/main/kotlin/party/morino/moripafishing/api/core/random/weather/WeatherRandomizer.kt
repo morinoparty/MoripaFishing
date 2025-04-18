@@ -6,21 +6,30 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
 
 /**
  * 天気のランダム化を行うインターフェース
+ * PerlinNoiseを使用して、時間に基づいた天気の生成を行う
  */
 interface WeatherRandomizer {
     /**
-     * 天気をランダムに取得する。
-     * @return 天気
+     * 現在の天気を抽選する
+     * 
+     * @param fishingWorldId 釣り場のID
+     * @return 抽選された天気
      */
-    fun getWeather(fishingWorldId: FishingWorldId): WeatherType
+    fun drawWeather(fishingWorldId: FishingWorldId): WeatherType
 
     /**
-     * 指定された回数分の天気をランダムに取得する。
-     * @param limit 天気の回数
-     * @return 天気のリスト
+     * 指定された時間数分の天気を抽選する
+     * 
+     * @param limit 抽選する天気の数
+     * @param fishingWorldId 釣り場のID
+     * @return 抽選された天気のリスト
      */
-    fun getFeatureWeather(limit: Int, fishingWorldId: FishingWorldId): List<WeatherType>
+    fun drawWeatherForecast(limit: Int, fishingWorldId: FishingWorldId): List<WeatherType>
 
-
+    /**
+     * 釣り場のIDに基づいて乱数生成のシード値を設定する
+     * 
+     * @param fishingWorldId 釣り場のID
+     */
     fun setSeedWithWorldId(fishingWorldId: FishingWorldId)
 }

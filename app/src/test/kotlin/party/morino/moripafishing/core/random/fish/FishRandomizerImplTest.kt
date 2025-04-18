@@ -32,7 +32,7 @@ class FishRandomizerImplTest: KoinTest {
         val list : ArrayList<Pair<Double, Double>> = arrayListOf()
         repeat(100) {
             val targetFish = fishManager.getFishWithId(FishId("red_jelly_fish")) ?: error("Fish not found")
-            val fish: Fish = fishRandomizer.getRandomFishWithFishData(targetFish, fishingWorldId)
+            val fish: Fish = fishRandomizer.selectRandomFishByFishData(targetFish)
             list.add(Pair(fish.getSize(), fish.getWorth()))
         }
 //        list.sortBy { it.first }
@@ -47,7 +47,7 @@ class FishRandomizerImplTest: KoinTest {
     fun getRandomFishWithRarity() {
         val list = arrayListOf<Fish>()
         repeat(10000) {
-            val fish: Fish = fishRandomizer.getRandomFishWithRarity(RarityId("common"), fishingWorldId)
+            val fish: Fish = fishRandomizer.selectRandomFishByRarity(RarityId("common"), fishingWorldId)
             list.add(fish)
         }
         list.sortBy { it.getSize() }
@@ -69,7 +69,7 @@ class FishRandomizerImplTest: KoinTest {
     fun getRestrictFishWithWeather() {
         val set = mutableSetOf<FishId>()
         repeat(10000) {
-            val fish: Fish = fishRandomizer.getRandomFishWithRarity(RarityId("common"), fishingWorldId)
+            val fish: Fish = fishRandomizer.selectRandomFishByRarity(RarityId("common"), fishingWorldId)
             set.add(fish.getId())
         }
         println(set.size)
@@ -79,7 +79,7 @@ class FishRandomizerImplTest: KoinTest {
     fun getRandomFishWithWorld() {
         val list = arrayListOf<Fish>()
         repeat(10000) {
-            val fish: Fish = fishRandomizer.getRandomFish(fishingWorldId)
+            val fish: Fish = fishRandomizer.selectRandomFish(fishingWorldId)
             list.add(fish)
         }
         list.sortBy { it.getSize() }
@@ -98,7 +98,7 @@ class FishRandomizerImplTest: KoinTest {
         val count : MutableMap<RarityId, Int> = mutableMapOf()
         val r = 100000
         repeat(r){
-            val rarity = fishRandomizer.getRandomRarity()
+            val rarity = fishRandomizer.drawRandomRarity()
             count[rarity] = count.getOrDefault(rarity, 0) + 1
         }
         val rate = count.map { (k, v) -> "${k} : ${v.toDouble() / r * 100}" }

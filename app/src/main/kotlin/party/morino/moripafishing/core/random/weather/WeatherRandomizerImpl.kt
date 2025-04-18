@@ -63,7 +63,7 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
      * 現在の天気を取得する
      * @return 現在の天気
      */
-    override fun getWeather(fishingWorldId: FishingWorldId): WeatherType {
+    override fun drawWeather(fishingWorldId: FishingWorldId): WeatherType {
         val now = ZonedDateTime.now()
         return getWeatherByDate(now, fishingWorldId)
     }
@@ -73,7 +73,7 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
      * @param limit 取得する天気の数
      * @return 天気のリスト
      */
-    override fun getFeatureWeather(limit: Int, fishingWorldId: FishingWorldId): List<WeatherType> {
+    override fun drawWeatherForecast(limit: Int, fishingWorldId: FishingWorldId): List<WeatherType> {
         val weatherList = mutableListOf<WeatherType>()
         val now = ZonedDateTime.now()
         val weather = getWeatherConfig(fishingWorldId)

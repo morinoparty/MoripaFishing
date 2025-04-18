@@ -24,10 +24,10 @@
             "offset": 0,
             "frequency": 0.15,
             "weatherSetting": {
-                "SUNNY": 30,
-                "CLOUDY": 20,
+                "SUNNY": 40,
+                "CLOUDY": 10,
                 "RAINY": 20,
-                "THUNDERSTORM": 10
+                "THUNDERSTORM": 14
             },
             "hashPepper": "hashPepper"
         }

@@ -101,9 +101,11 @@ export const CommandLine: React.FC<CommandLineProps> = ({ command }) => {
                         </div>
                         <div className="h-px bg-gray-200 dark:bg-gray-700" />
                         <div className="flex flex-col gap-1">
-                            <p className="text-sm">
-                                エイリアス: {command.aliases.join(", ")}
-                            </p>
+                            {command.aliases.length > 0 && (
+                                <p className="text-sm">
+                                    エイリアス: {command.aliases.join(", ")}
+                                </p>
+                            )}
                             <p className="text-sm mb-0">
                                 パーミッション: {command.permission}
                             </p>

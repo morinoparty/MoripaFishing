@@ -15,24 +15,42 @@ import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 /**
- * 魚のランダム化を行う実装クラス
+ * 釣りシステムにおける魚の抽選を実装するクラス
+ * レアリティや釣り場に応じた魚の抽選ロジックを提供する
  */
 class FishRandomizerImpl : FishRandomizer, KoinComponent {
+    // 乱数生成器
     private val random = Random()
+    // 魚の管理を行うインスタンス
     private val fishManager: FishManager by inject()
+    // レアリティの管理を行うインスタンス
     private val rarityManager: RarityManager by inject()
+    // ワールドの管理を行うインスタンス
     private val worldManager: WorldManager by inject()
 
-    private fun getRandomFishDataWithRarity(rarity: RarityId, fishingWorldId: FishingWorldId): FishData {
+    /**
+     * 指定されたレアリティと釣り場に基づいて魚データを抽選する
+     * 魚の出現条件（天気、ワールド）を考慮して抽選を行う
+     * 
+     * @param rarity 抽選対象のレアリティ
+     * @param fishingWorldId 釣り場のID
+     * @return 抽選された魚データ
+     */
+    private fun drawRandomFishDataByRarity(rarity: RarityId, fishingWorldId: FishingWorldId): FishData {
+        // 現在の天気を取得
         val weatherType = worldManager.getWorld(fishingWorldId).getCurrentWeather()
+        // 条件に合致する魚データをフィルタリング
         val fishesData = fishManager.getFishesWithRarity(rarity).filter {
             it.isDisabled == false &&
             (it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId))
             && (it.conditions.weather.isEmpty() || it.conditions.weather.contains(weatherType))
         }
+        // 重み付け抽選のための合計値を計算
         val total = fishesData.sumOf { it.weight }
+        // 乱数を生成
         val randomValue = random.nextDouble() * total
         var sum = 0.0
+        // 重み付け抽選を実行
         for (fish in fishesData) {
             sum += fish.weight
             if (randomValue <= sum) {
@@ -43,15 +61,24 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
     }
 
     /**
-     * レアリティに基づいて魚をランダムに選択する
-     * @param rarity レアリティ
-     * @return 選択された魚
+     * 指定されたレアリティに基づいて魚を抽選する
+     * 
+     * @param rarity 抽選対象のレアリティ
+     * @param fishingWorldId 釣り場のID
+     * @return 抽選された魚
      */
-    override fun getRandomFishWithRarity(rarity: RarityId, fishingWorldId: FishingWorldId): Fish {
-        return getRandomFishWithFishData(getRandomFishDataWithRarity(rarity, fishingWorldId), fishingWorldId)
+    override fun selectRandomFishByRarity(rarity: RarityId, fishingWorldId: FishingWorldId): Fish {
+        return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId))
     }
 
-    override fun getRandomFishWithFishData(fishData: FishData, fishingWorldId: FishingWorldId): Fish {
+    /**
+     * 魚データに基づいて魚を抽選する
+     * 魚のサイズを正規分布に基づいて決定する
+     * 
+     * @param fishData 抽選対象の魚データ
+     * @return 抽選された魚
+     */
+    override fun selectRandomFishByFishData(fishData: FishData): Fish {
         val (min, max) = fishData.size
         val mid = (min + max) / 2
         val standardDeviation = (max - min) / 6.0
@@ -65,10 +92,12 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
     }
 
     /**
-     * レアリティをランダムに選択する
-     * @return 選択されたレアリティ
+     * レアリティを抽選する
+     * 各レアリティの出現確率に従って抽選を行う
+     * 
+     * @return 抽選されたレアリティ
      */
-    override fun getRandomRarity(): RarityId {
+    override fun drawRandomRarity(): RarityId {
         val rarities = rarityManager.getRarities()
         val total = rarities.sumOf { it.weight }
         val randomValue = random.nextDouble() * total

@@ -46,7 +46,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     }
 
     override fun getCalculatedWeather(): WeatherType {
-        return weatherRandomizer.getWeather(worldId)
+        return weatherRandomizer.drawWeather(worldId)
     }
 
     override fun getCurrentWeather(): WeatherType {

@@ -10,7 +10,7 @@ import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import java.time.ZonedDateTime
 import kotlin.math.absoluteValue
-
+import java.security.MessageDigest
 @ExtendWith(MoripaFishingTest::class)
 class WeatherRandomizerImplTest: KoinTest {
     private val worldManager : WorldManager by inject()
@@ -36,9 +36,12 @@ class WeatherRandomizerImplTest: KoinTest {
     @DisplayName("ランダムな天気を取得するテスト")
     fun getRandomWeather() {
         repeat(10) {
-            weatherRandomizer.setSeed(it)
-            val weatherList = weatherRandomizer.getFeatureWeather(10000, worldManager.getDefaultWorldId())
+            val hash = MessageDigest.getInstance("SHA-256").digest(it.toString().toByteArray()).joinToString("").hashCode()
+            println("hash: $hash")
+            weatherRandomizer.setSeed(hash)
+            val weatherList = weatherRandomizer.drawWeatherForecast(10000, worldManager.getDefaultWorldId())
             val order = weatherList.map { it.ordinal }
+            // println("order: $order")
             val diff = order.zipWithNext { a, b -> (b - a).absoluteValue }
             // println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")
              val rate = weatherList.groupingBy { it }.eachCount().toList().sortedByDescending { (_, v) -> v }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
@@ -58,7 +61,7 @@ class WeatherRandomizerImplTest: KoinTest {
             ZonedDateTime.now().plusHours(it * 8.toLong())
         }
         val res = times.map {
-            weatherRandomizer.getRandomInt(0, 100, it, FishingWorldId("default"))
+            weatherRandomizer.drawWeather(FishingWorldId("default")).ordinal
         }
         println(res)
         val diff = res.zipWithNext { a, b -> b - a }
