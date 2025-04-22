@@ -14,6 +14,7 @@ class RarityManagerImplTest : KoinTest {
     /**
      * レアリティの読み込みテスト
      * レアリティの設定ファイルを読み込んで、正しく登録されているか確認する
+     * ./gradlew test --tests "party.morino.moripafishing.core.rarity.RarityManagerImplTest.loadRarities"
      */
     @Test
     @DisplayName("レアリティの読み込みテスト")

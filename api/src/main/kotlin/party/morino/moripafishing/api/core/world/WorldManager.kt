@@ -22,15 +22,6 @@ interface WorldManager {
      */
     fun getWorldIdList(): List<FishingWorldId>
 
-
-    /**
-     * ワールドの詳細を取得する
-     * @param fishingWorldId ワールドID
-     * @return ワールドの詳細
-     */
-    fun getWorldDetails(fishingWorldId: FishingWorldId) : WorldDetailConfig?
-
-
     /**
      * ワールドを取得する
      * @param fishingWorldId ワールドID

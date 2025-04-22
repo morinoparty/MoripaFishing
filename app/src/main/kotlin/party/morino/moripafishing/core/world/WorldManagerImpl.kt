@@ -63,15 +63,6 @@ class WorldManagerImpl : WorldManager, KoinComponent {
         return worldIdList.toList()
     }
 
-    override fun getWorldDetails(fishingWorldId: FishingWorldId): WorldDetailConfig? {
-        val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
-        if (!file.exists()) {
-            return null
-        }
-        val worldDetailConfig = Json.decodeFromStream<WorldDetailConfig>(file.inputStream())
-        return worldDetailConfig
-    }
-
     override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld {
         return FishingWorldImpl(fishingWorldId)
     }

@@ -3,6 +3,8 @@ package party.morino.moripafishing.core.world
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.World
@@ -13,6 +15,7 @@ import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
+import party.morino.moripafishing.core.random.weather.WeatherRandomizerImpl
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
@@ -20,24 +23,38 @@ import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.utils.coroutines.minecraft
 import party.morino.moripafishing.api.config.ConfigManager
+import party.morino.moripafishing.api.config.PluginDirectory
 
 class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, KoinComponent {
     private val plugin : MoripaFishing by inject()
     private val randomizer: RandomizeManager by inject()
-    private val worldManager : WorldManager by inject()
+    private val pluginDirectory : PluginDirectory by inject()
     private val configManager : ConfigManager by inject()
-    private val worldDetailConfig : WorldDetailConfig by lazy{
-        worldManager.getWorldDetails(worldId) ?: throw IllegalStateException("WorldDetailConfig not found for worldId: $worldId")
-    }
-    private var weatherRandomizer: WeatherRandomizer = randomizer.getWeatherRandomizer()
 
-    lateinit var weatherType: WeatherType
+    private val worldDetailConfig : WorldDetailConfig by lazy {
+        val file = pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
+        if (!file.exists()) {
+            throw IllegalArgumentException("World detail config file not found: ${file.absolutePath}")
+        }
+        val worldDetailConfig = Json.decodeFromStream<WorldDetailConfig>(file.inputStream())
+        worldDetailConfig
+    }
+
+    private var weatherType: WeatherType = WeatherType.SUNNY
+    
+    private val weatherRandomizer: WeatherRandomizer by lazy {
+        val weatherRandomizer = WeatherRandomizerImpl(worldId)
+        weatherRandomizer
+    }
 
     var world : World = Bukkit.getWorld(NamespacedKey(plugin, worldId.value)) ?: throw IllegalStateException("World not found")
 
     init {
-        weatherRandomizer.setSeedWithWorldId(worldId)
         updateWeather()
+    }
+
+    override fun getWorldDetails(): WorldDetailConfig {
+        return worldDetailConfig
     }
 
 
@@ -46,7 +63,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     }
 
     override fun getCalculatedWeather(): WeatherType {
-        return weatherRandomizer.drawWeather(worldId)
+        return weatherRandomizer.drawWeather()
     }
 
     override fun getCurrentWeather(): WeatherType {

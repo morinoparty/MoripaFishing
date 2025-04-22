@@ -22,14 +22,14 @@
             "dayCycleTimeZone": "Asia/Tokyo",
             "interval": 8,
             "offset": 0,
-            "frequency": 0.15,
+            "maxInclination": 30,
             "weatherSetting": {
-                "SUNNY": 40,
-                "CLOUDY": 10,
-                "RAINY": 20,
-                "THUNDERSTORM": 14
+                "SUNNY": 4,
+                "CLOUDY": 2,
+                "RAINY": 2,
+                "THUNDERSTORM": 1
             },
-            "hashPepper": "hashPepper"
+            "hashPepper": "pepper"
         }
     },
     "fishing": {

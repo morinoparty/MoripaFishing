@@ -3,7 +3,7 @@ package party.morino.moripafishing.api.core.world
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
-
+import party.morino.moripafishing.api.config.world.WorldDetailConfig
 /**
  * FishingWorldインターフェースは、釣りワールドに関する情報を提供する。
  */
@@ -81,4 +81,10 @@ interface FishingWorld {
      * このメソッドは、ワールドの設定を更新するために使用される。
      */
     fun refreshSetting()
+
+    /**
+     * ワールドの詳細設定を取得する。
+     * @return WorldDetailConfig ワールドの詳細設定
+     */
+    fun getWorldDetails() : WorldDetailConfig
 }

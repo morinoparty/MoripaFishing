@@ -11,6 +11,7 @@ import org.eclipse.aether.repository.RemoteRepository
  * MoripaFishingプラグインのローダークラス
  * プラグインの依存関係を管理するためのクラス
  */
+@Suppress("unused")
 class MoripaFishingLoader : PluginLoader {
     override fun classloader(classpathBuilder: PluginClasspathBuilder) {
         

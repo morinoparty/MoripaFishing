@@ -6,6 +6,7 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.api.config.world.WorldDetailConfig
 
 /**
  * FishingWorldのモッククラスなのだ
@@ -62,5 +63,9 @@ class FishingWorldMock(
 
     override fun refreshSetting() {
         // モックなので何もしないのだ
+    }
+
+    override fun getWorldDetails(): WorldDetailConfig {
+        return WorldDetailConfig()
     }
 } 

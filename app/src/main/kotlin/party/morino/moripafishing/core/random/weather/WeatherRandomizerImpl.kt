@@ -13,17 +13,18 @@ import party.morino.moripafishing.api.model.world.WeatherType
 import java.security.MessageDigest
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import party.morino.moripafishing.utils.XorShiftRandom
+
 
 /**
  * 天気をランダムに生成する実装クラス
- * PerlinNoiseを使用して、時間に基づいた天気の生成を行う
  */
-class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
+class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomizer, KoinComponent {
     private val configManager : ConfigManager by inject()
     private val worldManager : WorldManager by inject()
 
-    private fun getWeatherConfig(fishingWorldId: FishingWorldId): WeatherConfig {
-        return worldManager.getWorldDetails(fishingWorldId)?.weatherConfig
+    private fun getWeatherConfig(): WeatherConfig {
+        return worldManager.getWorld(fishingWorldId).getWorldDetails().weatherConfig
             ?: configManager.getConfig().world.defaultWeatherConfig
     }
 
@@ -33,39 +34,13 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
         )
     }
 
-    private var seed : Int = 0
-
-    /**
-     * 乱数生成のシード値を設定する
-     * @param seed 設定するシード値
-     */
-    fun setSeed(seed: Int) {
-        val pepper = configManager.getConfig().world.defaultWeatherConfig.hashPepper
-        val hashed = MessageDigest.getInstance("SHA-256").digest((pepper + seed).toByteArray()).let {
-            // Longに変換してからIntの範囲に収める
-            (it.take(3).joinToString("") { "%02x".format(it) }.toLong(16) and 0x7FFFFFFF).toInt()
-        }
-        this.seed = hashed
-    }
-
-    /**
-     *
-     */
-    override fun setSeedWithWorldId(fishingWorldId: FishingWorldId) {
-        val pepper = configManager.getConfig().world.defaultWeatherConfig.hashPepper
-        val hashed = MessageDigest.getInstance("SHA-256").digest((pepper + fishingWorldId).toByteArray()).let {
-            (it.take(3).joinToString("") { "%02x".format(it) }.toLong(16) and 0x7FFFFFFF).toInt()
-        }
-        this.seed = hashed
-    }
-
     /**
      * 現在の天気を取得する
      * @return 現在の天気
      */
-    override fun drawWeather(fishingWorldId: FishingWorldId): WeatherType {
+    override fun drawWeather(): WeatherType {
         val now = ZonedDateTime.now()
-        return getWeatherByDate(now, fishingWorldId)
+        return getWeatherByDate(now)
     }
 
     /**
@@ -73,15 +48,26 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
      * @param limit 取得する天気の数
      * @return 天気のリスト
      */
-    override fun drawWeatherForecast(limit: Int, fishingWorldId: FishingWorldId): List<WeatherType> {
+    override fun drawWeatherForecast(limit: Int): List<WeatherType> {
         val weatherList = mutableListOf<WeatherType>()
         val now = ZonedDateTime.now()
-        val weather = getWeatherConfig(fishingWorldId)
+        val weather = getWeatherConfig()
         for (i in 0 until limit) {
             val date = now.plusHours(i * weather.interval.toLong() + weather.offset)
-            weatherList.add(getWeatherByDate(date, fishingWorldId))
+            weatherList.add(getWeatherByDate(date))
         }
         return weatherList
+    }
+
+    fun get(x: Long): Long {
+        val check = Math.floor(100 / getWeatherConfig().maxInclination.toDouble()).toLong()
+        if (x % check == 0L) {
+            val random = XorShiftRandom(getHash(x)).nextInt(0, 100)
+            return random.toLong()
+        }
+        val small = (XorShiftRandom(getHash(x - (x % check)))).nextInt(0, 100)
+        val large = (XorShiftRandom(getHash(x - (x % check) + check))).nextInt(0, 100)  
+        return ((large - small) / check * (x % check)) + small
     }
 
     /**
@@ -89,43 +75,22 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
      * @param date 指定された日時
      * @return 天気
      */
-    fun getWeatherByDate(date: ZonedDateTime, fishingWorldId: FishingWorldId): WeatherType {
-        val weatherConfig = getWeatherConfig(fishingWorldId)
-        val weatherSetting = weatherConfig.weatherSetting
-        val total = weatherSetting.values.sum()
-        val totalList = weatherSetting.toList()
-        val random = getRandomInt(0, total, date, fishingWorldId)
+    fun getWeatherByDate(date: ZonedDateTime): WeatherType {
+    
+        val random = get(getTimeDiff(date))
+        val total = getWeatherConfig().weatherSetting.values.sum()
 
-        var sum = 0
-        for (i in totalList.indices) {
-            sum += totalList[i].second
-            if (random in 0..sum) {
-                return totalList[i].first
+        val normalizedRandom = (random.toDouble() / 100) * total
+
+        var acc = 0
+        for (i in getWeatherConfig().weatherSetting.toList()) {
+            acc += i.second
+            if (normalizedRandom < acc) {
+                return i.first
             }
         }
+
         return WeatherType.THUNDERSTORM
-    }
-
-    /**
-     * PerlinNoiseを使用して、指定された日時における乱数を生成する
-     * @param min 最小値
-     * @param max 最大値
-     * @param date 指定された日時
-     * @return 乱数
-     */
-    fun getRandomInt(min: Int, max: Int, date: ZonedDateTime, fishingWorldId: FishingWorldId): Int {
-        val noise = JNoise.newBuilder()
-            .perlin(PerlinNoiseGenerator
-                .newBuilder()
-                .setSeed(seed.toLong())
-                .build())
-            .clamp(-0.5 , 0.5)
-            .scale(getWeatherConfig(fishingWorldId).frequency)
-            .build()
-
-        val x = getTimeDiff(date) / 3600 / getWeatherConfig(fishingWorldId).interval
-        val res = noise.evaluateNoise(x.toDouble())
-        return ((res + 0.5) * (max - min) + min).toInt().coerceIn(min,max)
     }
 
     /**
@@ -134,6 +99,16 @@ class WeatherRandomizerImpl : WeatherRandomizer, KoinComponent {
      * @return 時間差（秒）
      */
     private fun getTimeDiff(date: ZonedDateTime): Long {
-        return date.toEpochSecond() - startDate.toEpochSecond()
+        val diff = (date.toEpochSecond()  - startDate.toEpochSecond()) / 3600 / 8
+        return diff
+    }
+
+    private fun getHash(x: Long): Long {
+        val hashBytes = MessageDigest.getInstance("SHA-256").digest((fishingWorldId.value + getWeatherConfig().hashPepper + x.toString()).toByteArray())
+        // バイト配列を16進数文字列に変換
+        val hexString = hashBytes.joinToString("") { "%02x".format(it) }
+        // 16進数文字列の先頭8文字を取得してLongに変換 (TypeScriptの実装に合わせる)
+        val value = hexString.substring(0, 8).toLong(16)
+        return value
     }
 }

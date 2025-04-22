@@ -15,7 +15,7 @@ interface WeatherRandomizer {
      * @param fishingWorldId 釣り場のID
      * @return 抽選された天気
      */
-    fun drawWeather(fishingWorldId: FishingWorldId): WeatherType
+    fun drawWeather(): WeatherType
 
     /**
      * 指定された時間数分の天気を抽選する
@@ -24,12 +24,6 @@ interface WeatherRandomizer {
      * @param fishingWorldId 釣り場のID
      * @return 抽選された天気のリスト
      */
-    fun drawWeatherForecast(limit: Int, fishingWorldId: FishingWorldId): List<WeatherType>
+    fun drawWeatherForecast(limit: Int): List<WeatherType>
 
-    /**
-     * 釣り場のIDに基づいて乱数生成のシード値を設定する
-     * 
-     * @param fishingWorldId 釣り場のID
-     */
-    fun setSeedWithWorldId(fishingWorldId: FishingWorldId)
 }

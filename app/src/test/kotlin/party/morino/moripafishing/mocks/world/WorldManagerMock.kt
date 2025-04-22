@@ -58,18 +58,6 @@ class WorldManagerMock : WorldManager, KoinComponent {
     }
 
     /**
-     * ワールドの詳細を返す
-     */
-    override fun getWorldDetails(fishingWorldId: FishingWorldId): WorldDetailConfig? {
-        val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
-        if (!file.exists()) {
-            return null
-        }
-        val worldDetailConfig = Json.decodeFromString<WorldDetailConfig>(file.readText())
-        return worldDetailConfig
-    }
-
-    /**
      * ワールドを取得する (モック用、未実装)
      * TODO: FishingWorldのモックを返すように実装する必要がある
      */

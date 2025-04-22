@@ -1,0 +1,11 @@
+{
+    "position": 4,
+    "label": "ユーティリティ",
+    "link": {
+        "type": "generated-index",
+        "title": "ユーティリティ"
+    },
+    "customProps": {
+        "description": "ユーティリティをまとめたページです。"
+    }
+}

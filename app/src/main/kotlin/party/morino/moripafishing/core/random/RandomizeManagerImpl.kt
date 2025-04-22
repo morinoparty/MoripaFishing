@@ -13,19 +13,13 @@ import java.util.Random
 class RandomizeManagerImpl : RandomizeManager {
     private val random = Random()
 
+    
     /**
-     * 天気をランダムに生成する実装クラスを返す
-     * @return 天気をランダムに生成する実装クラス
-     */
-    override fun getWeatherRandomizer(): WeatherRandomizer {
-        return WeatherRandomizerImpl()
-    }
-
-    /**
-     * 魚をランダムに生成する実装クラスを返す
-     * @return 魚をランダムに生成する実装クラス
+     * 魚のランダム化を行うインスタンスを返す
+     * @return 魚のランダム化を行うインスタンス
      */
     override fun getFishRandomizer(): FishRandomizer {
         return FishRandomizerImpl()
     }
+
 } 

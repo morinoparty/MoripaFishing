@@ -45,9 +45,9 @@ class WorldCommand: KoinComponent {
     fun list(sender: CommandSender) {
         sender.sendMessage("Fishing Worlds:")
         worldManager.getWorldIdList().forEach { fishingWorld ->
-            val worldDetails = worldManager.getWorldDetails(fishingWorld)
+            val worldDetails = worldManager.getWorld(fishingWorld).getWorldDetails()
             //TODO もっといい書き方
-            sender.sendRichMessage("<green>${worldDetails?.name}</green>")
+            sender.sendRichMessage("<green>${worldDetails.name}</green>")
         }
     }
 
@@ -125,7 +125,7 @@ class WorldCommand: KoinComponent {
     @Command("config view <world>")
     @Permission("moripa_fishing.command.world.config")
     suspend fun view(sender: CommandSender, @Argument("world") world: FishingWorld) {
-        val details = worldManager.getWorldDetails(world.getId())
+        val details = world.getWorldDetails()
         val text = Json{
             prettyPrint = true
             encodeDefaults = true

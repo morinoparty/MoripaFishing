@@ -45,6 +45,15 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     override fun onEnable() {
         // Koinの設定
         setupKoin()
+        getInstanceForAPI()
+
+        // データベースの初期化
+//         databaseManager.initialize()
+
+        logger.info("MoripaFishing enabled")
+    }
+
+    private fun getInstanceForAPI() {
         // PluginDirectoryのインスタンスを取得
         pluginDirectory = GlobalContext.get().get()
         // RarityManagerのインスタンスを取得
@@ -57,11 +66,6 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         fishManager = GlobalContext.get().get()
         // AnglerManagerのインスタンスを取得
         anglerManager = GlobalContext.get().get()
-
-        // データベースの初期化
-        // databaseManager.initialize()
-
-        logger.info("MoripaFishing enabled")
     }
 
     override fun onDisable() {
