@@ -7,20 +7,20 @@ import java.io.File
  * プラグインのディレクトリを管理するモッククラス
  */
 class PluginDirectoryMock : PluginDirectory {
-    private val _rootDirectory: File = File("src/test/resources/plugins/moripa_fishing")
-    private val _rarityDirectory: File = File(_rootDirectory, "rarity")
-    private val _fishDirectory: File = File(_rootDirectory, "fish")
-    private val _worldDirectory: File = File(_rootDirectory, "world")
+    private val rootDirectory: File = File("src/test/resources/plugins/moripa_fishing")
+    private val rarityDirectory: File = File(rootDirectory, "rarity")
+    private val fishDirectory: File = File(rootDirectory, "fish")
+    private val worldDirectory: File = File(rootDirectory, "world")
 
     /**
      * プラグインのルートディレクトリを取得する
      * @return プラグインのルートディレクトリ
      */
     override fun getRootDirectory(): File {
-        if(!_rootDirectory.exists()) {
-            _rootDirectory.mkdirs()
+        if (!rootDirectory.exists()) {
+            rootDirectory.mkdirs()
         }
-        return _rootDirectory
+        return rootDirectory
     }
 
     /**
@@ -28,10 +28,10 @@ class PluginDirectoryMock : PluginDirectory {
      * @return レアリティの設定ファイルが格納されているディレクトリ
      */
     override fun getRarityDirectory(): File {
-        if(!_rarityDirectory.exists()) {
-            _rarityDirectory.mkdirs()
+        if (!rarityDirectory.exists()) {
+            rarityDirectory.mkdirs()
         }
-        return _rarityDirectory
+        return rarityDirectory
     }
 
     /**
@@ -39,10 +39,10 @@ class PluginDirectoryMock : PluginDirectory {
      * @return 魚の設定ファイルが格納されているディレクトリ
      */
     override fun getFishDirectory(): File {
-        if(!_fishDirectory.exists()) {
-            _fishDirectory.mkdirs()
+        if (!fishDirectory.exists()) {
+            fishDirectory.mkdirs()
         }
-        return _fishDirectory
+        return fishDirectory
     }
 
     /**
@@ -50,9 +50,9 @@ class PluginDirectoryMock : PluginDirectory {
      * @return ワールドの設定ファイルが格納されているディレクトリ
      */
     override fun getWorldDirectory(): File {
-        if(!_worldDirectory.exists()) {
-            _worldDirectory.mkdirs()
+        if (!worldDirectory.exists()) {
+            worldDirectory.mkdirs()
         }
-        return _worldDirectory
+        return worldDirectory
     }
-} 
+}

@@ -18,9 +18,15 @@ data class RarityData(
     val id: RarityId = RarityId("common"),
     val color: String = "#ffffff",
     val cacheCommand: List<String> = emptyList(),
-    val displayName: Map<@Serializable(with = LocaleSerializer::class) Locale, @Serializable(with = ComponentSerializer::class) Component> = mapOf(
-        Locale.JAPAN to Component.text("レアリティ")
-    ),
+    val displayName: Map<
+        @Serializable(with = LocaleSerializer::class)
+        Locale,
+        @Serializable(with = ComponentSerializer::class)
+        Component,
+        > =
+        mapOf(
+            Locale.JAPAN to Component.text("レアリティ"),
+        ),
     val weight: Double = 1.0,
-    val worthExpression: String = "1"
+    val worthExpression: String = "1",
 )

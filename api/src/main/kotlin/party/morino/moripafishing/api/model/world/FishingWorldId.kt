@@ -25,5 +25,4 @@ class FishingWorldId(val value: String) {
     override fun hashCode(): Int {
         return value.hashCode()
     }
-
 }

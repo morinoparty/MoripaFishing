@@ -8,7 +8,7 @@ import party.morino.moripafishing.MoripaFishingTest
 import party.morino.moripafishing.api.core.fish.FishManager
 
 @ExtendWith(MoripaFishingTest::class)
-class FishManagerImplTest: KoinTest {
+class FishManagerImplTest : KoinTest {
     val fishManager: FishManager by inject()
 
     @Test
@@ -20,5 +20,4 @@ class FishManagerImplTest: KoinTest {
     @Test
     fun getFishesWithRarity() {
     }
-
 }

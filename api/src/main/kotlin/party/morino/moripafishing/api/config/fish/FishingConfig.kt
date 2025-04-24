@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class FishingConfig(
-    val test: String = "test"
-) 
+    val test: String = "test",
+)

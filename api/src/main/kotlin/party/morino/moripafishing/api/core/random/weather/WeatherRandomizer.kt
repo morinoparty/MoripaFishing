@@ -1,8 +1,6 @@
 package party.morino.moripafishing.api.core.random.weather
 
 import party.morino.moripafishing.api.model.world.WeatherType
-import party.morino.moripafishing.api.model.world.FishingWorldId
-
 
 /**
  * 天気のランダム化を行うインターフェース
@@ -11,7 +9,7 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
 interface WeatherRandomizer {
     /**
      * 現在の天気を抽選する
-     * 
+     *
      * @param fishingWorldId 釣り場のID
      * @return 抽選された天気
      */
@@ -19,11 +17,10 @@ interface WeatherRandomizer {
 
     /**
      * 指定された時間数分の天気を抽選する
-     * 
+     *
      * @param limit 抽選する天気の数
      * @param fishingWorldId 釣り場のID
      * @return 抽選された天気のリスト
      */
     fun drawWeatherForecast(limit: Int): List<WeatherType>
-
 }

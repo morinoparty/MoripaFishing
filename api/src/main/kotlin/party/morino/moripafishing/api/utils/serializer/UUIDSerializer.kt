@@ -6,9 +6,16 @@ import java.util.*
 // UUIDをシリアライズ・デシリアライズするためのカスタムシリアライザ
 @Serializable
 object UUIDSerializer : kotlinx.serialization.KSerializer<UUID> {
-    override val descriptor = kotlinx.serialization.descriptors.PrimitiveSerialDescriptor("UUID", kotlinx.serialization.descriptors.PrimitiveKind.STRING)
+    override val descriptor =
+        kotlinx.serialization.descriptors.PrimitiveSerialDescriptor(
+            "UUID",
+            kotlinx.serialization.descriptors.PrimitiveKind.STRING,
+        )
 
-    override fun serialize(encoder: kotlinx.serialization.encoding.Encoder, value: UUID) {
+    override fun serialize(
+        encoder: kotlinx.serialization.encoding.Encoder,
+        value: UUID,
+    ) {
         encoder.encodeString(value.toString())
     }
 

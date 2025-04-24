@@ -20,7 +20,7 @@ publishing {
     }
 }
 
-dependencies{
+dependencies {
     implementation(libs.arrow.core)
     implementation(libs.arrow.fx.coroutines)
 

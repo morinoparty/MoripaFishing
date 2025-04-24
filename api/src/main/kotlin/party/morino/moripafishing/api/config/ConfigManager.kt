@@ -14,7 +14,6 @@ interface ConfigManager {
      */
     fun getConfig(): ConfigData
 
-
     /**
      * 設定を適用する
      * @param configData 設定データ

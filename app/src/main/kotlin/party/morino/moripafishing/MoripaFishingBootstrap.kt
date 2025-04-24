@@ -20,16 +20,16 @@ import party.morino.moripafishing.utils.commands.parser.FishingWorldParser
  */
 @Suppress("unused")
 class MoripaFishingBootstrap : PluginBootstrap {
-
     /**
      * プラグインのブートストラップ処理を行うメソッド
      * @param context ブートストラップコンテキスト
      */
     override fun bootstrap(context: BootstrapContext) {
         // コマンドマネージャーのインスタンスを作成
-        val commandManager: CommandManager<CommandSender> = PaperCommandManager.builder(CommandSenderMapper())
-            .executionCoordinator(ExecutionCoordinator.asyncCoordinator()) // 非同期実行コーディネーターを設定
-            .buildBootstrapped(context) // ブートストラップされたコマンドマネージャーを構築
+        val commandManager: CommandManager<CommandSender> =
+            PaperCommandManager.builder(CommandSenderMapper())
+                .executionCoordinator(ExecutionCoordinator.asyncCoordinator()) // 非同期実行コーディネーターを設定
+                .buildBootstrapped(context) // ブートストラップされたコマンドマネージャーを構築
 
         commandManager.parserRegistry().registerParser(FishingWorldParser.fishingIdParser())
 
@@ -41,7 +41,7 @@ class MoripaFishingBootstrap : PluginBootstrap {
         with(annotationParser) {
             parse(
                 // ここにコマンドのアノテーションを追加する
-                WorldCommand()
+                WorldCommand(),
             )
         }
         // ゲームイベントのレジストリに関する情報へのリンク
@@ -56,4 +56,4 @@ class MoripaFishingBootstrap : PluginBootstrap {
     override fun createPlugin(context: PluginProviderContext): JavaPlugin {
         return MoripaFishing() // MoripaFishingプラグインのインスタンスを返す
     }
-} 
+}

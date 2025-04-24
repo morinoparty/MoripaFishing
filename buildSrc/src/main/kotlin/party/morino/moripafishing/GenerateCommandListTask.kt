@@ -2,14 +2,10 @@ package party.morino.moripafishing
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.Directory
-import org.gradle.api.file.RegularFile
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.workers.WorkerExecutor
 import java.io.File
 import java.net.URLClassLoader
 
@@ -49,16 +45,16 @@ abstract class GenerateCommandListTask : DefaultTask() {
 
         // prefixで始まるクラスファイルだけをフィルタリングするのだ
         classesDirectories.asFileTree.filter { file ->
-            file.isFile && 
-            file.name.endsWith(".class") && 
-            calculateClassName(file)?.startsWith(prefix) == true
+            file.isFile &&
+                    file.name.endsWith(".class") &&
+                    calculateClassName(file)?.startsWith(prefix)==true
         }.forEach { classFile ->
             val className = calculateClassName(classFile) ?: return@forEach
 
             try {
                 val loadedClass = classLoader.loadClass(className).kotlin
                 val qualifiedName = loadedClass.qualifiedName
-                if (qualifiedName != null) {
+                if (qualifiedName!=null) {
                     foundClasses.add(qualifiedName)
                 }
             } catch (e: ClassNotFoundException) {
@@ -74,7 +70,8 @@ abstract class GenerateCommandListTask : DefaultTask() {
     }
 
     private fun calculateClassName(classFile: File): String? {
-        val rootDir = classesDirectories.files.find { classFile.absolutePath.startsWith(it.absolutePath + File.separator) } ?: return null
+        val rootDir = classesDirectories.files.find { classFile.absolutePath.startsWith(it.absolutePath + File.separator) }
+            ?: return null
         val relativePath = classFile.absolutePath.substring(rootDir.absolutePath.length + 1)
         return relativePath.removeSuffix(".class").replace(File.separatorChar, '.')
     }

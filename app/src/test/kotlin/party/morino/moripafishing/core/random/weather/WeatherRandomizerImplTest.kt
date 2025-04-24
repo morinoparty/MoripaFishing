@@ -8,17 +8,15 @@ import org.koin.test.inject
 import party.morino.moripafishing.MoripaFishingTest
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import java.time.ZonedDateTime
 import kotlin.math.absoluteValue
-import java.security.MessageDigest
 
 /**
  * 天気のランダム生成をテストするクラス
  * ./gradlew test --tests "party.morino.moripafishing.core.random.weather.WeatherRandomizerImplTest.test"
  */
 @ExtendWith(MoripaFishingTest::class)
-class WeatherRandomizerImplTest: KoinTest {
-    private val worldManager : WorldManager by inject()
+class WeatherRandomizerImplTest : KoinTest {
+    private val worldManager: WorldManager by inject()
 
     private val weatherRandomizer by lazy {
         WeatherRandomizerImpl(worldManager.getDefaultWorldId())
@@ -36,13 +34,17 @@ class WeatherRandomizerImplTest: KoinTest {
     @DisplayName("ランダムな天気を取得するテスト")
     fun getRandomWeather() {
         repeat(10) {
-            val weatherRandom = WeatherRandomizerImpl(FishingWorldId("world_${it}"))
+            val weatherRandom = WeatherRandomizerImpl(FishingWorldId("world_$it"))
             val weatherList = weatherRandom.drawWeatherForecast(1000)
             val order = weatherList.map { it.ordinal }
             // println("order: $order")
             val diff = order.zipWithNext { a, b -> (b - a).absoluteValue }
             // println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")
-            val rate = weatherList.groupingBy { it }.eachCount().toList().sortedByDescending { (_, v) -> v }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
+            val rate =
+                weatherList.groupingBy { it }.eachCount().toList().sortedByDescending {
+                        (_, v) ->
+                    v
+                }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
             println(rate)
             // assert(diff.max() <= 1)
         }
@@ -64,5 +66,4 @@ class WeatherRandomizerImplTest: KoinTest {
         val diff = res.zipWithNext { a, b -> b - a }
         println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")
     }
-
 }

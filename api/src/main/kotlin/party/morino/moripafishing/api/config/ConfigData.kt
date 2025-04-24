@@ -6,11 +6,22 @@ import party.morino.moripafishing.api.config.fish.FishingConfig
 import party.morino.moripafishing.api.config.world.SpawnConfig
 import party.morino.moripafishing.api.config.world.WorldConfig
 
-// プラグイン全体の設定データを保持するデータクラス
+/**
+ * プラグイン全体の設定データを保持するデータクラス
+ *
+ * @param database データベース関連の設定
+ * @param world ワールド関連の設定
+ * @param fishing 釣り関連の設定
+ * @param spawn スポーン関連の設定
+ */
 @Serializable
 data class ConfigData(
-    val database: DatabaseConfig = DatabaseConfig(), // データベース設定
-    val world: WorldConfig = WorldConfig(), // ワールド設定
-    val fishing: FishingConfig = FishingConfig(), // 釣り設定
-    val spawn: SpawnConfig = SpawnConfig() // スポーン設定
+    // データベース設定
+    val database: DatabaseConfig = DatabaseConfig(),
+    // ワールド設定
+    val world: WorldConfig = WorldConfig(),
+    // 釣り設定
+    val fishing: FishingConfig = FishingConfig(),
+    // スポーン設定
+    val spawn: SpawnConfig = SpawnConfig(),
 )

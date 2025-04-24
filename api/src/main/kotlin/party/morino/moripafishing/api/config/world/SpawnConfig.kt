@@ -14,5 +14,5 @@ data class SpawnConfig(
     val spawnMobs: Boolean = false,
     val spawnMonsters: Boolean = false,
     val spawnAnimals: Boolean = false,
-    val receiveDamage: Boolean = false
-) 
+    val receiveDamage: Boolean = false,
+)

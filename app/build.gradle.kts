@@ -1,7 +1,6 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.kotlin.dsl.testRuntimeOnly
-import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
 import party.morino.moripafishing.GenerateCommandListTask
+import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
 
 plugins {
     java
@@ -49,7 +48,6 @@ dependencies {
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
     testImplementation(libs.junit.platform.launcher)
-
 }
 
 tasks {
@@ -67,11 +65,12 @@ tasks {
     shadowJar
     runServer {
         minecraftVersion("1.21.4")
-        val plugins = runPaper.downloadPluginsSpec {
-            //Vault
-            url("https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar")
-            modrinth("terra", "6.6.1-BETA-bukkit")
-        }
+        val plugins =
+            runPaper.downloadPluginsSpec {
+                // Vault
+                url("https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar")
+                modrinth("terra", "6.6.1-BETA-bukkit")
+            }
         downloadPlugins {
             downloadPlugins.from(plugins)
         }

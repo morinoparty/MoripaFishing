@@ -23,6 +23,7 @@ allprojects {
     apply(plugin = "java")
     apply(plugin = "org.jetbrains.dokka")
     apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     repositories {
         mavenCentral()
@@ -39,6 +40,16 @@ allprojects {
             (this).languageVersion.set(JavaLanguageVersion.of(21))
         }
         jvmToolchain(21)
+    }
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        debug.set(true)
+        ignoreFailures.set(true)
+        filter {
+            include("app/**")
+            include("api/**")
+            exclude("**/config/**")
+        }
     }
 
     tasks {

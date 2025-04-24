@@ -12,12 +12,14 @@ import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import kotlin.jvm.java
 
-class FishingWorldParser<C> : ArgumentParser<C, FishingWorld> , BlockingSuggestionProvider.Strings<CommandSender>, KoinComponent {
-    val worldManager : WorldManager by inject()
+class FishingWorldParser<C> : ArgumentParser<C, FishingWorld>, BlockingSuggestionProvider.Strings<CommandSender>, KoinComponent {
+    val worldManager: WorldManager by inject()
 
-    override fun parse(commandContext: CommandContext<C & Any>, commandInput: CommandInput): ArgumentParseResult<FishingWorld> {
+    override fun parse(
+        commandContext: CommandContext<C & Any>,
+        commandInput: CommandInput,
+    ): ArgumentParseResult<FishingWorld> {
         val worldId = commandInput.readString()
         val fishingWorldId = FishingWorldId(worldId)
         return if (worldManager.getWorldIdList().contains(fishingWorldId)) {
@@ -27,7 +29,10 @@ class FishingWorldParser<C> : ArgumentParser<C, FishingWorld> , BlockingSuggesti
         }
     }
 
-    override fun stringSuggestions(commandContext: CommandContext<CommandSender?>, input: CommandInput): Iterable<String> {
+    override fun stringSuggestions(
+        commandContext: CommandContext<CommandSender?>,
+        input: CommandInput,
+    ): Iterable<String> {
         return worldManager.getWorldIdList().map { it.value }
     }
 

@@ -15,22 +15,25 @@
             "spawnAnimals": false,
             "receiveDamage": false
         },
-        "defaultWorldSize": 30.0,
+        "defaultWorldSize": 100.0,
         "defaultWorldGenerator": "Terra:OVERWORLD",
         "defaultWorldBiome": null,
         "defaultWeatherConfig": {
-            "dayCycleTimeZone": "Asia/Tokyo",
-            "interval": 8,
-            "offset": 0,
-            "maxInclination": 30,
-            "weatherSetting": {
+            "weatherUpdateInterval": 8,
+            "weatherUpdateOffset": 4,
+            "isAutoDayCycleEnabled": true,
+            "dayCycleOffset": 0,
+            "maxWeatherInclination": 30,
+            "weatherProbabilities": {
                 "SUNNY": 4,
                 "CLOUDY": 2,
                 "RAINY": 2,
                 "THUNDERSTORM": 1
             },
             "hashPepper": "pepper"
-        }
+        },
+        "refreshInterval": 60,
+        "defaultTimeZone": "Asia/Tokyo"
     },
     "fishing": {
         "test": "test"

@@ -3,18 +3,29 @@ package party.morino.moripafishing.api.config.weather
 import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.model.world.WeatherType
 
-// 天候に関する設定を保持するデータクラス
+/**
+ * 天候に関する設定を保持するデータクラス
+ *
+ * @property weatherUpdateInterval 天候の更新間隔（時間単位）
+ * @property weatherUpdateOffset 天候更新のオフセット（時間単位）
+ * @property isAutoDayCycleEnabled 自動で昼夜サイクルを変更するかどうか
+ * @property dayCycleOffset 昼夜サイクルのオフセット（WorldConfigのデフォルトタイムゾーンからのずれ）
+ * @property maxWeatherInclination 天候変化の最大傾斜角度
+ * @property weatherProbabilities 各天候タイプの出現確率の重み付け
+ * @property hashPepper ハッシュ計算用のペッパー値
+ */
 @Serializable
 data class WeatherConfig(
-    val dayCycleTimeZone: String = "Asia/Tokyo", // 日周期のタイムゾーン
-    val interval: Int = 8, // 天候の更新間隔
-    val offset: Int = 0, // 天候のオフセット
-    val maxInclination: Int = 30, // 天候の最大傾斜
-    val weatherSetting: Map<WeatherType, Int> = mapOf(
-        WeatherType.SUNNY to 30,
-        WeatherType.CLOUDY to 20,
-        WeatherType.RAINY to 20,
-        WeatherType.THUNDERSTORM to 10
+    val weatherUpdateInterval: Int = 8, 
+    val weatherUpdateOffset: Int = 4,
+    val isAutoDayCycleEnabled: Boolean = true,
+    val dayCycleOffset: Int = 0,
+    val maxWeatherInclination: Int = 30,
+    val weatherProbabilities: Map<WeatherType, Int> = mapOf(
+        WeatherType.SUNNY to 4,
+        WeatherType.CLOUDY to 2,
+        WeatherType.RAINY to 2,
+        WeatherType.THUNDERSTORM to 1,
     ),
-    val hashPepper: String = "pepper"
-) 
+    val hashPepper: String = "pepper",
+)

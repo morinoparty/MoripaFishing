@@ -13,11 +13,11 @@ import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
-import party.morino.moripafishing.mocks.config.PluginDirectoryMock
 import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
+import party.morino.moripafishing.mocks.config.PluginDirectoryMock
 import party.morino.moripafishing.mocks.world.WorldManagerMock
 
 /**
@@ -29,15 +29,16 @@ class MoripaFishingTest : BeforeAllCallback {
      * @param context 拡張機能のコンテキスト
      */
     override fun beforeAll(context: ExtensionContext) {
-        val appModule = module {
-            single<ConfigManager> { ConfigManagerImpl() }
-            single<RandomizeManager> { RandomizeManagerImpl() }
-            single<RarityManager> { RarityManagerImpl() }
-            single<PluginDirectory> { PluginDirectoryMock() }
-            single<FishManager> { FishManagerImpl() }
-            single<WorldManager> { WorldManagerMock() }
-            single<LogManager> { LogManagerImpl() }
-        }
+        val appModule =
+            module {
+                single<ConfigManager> { ConfigManagerImpl() }
+                single<RandomizeManager> { RandomizeManagerImpl() }
+                single<RarityManager> { RarityManagerImpl() }
+                single<PluginDirectory> { PluginDirectoryMock() }
+                single<FishManager> { FishManagerImpl() }
+                single<WorldManager> { WorldManagerMock() }
+                single<LogManager> { LogManagerImpl() }
+            }
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
         }

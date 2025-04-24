@@ -32,7 +32,8 @@ enum class WeatherType(name: String) {
     /**
      * 霧の天候
      */
-    FOGGY("霧");
+    FOGGY("霧"),
+    ;
 
     /**
      * 天候の名前を文字列として返す

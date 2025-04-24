@@ -2,19 +2,15 @@ package party.morino.moripafishing.core.angler
 
 import org.bukkit.Bukkit
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.model.angler.AnglerId
-import java.util.*
+import java.util.UUID
 
 /**
  * 釣り人を管理する実装クラス
  */
 class AnglerManagerImpl : AnglerManager, KoinComponent {
-
-
     /**
      * UUIDから釣り人を取得する
      * @param uuid プレイヤーのUUID
@@ -41,6 +37,4 @@ class AnglerManagerImpl : AnglerManager, KoinComponent {
         val onlinePlayers = Bukkit.getOnlinePlayers()
         return onlinePlayers.map { AnglerImpl(it.uniqueId) }
     }
-
-
-} 
+}

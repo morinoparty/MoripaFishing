@@ -3,26 +3,22 @@ package party.morino.moripafishing.mocks.world
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigManager
+import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.config.world.WorldConfig
-import party.morino.moripafishing.api.config.world.WorldDetailConfig
-
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.config.PluginDirectory
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
 
 /**
  * WorldManagerのモッククラス
  */
 class WorldManagerMock : WorldManager, KoinComponent {
-    private val configManager : ConfigManager by inject()
-    private val pluginDirectory : PluginDirectory by inject()
-    private val worldConfig : WorldConfig
+    private val configManager: ConfigManager by inject()
+    private val pluginDirectory: PluginDirectory by inject()
+    private val worldConfig: WorldConfig
         get() = configManager.getConfig().world
 
-    private lateinit var worldIdList : List<FishingWorldId>
+    private lateinit var worldIdList: List<FishingWorldId>
 
     init {
         loadWorldIds()
@@ -33,7 +29,7 @@ class WorldManagerMock : WorldManager, KoinComponent {
         if (!worldDirectory.exists()) {
             worldDirectory.mkdirs()
         }
-        worldIdList= pluginDirectory.getWorldDirectory().listFiles()?.mapNotNull { file ->
+        worldIdList = pluginDirectory.getWorldDirectory().listFiles()?.mapNotNull { file ->
             if (file.name.endsWith(".json")) {
                 val worldId = file.nameWithoutExtension
                 FishingWorldId(worldId)
@@ -73,7 +69,11 @@ class WorldManagerMock : WorldManager, KoinComponent {
         return true
     }
 
-    override fun createWorld(fishingWorldId: FishingWorldId, generator: String?, biome: String?): Boolean {
+    override fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generator: String?,
+        biome: String?,
+    ): Boolean {
         worldIdList.plus(fishingWorldId)
         return true
     }
@@ -81,5 +81,9 @@ class WorldManagerMock : WorldManager, KoinComponent {
     override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
         worldIdList.minus(fishingWorldId)
         return true
+    }
+
+    override fun initializeWorlds() {
+        // モックなので何もしないのだ
     }
 }

@@ -1,7 +1,6 @@
 package party.morino.moripafishing.config
 
 import kotlinx.serialization.json.Json
-import net.kyori.adventure.text.serializer.json.JSONComponentSerializer.json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigData
@@ -18,21 +17,20 @@ class ConfigManagerImpl : ConfigManager, KoinComponent {
 
     init {
         reload()
-
     }
-    val json: Json
-        get() = Json {
-            ignoreUnknownKeys = true
-            prettyPrint = true
-            encodeDefaults = true
-            isLenient = true
-        }
 
+    val json: Json
+        get() =
+            Json {
+                ignoreUnknownKeys = true
+                prettyPrint = true
+                encodeDefaults = true
+                isLenient = true
+            }
 
     override fun reload() {
-
         val file = pluginDirectory.getRootDirectory().resolve("config.json")
-        if (!file.exists() || file.length()==0L) {
+        if (!file.exists() || file.length() == 0L) {
             file.parentFile.mkdirs()
             file.createNewFile()
             val defaultConfig = ConfigData()

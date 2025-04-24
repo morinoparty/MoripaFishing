@@ -6,7 +6,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.util.*
+import java.util.Locale
 
 /**
  * Localeのシリアライザ
@@ -29,7 +29,10 @@ object LocaleSerializer : KSerializer<Locale> {
      * @param encoder エンコーダー
      * @param value シリアライズするLocale
      */
-    override fun serialize(encoder: Encoder, value: Locale) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Locale,
+    ) {
         encoder.encodeString(value.toLanguageTag())
     }
-} 
+}

@@ -29,4 +29,4 @@ interface PluginDirectory {
      * @return ワールドの設定ファイルが格納されているディレクトリ
      */
     fun getWorldDirectory(): File
-} 
+}

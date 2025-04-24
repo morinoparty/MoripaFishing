@@ -15,17 +15,16 @@ interface Angler {
      */
     fun getId(): AnglerId
 
-
     /**
      * 釣り人が釣った魚を記録する
      * @param fish 釣った魚のID
      * @return 更新された釣り人のデータ
      */
     fun recordCaughtFish(fish: Fish)
-    
+
     /**
      * 釣り人のデータを取得する
      * @return 釣り人のデータ(オフラインプレイヤーの場合はnull)
      */
-    fun getWorld() : FishingWorldId?
+    fun getWorld(): FishingWorldId?
 }

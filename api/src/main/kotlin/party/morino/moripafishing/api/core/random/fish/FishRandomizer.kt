@@ -10,11 +10,10 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
  * レアリティや釣り場に応じた魚の抽選ロジックを提供する
  */
 interface FishRandomizer {
-
     /**
      * 釣り場に応じた魚を抽選する
      * レアリティの抽選から始まり、そのレアリティに応じた魚を選択する
-     * 
+     *
      * @param fishingWorldId 釣り場のID
      * @return 抽選された魚
      */
@@ -25,19 +24,22 @@ interface FishRandomizer {
 
     /**
      * 指定されたレアリティに基づいて魚を抽選する
-     * 
+     *
      * @param rarity 抽選対象のレアリティ
      * @param fishingWorldId 釣り場のID
      * @return 抽選された魚
      */
-    fun selectRandomFishByRarity(rarity: RarityId, fishingWorldId: FishingWorldId): Fish {
+    fun selectRandomFishByRarity(
+        rarity: RarityId,
+        fishingWorldId: FishingWorldId,
+    ): Fish {
         return selectRandomFishByRarity(rarity, fishingWorldId)
     }
 
     /**
      * 魚データに基づいて魚を抽選する
      * 魚データの確率に従って抽選を行う
-     * 
+     *
      * @param fishData 抽選対象の魚データ
      * @return 抽選された魚
      */
@@ -46,9 +48,8 @@ interface FishRandomizer {
     /**
      * レアリティを抽選する
      * 各レアリティの出現確率に従って抽選を行う
-     * 
+     *
      * @return 抽選されたレアリティ
      */
     fun drawRandomRarity(): RarityId
-
 }

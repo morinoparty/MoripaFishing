@@ -12,9 +12,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class LocationData(
-    val x : Double,
-    val y : Double,
-    val z : Double,
-    val yaw : Double,
-    val pitch : Double,
+    val x: Double,
+    val y: Double,
+    val z: Double,
+    val yaw: Double,
+    val pitch: Double,
 )

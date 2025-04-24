@@ -7,27 +7,57 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.api.utils.serializer.ComponentSerializer
 import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
-import java.util.*
+import java.util.Locale
 
 @Serializable
 data class FishData(
-    val id: FishId, //tuna
+    // 魚のID ex) tuna
+    val id: FishId,
+    // 無効にするかどうか(期間限定などを想定) falseであれば普通に釣れる
     val isDisabled: Boolean = false,
+    // キャッシュコマンド
     val cacheCommand: List<String> = emptyList(),
-    val displayName: Map<@Serializable(with = LocaleSerializer::class) Locale, @Serializable(with = ComponentSerializer::class) Component> = mapOf(
-        Locale.JAPAN to Component.text("さかな") //fallback用であり、実際には使用されない予定
-    ),
+    // 表示名
+    val displayName: Map<
+        @Serializable(
+            with = LocaleSerializer::class,
+        )
+        Locale,
+        @Serializable(
+            with = ComponentSerializer::class,
+        )
+        Component,
+        > =
+        mapOf(
+            Locale.JAPAN to Component.text("さかな"),
+        ),
+    // 条件
     val conditions: ConditionData,
-    val size : FishSizeData = FishSizeData(20.0, 40.0),
-    val icon : String = "\uE060", //図鑑用 将来のために予約
-    val itemStack : ItemStackData,
-    val rarity : RarityId = RarityId("common"),
+    // サイズ
+    val size: FishSizeData = FishSizeData(20.0, 40.0),
+    // 図鑑用 将来のために予約
+    val icon: String = "\uE060",
+    // アイテムスタック
+    val itemStack: ItemStackData,
+    // レアリティ
+    val rarity: RarityId = RarityId("common"),
+    // 重さ
     val weight: Double = 10.0,
-    val worthExpression : String? = null, //nullの場合 Rarityから取得される
-    val lore : Map<@Serializable(with = LocaleSerializer::class) Locale, ArrayList< @Serializable(with = ComponentSerializer::class) Component>> = mapOf(
-        Locale.JAPAN to arrayListOf(),
-        Locale.ENGLISH to arrayListOf()
-    )
+    // 価値式 nullの場合 Rarityから取得される
+    val worthExpression: String? = null,
+    // 説明
+    val lore: Map<
+        @Serializable(with = LocaleSerializer::class)
+        Locale,
+        ArrayList<
+            @Serializable(with = ComponentSerializer::class)
+            Component,
+            >,
+        > =
+        mapOf(
+            Locale.JAPAN to arrayListOf(),
+            Locale.ENGLISH to arrayListOf(),
+        ),
 )
 
 @Serializable
@@ -44,12 +74,12 @@ data class FishSizeData(
 
 @Serializable
 data class ItemStackData(
-    val material : String,
-    val itemMeta : ItemMetaData,
+    val material: String,
+    val itemMeta: ItemMetaData,
 )
 
 @Serializable
 data class ItemMetaData(
-    val skullTexture : String? = null,
-    val customModelData : Int? = null
+    val skullTexture: String? = null,
+    val customModelData: Int? = null,
 )

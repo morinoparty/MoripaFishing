@@ -5,10 +5,16 @@ import kotlinx.serialization.Serializable
 // データベースに関する設定を保持するデータクラス
 @Serializable
 data class DatabaseConfig(
-    val type: String = "SQLITE", // データベースの種類
-    val host: String = "localhost", // データベースのホスト
-    val port: Int = 3306, // データベースのポート
-    val database: String = "moripafishing", // データベース名
-    val username: String = "root", // データベースのユーザー名
-    val password: String = "password" // データベースのパスワード
-) 
+    // データベースの種類
+    val type: String = "SQLITE",
+    // データベースのホスト
+    val host: String = "localhost",
+    // データベースのポート
+    val port: Int = 3306,
+    // データベース名
+    val database: String = "moripafishing",
+    // データベースのユーザー名
+    val username: String = "root",
+    // データベースのパスワード
+    val password: String = "password",
+)

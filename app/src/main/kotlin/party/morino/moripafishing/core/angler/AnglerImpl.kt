@@ -8,12 +8,13 @@ import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fish.Fish
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import java.util.*
+import java.util.UUID
 
 class AnglerImpl(
-    private val uniqueId : UUID,
+    private val uniqueId: UUID,
 ) : Angler, KoinComponent {
-    val plugin : MoripaFishing by inject()
+    val plugin: MoripaFishing by inject()
+
     /**
      * 釣り人のIDを取得する
      * @return 釣り人のID
@@ -23,16 +24,15 @@ class AnglerImpl(
     }
 
     override fun recordCaughtFish(fish: Fish) {
-        plugin.logger.info("Caught fish: ${fish}")
-        //TODO databaseに記録する
+        plugin.logger.info("Caught fish: $fish")
+        // TODO databaseに記録する
     }
 
     override fun getWorld(): FishingWorldId? {
         val offlinePlayer = Bukkit.getOfflinePlayer(uniqueId)
-        if(!offlinePlayer.isOnline) return null
+        if (!offlinePlayer.isOnline) return null
         val player = offlinePlayer.player ?: return null
         val world = FishingWorldId(player.world.name)
         return world
     }
-
-} 
+}

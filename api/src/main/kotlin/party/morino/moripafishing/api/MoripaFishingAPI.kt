@@ -29,13 +29,11 @@ interface MoripaFishingAPI {
      */
     fun getFishManager(): FishManager
 
-
     /**
      * 世界マネージャーを取得する
      * @return 世界マネージャー
      */
     fun getWorldManager(): WorldManager
-
 
     /**
      * プラグインディレクトリを取得する
@@ -49,4 +47,3 @@ interface MoripaFishingAPI {
      */
     fun getAnglerManager(): AnglerManager
 }
-

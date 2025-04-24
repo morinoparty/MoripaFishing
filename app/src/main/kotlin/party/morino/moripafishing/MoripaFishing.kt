@@ -1,5 +1,10 @@
 package party.morino.moripafishing
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.getOrNull
@@ -19,18 +24,26 @@ import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
+import party.morino.moripafishing.utils.coroutines.async
 
 class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
+    private lateinit var configManager: ConfigManager
+
     // ランダム化マネージャーのインスタンスを遅延初期化する
     private lateinit var randomizeManager: RandomizeManager
+
     // レアリティマネージャーのインスタンスを遅延初期化する
     private lateinit var rarityManager: RarityManager
+
     // プラグインディレクトリのインスタンスを遅延初期化する
     private lateinit var pluginDirectory: PluginDirectory
+
     // WorldManagerのインスタンスを遅延初期化する
     private lateinit var worldManager: WorldManager
+
     // FishManagerのインスタンスを遅延初期化する
     private lateinit var fishManager: FishManager
+
     // AnglerManagerのインスタンスを遅延初期化する
     private lateinit var anglerManager: AnglerManager
 
@@ -49,11 +62,14 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
         // データベースの初期化
 //         databaseManager.initialize()
+        worldManager.initializeWorlds()
 
+        updateWorlds()
         logger.info("MoripaFishing enabled")
     }
 
     private fun getInstanceForAPI() {
+        configManager = GlobalContext.get().get()
         // PluginDirectoryのインスタンスを取得
         pluginDirectory = GlobalContext.get().get()
         // RarityManagerのインスタンスを取得
@@ -74,43 +90,63 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     }
 
     private fun setupKoin() {
-        val appModule = module {
-            single<MoripaFishing> { this@MoripaFishing }
-            single<ConfigManager> { ConfigManagerImpl() }
-            single<RandomizeManager> { RandomizeManagerImpl() }
-            single<RarityManager> { RarityManagerImpl() }
-            single<WorldManager> { WorldManagerImpl() }
-            single<PluginDirectory> { PluginDirectoryImpl() }
-            single<FishManager> { FishManagerImpl() }
-            single<AnglerManager> { AnglerManagerImpl() }
-        }
+        val appModule =
+            module {
+                single<MoripaFishing> { this@MoripaFishing }
+                single<ConfigManager> { ConfigManagerImpl() }
+                single<RandomizeManager> { RandomizeManagerImpl() }
+                single<RarityManager> { RarityManagerImpl() }
+                single<WorldManager> { WorldManagerImpl() }
+                single<PluginDirectory> { PluginDirectoryImpl() }
+                single<FishManager> { FishManagerImpl() }
+                single<AnglerManager> { AnglerManagerImpl() }
+            }
 
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
         }
     }
 
+    private fun updateWorlds() {
+        Bukkit.getScheduler().runTaskAsynchronously(
+            this,
+            Runnable {
+                runBlocking {
+                    withContext(Dispatchers.async) {
+                        val interval = configManager.getConfig().world.refreshInterval * 1000L
+                        while (true) {
+                            worldManager.getWorldIdList().forEach {
+                                worldManager.getWorld(it).updateState()
+                            }
+                            delay(interval)
+                        }
+                    }
+                }
+            },
+        )
+    }
+
     override fun getConfigManager(): ConfigManager {
-        return GlobalContext.get().get()
+        return configManager
     }
 
     override fun getRandomizeManager(): RandomizeManager {
-        return GlobalContext.get().get()
+        return randomizeManager
     }
 
     override fun getFishManager(): FishManager {
-        return GlobalContext.get().get()
+        return fishManager
     }
 
     override fun getWorldManager(): WorldManager {
-        return GlobalContext.get().get()
+        return worldManager
     }
 
     override fun getPluginDirectory(): PluginDirectory {
-        return GlobalContext.get().get()
+        return pluginDirectory
     }
 
     override fun getAnglerManager(): AnglerManager {
-        return GlobalContext.get().get()
+        return anglerManager
     }
 }

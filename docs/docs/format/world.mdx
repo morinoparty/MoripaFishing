@@ -11,7 +11,7 @@ sidebar_position: 4
 {
     "id" : "default",
     "name" : "つりとぴあ",
-    "borderSize" : null,
+    "borderSize" : null, //半径
     "borderCentral" : {
         "first" : 0.0,
         "second" : 0.0
@@ -23,6 +23,18 @@ sidebar_position: 4
         "yaw" : 90.0,
         "pitch" : 0.0
     },
-    "weatherConfig" : null
+    "weatherConfig" : { //nullの場合はデフォルトの設定を使用
+        "dayCycleTimeZone" : "Asia/Tokyo", //日周期のタイムゾーン
+        "interval" : 8, //天気の更新間隔
+        "offset" : 0, //天気のoffset
+        "maxInclination" : 30, //天気の最大傾斜
+        "weatherSetting" : {
+            "SUNNY" : 4, //晴れの確率
+            "CLOUDY" : 2, //曇りの確率
+            "RAINY" : 2, //雨の確率
+            "THUNDERSTORM" : 1 //雷雨の確率
+        },
+        "hashPepper" : "pepper" //ハッシュのペッパー
+    }
 }
 ```

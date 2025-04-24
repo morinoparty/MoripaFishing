@@ -7,13 +7,13 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Entity
 import org.incendo.cloud.SenderMapper
 
-class CommandSenderMapper: SenderMapper<CommandSourceStack, CommandSender> {
+class CommandSenderMapper : SenderMapper<CommandSourceStack, CommandSender> {
     override fun map(source: CommandSourceStack): CommandSender {
         return source.sender
     }
 
     override fun reverse(sender: CommandSender): CommandSourceStack {
-        return object: CommandSourceStack {
+        return object : CommandSourceStack {
             override fun getLocation(): Location {
                 if (sender is Entity) {
                     return sender.location

@@ -17,4 +17,4 @@ class LogManagerMock : LogManager {
         loggedFish.add(fish) // 記録だけしておくのだ
         // モックなので実際には何もしないのだ
     }
-} 
+}

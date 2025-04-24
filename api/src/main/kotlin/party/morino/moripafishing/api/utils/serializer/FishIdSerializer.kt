@@ -14,11 +14,14 @@ import party.morino.moripafishing.api.model.fish.FishId
 object FishIdSerializer : KSerializer<FishId> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FishId", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: FishId) {
+    override fun serialize(
+        encoder: Encoder,
+        value: FishId,
+    ) {
         encoder.encodeString(value.value)
     }
 
     override fun deserialize(decoder: Decoder): FishId {
         return FishId(decoder.decodeString())
     }
-} 
+}

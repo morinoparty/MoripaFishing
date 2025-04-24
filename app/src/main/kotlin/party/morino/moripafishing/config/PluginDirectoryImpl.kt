@@ -1,10 +1,9 @@
 package party.morino.moripafishing.config
 
-import party.morino.moripafishing.api.config.PluginDirectory
-import org.bukkit.plugin.Plugin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
+import party.morino.moripafishing.api.config.PluginDirectory
 import java.io.File
 
 /**
@@ -12,20 +11,20 @@ import java.io.File
  */
 class PluginDirectoryImpl : PluginDirectory, KoinComponent {
     private val plugin: MoripaFishing by inject()
-    private val _rootDirectory: File by lazy { plugin.dataFolder }
-    private val _rarityDirectory: File by lazy { File(_rootDirectory, "rarity") }
-    private val _fishDirectory: File by lazy { File(_rootDirectory, "fish") }
-    private val _worldDirectory: File by lazy { File(_rootDirectory, "world") }
+    private val rootDirectoryFile: File by lazy { plugin.dataFolder }
+    private val rarityDirectoryFile: File by lazy { File(rootDirectoryFile, "rarity") }
+    private val fishDirectoryFile: File by lazy { File(rootDirectoryFile, "fish") }
+    private val worldDirectoryFile: File by lazy { File(rootDirectoryFile, "world") }
 
     /**
      * プラグインのルートディレクトリを取得する
      * @return プラグインのルートディレクトリ
      */
     override fun getRootDirectory(): File {
-        if(!_rootDirectory.exists()) {
-            _rootDirectory.mkdirs()
+        if (!rootDirectoryFile.exists()) {
+            rootDirectoryFile.mkdirs()
         }
-        return _rootDirectory
+        return rootDirectoryFile
     }
 
     /**
@@ -33,10 +32,10 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
      * @return レアリティの設定ファイルが格納されているディレクトリ
      */
     override fun getRarityDirectory(): File {
-        if(!_rarityDirectory.exists()) {
-            _rarityDirectory.mkdirs()
+        if (!rarityDirectoryFile.exists()) {
+            rarityDirectoryFile.mkdirs()
         }
-        return _rarityDirectory
+        return rarityDirectoryFile
     }
 
     /**
@@ -44,10 +43,10 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
      * @return 魚の設定ファイルが格納されているディレクトリ
      */
     override fun getFishDirectory(): File {
-        if(!_fishDirectory.exists()) {
-            _fishDirectory.mkdirs()
+        if (!fishDirectoryFile.exists()) {
+            fishDirectoryFile.mkdirs()
         }
-        return _fishDirectory
+        return fishDirectoryFile
     }
 
     /**
@@ -55,9 +54,9 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
      * @return ワールドの設定ファイルが格納されているディレクトリ
      */
     override fun getWorldDirectory(): File {
-        if(!_worldDirectory.exists()) {
-            _worldDirectory.mkdirs()
+        if (!worldDirectoryFile.exists()) {
+            worldDirectoryFile.mkdirs()
         }
-        return _worldDirectory
+        return worldDirectoryFile
     }
-} 
+}

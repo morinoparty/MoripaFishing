@@ -14,11 +14,14 @@ import party.morino.moripafishing.api.model.rarity.RarityId
 object RarityIdSerializer : KSerializer<RarityId> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("RarityId", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: RarityId) {
+    override fun serialize(
+        encoder: Encoder,
+        value: RarityId,
+    ) {
         encoder.encodeString(value.value)
     }
 
     override fun deserialize(decoder: Decoder): RarityId {
         return RarityId(decoder.decodeString())
     }
-} 
+}

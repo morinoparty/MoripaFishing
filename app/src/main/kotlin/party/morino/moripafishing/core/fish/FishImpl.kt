@@ -9,11 +9,10 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.model.fish.FishData
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityData
-import java.util.*
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.sqrt
-
 
 /**
  * 魚の実装クラス
@@ -22,7 +21,8 @@ class FishImpl(
     private val fishData: FishData,
     private val size: Double,
 ) : Fish, KoinComponent {
-    private val rarityManager : RarityManager by inject()
+    private val rarityManager: RarityManager by inject()
+
     /**
      * 魚のキーを取得する
      * @return 魚のキー
@@ -35,7 +35,7 @@ class FishImpl(
      * 魚の表示名を取得する
      * @return 魚の表示名
      */
-    override fun getDisplayName(): Map<Locale , Component> {
+    override fun getDisplayName(): Map<Locale, Component> {
         return fishData.displayName
     }
 
@@ -52,7 +52,8 @@ class FishImpl(
      * @return 魚のレアリティ
      */
     override fun getRarity(): RarityData {
-        return rarityManager.getRarity(fishData.rarity) ?: throw IllegalStateException("Rarity not found: ${fishData.rarity}")
+        return rarityManager.getRarity(fishData.rarity)
+            ?: throw IllegalStateException("Rarity not found: ${fishData.rarity}")
     }
 
     /**
@@ -106,7 +107,10 @@ class FishImpl(
      * @param lengthRate 魚のサイズに基づく正規分布の累積分布関数の値
      * @return 評価結果
      */
-    private fun evaluateExpression(expression: String, lengthRate: Double): Double {
+    private fun evaluateExpression(
+        expression: String,
+        lengthRate: Double,
+    ): Double {
         val replacedExpression = expression.replace("<length_rate>", lengthRate.toString())
         return ExpressionBuilder(replacedExpression).build().evaluate()
     }
@@ -120,4 +124,4 @@ class FishImpl(
     override fun toString(): String {
         return "FishImpl(fishData=${fishData.id}, size=$size, rarity=${fishData.rarity}, worth=${getWorth()})"
     }
-} 
+}

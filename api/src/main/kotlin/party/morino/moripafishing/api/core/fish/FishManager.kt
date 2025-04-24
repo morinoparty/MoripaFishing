@@ -1,8 +1,8 @@
 package party.morino.moripafishing.api.core.fish
 
 import party.morino.moripafishing.api.model.fish.FishData
-import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.fish.FishId
+import party.morino.moripafishing.api.model.rarity.RarityId
 
 /**
  * 魚の管理を行うインターフェース
@@ -14,13 +14,11 @@ interface FishManager {
      */
     fun registerFish(fish: FishData)
 
-
     /**
      * 登録されている魚の一覧を取得する
      * @return 魚の一覧
      */
     fun getFish(): List<FishData>
-
 
     /**
      * 魚を取得する
@@ -35,5 +33,4 @@ interface FishManager {
      * @return 魚
      */
     fun getFishesWithRarity(rarity: RarityId): List<FishData>
-
 }

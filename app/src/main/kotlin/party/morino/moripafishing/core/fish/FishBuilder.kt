@@ -25,7 +25,7 @@ class FishBuilderImpl : FishBuilder {
         return FishImpl(fishData, size)
     }
 
-    companion object{
+    companion object {
         fun getBuilder(): FishBuilder {
             return FishBuilderImpl()
         }

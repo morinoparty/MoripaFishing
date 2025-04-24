@@ -4,12 +4,10 @@ import org.bukkit.event.HandlerList
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fish.Fish
 
-
-
 class FishingEvent(
     private val player: Angler,
     private val fish: Fish,
-) : Event() , Cancellable {
+) : Event(), Cancellable {
     private val handlers = HandlerList()
     private var isCancelled: Boolean
 
@@ -29,4 +27,3 @@ class FishingEvent(
         this.isCancelled = cancel
     }
 }
-

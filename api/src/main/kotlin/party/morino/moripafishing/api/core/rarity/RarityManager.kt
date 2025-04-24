@@ -13,7 +13,6 @@ interface RarityManager {
      */
     fun registerRarity(rarity: RarityData)
 
-
     /**
      * レアリティを取得する
      * @param id レアリティのID
@@ -21,10 +20,9 @@ interface RarityManager {
      */
     fun getRarity(id: RarityId): RarityData?
 
-
     /**
      * 登録されているレアリティの一覧を取得する
      * @return レアリティの一覧
      */
     fun getRarities(): List<RarityData>
-} 
+}

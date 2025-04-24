@@ -9,7 +9,6 @@ import party.morino.moripafishing.api.utils.serializer.FishIdSerializer
  */
 @Serializable(with = FishIdSerializer::class)
 class FishId(val value: String) {
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FishId) return false

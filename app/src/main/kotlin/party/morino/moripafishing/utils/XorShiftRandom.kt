@@ -1,5 +1,4 @@
 package party.morino.moripafishing.utils
-import java.security.MessageDigest
 
 class XorShiftRandom(seed: Long = 88675123) {
     private var x: Int = 123456789
@@ -16,9 +15,11 @@ class XorShiftRandom(seed: Long = 88675123) {
         return w
     }
 
-    fun nextInt(min: Int = 0, max: Int = 100): Int {
+    fun nextInt(
+        min: Int = 0,
+        max: Int = 100,
+    ): Int {
         val r = Math.abs(next())
         return min + (r % (max + 1 - min))
     }
-    
 }

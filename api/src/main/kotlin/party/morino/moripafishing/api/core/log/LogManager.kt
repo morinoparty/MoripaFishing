@@ -11,4 +11,4 @@ interface LogManager {
      * @param fish ログに出力する魚の情報
      */
     fun logFish(fish: Fish)
-} 
+}

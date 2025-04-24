@@ -53,17 +53,16 @@ class RarityManagerImpl : RarityManager, KoinComponent {
             rarityDir.mkdirs()
         }
 
-        val json = Json {
-            ignoreUnknownKeys = true
-            prettyPrint = true
-            encodeDefaults = true
-            isLenient = true
-        }
+        val json =
+            Json {
+                ignoreUnknownKeys = true
+                prettyPrint = true
+                encodeDefaults = true
+                isLenient = true
+            }
         rarityDir.listFiles { file -> file.extension == "json" }?.forEach { file ->
             val rarity = json.decodeFromString<RarityData>(file.readText())
             registerRarity(rarity)
         }
     }
-
-
-} 
+}

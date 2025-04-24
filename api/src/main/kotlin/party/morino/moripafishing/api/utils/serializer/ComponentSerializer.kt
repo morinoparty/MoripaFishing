@@ -16,7 +16,10 @@ object ComponentSerializer : KSerializer<Component> {
     private val miniMessage = MiniMessage.miniMessage()
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Component", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: Component) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Component,
+    ) {
         encoder.encodeString(miniMessage.serialize(value))
     }
 
