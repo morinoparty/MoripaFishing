@@ -13,7 +13,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = group.toString()
-            artifactId = "moripafishing.api"
+            artifactId = "moripafishing-api"
             version = version
             from(components["kotlin"])
         }
