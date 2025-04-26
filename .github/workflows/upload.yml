@@ -6,6 +6,9 @@ on:
 
 jobs:
   build:
+    env: 
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
     runs-on: ubuntu-latest
 
     steps:
@@ -28,6 +31,10 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew :app:build -x test
+
+      
+      - name: Upload package
+        run: ./gradlew publish
 
       - name: Change file name
         run: mv ./app/build/libs/app-all.jar ./app/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar

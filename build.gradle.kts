@@ -46,7 +46,7 @@ allprojects {
         debug.set(true)
         ignoreFailures.set(true)
         filter {
-            include("app/**")
+            include("bukkit/**")
             include("api/**")
             exclude("**/config/**")
         }
@@ -74,7 +74,7 @@ allprojects {
 }
 
 dependencies {
-    dokka(project(":app"))
+    dokka(project(":bukkit"))
     dokka(project(":api"))
 }
 
