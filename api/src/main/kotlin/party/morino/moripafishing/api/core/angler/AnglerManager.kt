@@ -12,14 +12,14 @@ interface AnglerManager {
      * @param uuid プレイヤーのUUID
      * @return 釣り人（存在しない場合はNone）
      */
-    fun getAnglerByUUID(uuid: UUID): Angler?
+    fun getAnglerByMinecraftUniqueId(uuid: UUID): Angler?
 
     /**
      * 釣り人IDから釣り人を取得する
      * @param anglerId 釣り人ID
      * @return 釣り人（存在しない場合はNone）
      */
-    fun getAnglerById(anglerId: AnglerId): Angler?
+    fun getAnglerByAnglerUniqueId(anglerId: AnglerId): Angler?
 
     /**
      * 全ての釣り人を取得する

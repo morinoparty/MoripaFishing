@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import org.bukkit.Bukkit
 import org.bukkit.GameRule
 import org.bukkit.Location
@@ -114,6 +115,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     override fun setWorldSpawnPosition(locationData: LocationData) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
+                plugin.logger.info("in minecraft:World spawn position updated: $locationData")
                 world.spawnLocation =
                     Location(
                         world,
@@ -125,20 +127,31 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
                     )
             }
         }
-        // TODO configに保存
+        worldDetailConfig = worldDetailConfig.copy(spawnLocationData = locationData)
+        val file = pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
+        file.outputStream().use { outputStream ->
+            Json.encodeToStream(worldDetailConfig, outputStream)
+        }
+        plugin.logger.info("World spawn position updated: $locationData")
     }
 
-    override fun getRadius(): Double {
+    override fun getSize(): Double {
         return world.worldBorder.size
     }
 
-    override fun setRadius(size: Double) {
+    override fun setSize(size: Double) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
+                plugin.logger.info("in minecraft:World border size updated: $size")
                 world.worldBorder.size = size
             }
         }
-        // TODO configに保存
+        worldDetailConfig = worldDetailConfig.copy(borderSize = size)
+        val file = pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
+        file.outputStream().use { outputStream ->
+            Json.encodeToStream(worldDetailConfig, outputStream)
+        }
+        plugin.logger.info("World border size updated: $size")
     }
 
     override fun getCenter(): Pair<Double, Double> {
@@ -151,15 +164,20 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     ) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
-                world.worldBorder.setCenter(x, z)
-                // TODO configに保存
+                plugin.logger.info("in minecraft:World border center updated: ($x, $z)")
+                val worldBorder = world.worldBorder
+                worldBorder.center = Location(world, x, 0.0, z)
             }
         }
+        worldDetailConfig = worldDetailConfig.copy(borderCentral = Pair(x, z))
+        val file = pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
+        file.outputStream().use { outputStream ->
+            Json.encodeToStream(worldDetailConfig, outputStream)
+        }
+        plugin.logger.info("World border center updated: ($x, $z)")
     }
 
     override fun updateState() {
-        setCenter(worldDetailConfig.borderCentral.first, worldDetailConfig.borderCentral.second)
-        setRadius(worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize)
         updateWeather()
     }
 

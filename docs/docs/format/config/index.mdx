@@ -1,0 +1,47 @@
+---
+title: ⚙️ コンフィグ
+sidebar_position: 1
+---
+
+# コンフィグ
+
+## Format
+
+```json title="plugins/MoripaFishing/config.yml"
+{
+  "database": {
+      "type": "SQLITE",
+      "host": "localhost",
+      "port": 3306,
+      "database": "moripafishing",
+      "username": "root",
+      "password": "password"
+  },
+  "world": {
+      "defaultId": "default",
+      "spawnConfig": {
+          "spawnMobs": false,
+          "spawnMonsters": false,
+          "spawnAnimals": false,
+          "receiveDamage": false
+      },
+      "defaultWorldSize": 100.0,
+      "defaultWorldGenerator": "Terra:OVERWORLD",
+      "defaultWorldBiome": null,
+      "defaultWeatherConfig": "省略",
+      "refreshInterval": 60,
+      "defaultTimeZone": "Asia/Tokyo"
+  },
+  "fishing": {
+      "test": "test"
+  },
+  "spawn": {
+      "spawnMobs": false,
+      "spawnMonsters": false,
+      "spawnAnimals": false,
+      "receiveDamage": false
+  }
+}
+```
+
+defaultWeatherConfigについては項目が多いため[weather.mdx](./weather.mdx)を参照

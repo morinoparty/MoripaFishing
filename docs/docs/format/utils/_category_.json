@@ -1,0 +1,11 @@
+{
+    "position": 3,
+    "label": "📚 その他",
+    "link": {
+        "type": "generated-index",
+        "title": "その他"
+    },
+    "customProps": {
+        "description": "その他についての説明です。"
+    }
+}

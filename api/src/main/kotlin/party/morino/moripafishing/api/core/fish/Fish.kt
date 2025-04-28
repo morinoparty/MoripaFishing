@@ -38,4 +38,10 @@ interface Fish {
      * @return 魚の価値
      */
     fun getWorth(): Double
+
+    /**
+     * 魚の累積分布関数を取得する
+     * @return 魚の累積分布関数 0~1の値
+     */
+    fun getCFD(): Double
 }

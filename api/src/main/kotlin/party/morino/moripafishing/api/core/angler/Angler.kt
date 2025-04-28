@@ -1,8 +1,9 @@
 package party.morino.moripafishing.api.core.angler
 
-import party.morino.moripafishing.api.core.fish.Fish
+import party.morino.moripafishing.api.core.fish.CaughtFish
+import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
-import party.morino.moripafishing.api.model.world.FishingWorldId
+import java.util.UUID
 
 /**
  * 釣り人を表すインターフェース
@@ -11,20 +12,32 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
 interface Angler {
     /**
      * 釣り人のIDを取得する
-     * @return 釣り人のID
+     * @return 釣り人のID(これはminecraftのuuidとは一致しません)
      */
-    fun getId(): AnglerId
+    fun getAnglerUniqueId(): AnglerId
+
+    /**
+     * 釣りびとのminecraftのuuidを取得する
+     * @return 釣りびとのminecraftのuuid
+     */
+    fun getMinecraftUniqueId(): UUID
+
+    /**
+     * 釣り人の名前を取得する
+     * @return 釣り人の名前
+     */
+    fun getName(): String
 
     /**
      * 釣り人が釣った魚を記録する
      * @param fish 釣った魚のID
      * @return 更新された釣り人のデータ
      */
-    fun recordCaughtFish(fish: Fish)
+    fun recordCaughtFish(caughtFish: CaughtFish)
 
     /**
      * 釣り人のデータを取得する
      * @return 釣り人のデータ(オフラインプレイヤーの場合はnull)
      */
-    fun getWorld(): FishingWorldId?
+    fun getWorld(): FishingWorld?
 }

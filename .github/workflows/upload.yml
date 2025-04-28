@@ -30,14 +30,14 @@ jobs:
           sed -i -e "s/VersionPlaceholder/$after/i" './gradle.properties'
 
       - name: Build with Gradle
-        run: ./gradlew :app:build -x test
+        run: ./gradlew :bukkit:build -x test
 
       
       - name: Upload package
         run: ./gradlew publish
 
       - name: Change file name
-        run: mv ./app/build/libs/app-all.jar ./app/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
+        run: mv ./bukkit/build/libs/bukkit-all.jar ./bukkit/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
 
       - uses: Kir-Antipov/mc-publish@v3.3
         with:
@@ -48,7 +48,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-draft: false
           files: |
-            ./app/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
+            ./bukkit/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
           loaders: |
             paper
             purpur
