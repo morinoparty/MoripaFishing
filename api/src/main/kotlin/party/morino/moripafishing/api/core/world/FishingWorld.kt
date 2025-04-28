@@ -54,13 +54,13 @@ interface FishingWorld {
      * ワールドの大きさを取得する。
      * @return Double ワールドの大きさ
      * */
-    fun getRadius(): Double
+    fun getSize(): Double
 
     /**
      * ワールドの大きさを設定する。
      * @param size ワールドの大きさ
      */
-    fun setRadius(size: Double)
+    fun setSize(size: Double)
 
     /**
      * ワールドの中心位置を取得する。

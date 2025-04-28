@@ -81,5 +81,5 @@ data class ItemStackData(
 @Serializable
 data class ItemMetaData(
     val skullTexture: String? = null,
-    val customModelData: Int? = null,
+    val customModelData: List<Float> = listOf(),
 )

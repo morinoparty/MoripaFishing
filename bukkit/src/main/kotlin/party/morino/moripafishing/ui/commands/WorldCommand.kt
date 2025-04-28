@@ -120,32 +120,35 @@ class WorldCommand : KoinComponent {
         }
         val location = sender.location
         val locationData = LocationData(location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
-        // TODO ワールドのスポーン位置の設定
         world.setWorldSpawnPosition(locationData)
         sender.sendMessage("Spawn position set for world ${world.getId()}.")
     }
 
-    @Command("config set center <world> <x> <z>")
+    @Command("config set center <world> [x] [z]")
     @Permission("moripa_fishing.command.world.config")
     suspend fun setCenter(
         sender: CommandSender,
         @Argument("world") world: FishingWorld,
-        @Argument("x") x: Double,
-        @Argument("z") z: Double,
+        @Argument("x") x: Double? = null,
+        @Argument("z") z: Double? = null,
     ) {
-        world.setCenter(x, z)
-        sender.sendMessage("Center set for world ${world.getId()}.")
+        if (sender !is Player && (x == null || z == null)) {
+            sender.sendMessage("This command can only be used by players.")
+            return
+        }
+        world.setCenter(x ?: (sender as Player).location.x, z ?: (sender as Player).location.z)
+        sender.sendMessage("Center set for world ${world.getId().value}.")
     }
 
-    @Command("config set radius <world> <radius>")
+    @Command("config set size <world> <size>")
     @Permission("moripa_fishing.command.world.config")
-    suspend fun setRadius(
+    suspend fun setSize(
         sender: CommandSender,
         @Argument("world") world: FishingWorld,
-        @Argument("radius") radius: Double,
+        @Argument("size") size: Double,
     ) {
-        world.setRadius(radius)
-        sender.sendMessage("Radius set for world ${world.getId()}.")
+        world.setSize(size)
+        sender.sendMessage("Size set for world ${world.getId().value}.")
     }
 
     @Command("config view <world>")

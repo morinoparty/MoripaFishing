@@ -43,11 +43,11 @@ class FishingWorldMock(
         // モックなので何もしないのだ
     }
 
-    override fun getRadius(): Double {
+    override fun getSize(): Double {
         return radius
     }
 
-    override fun setRadius(size: Double) {
+    override fun setSize(size: Double) {
         // モックなので何もしないのだ
     }
 

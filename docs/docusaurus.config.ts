@@ -33,6 +33,7 @@ const config: Config = {
             {
                 docs: {
                     sidebarPath: "./sidebars.ts",
+                    sidebarCollapsed: true,
                     routeBasePath: "",
                     editUrl:
                         "https://github.com/morinoparty/moripafishing/tree/master/docs/",

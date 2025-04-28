@@ -1,0 +1,81 @@
+---
+title: 🌐 翻訳 
+sidebar_position: 1
+---
+
+import { TranslateTable } from "@site/src/components/tables/translate-table";
+import { TimeStamp } from "@site/src/components/faker/timestamp";
+
+<img src="/img/gomasaba.png" alt="translation" />
+
+# 翻訳
+
+## 魚
+
+### lore
+
+### Params
+
+<TranslateTable columns={[
+    {
+        name: "size",
+        description: "魚のサイズ",
+        example: "53.2",
+    },
+    {
+        name: "rarity",
+        description: "魚のレアリティ",
+        example: "<lang:moripa_fishing.rarity.common.name>",
+    },
+    {
+        name: "angler",
+        description: "つりびとの名前",
+        example: "Chocolatt",
+    },
+    {
+        name: "world",
+        description: "ワールド名",
+        example: "<lang:moripa_fishing.world.default.name>",
+    },
+    {
+        name: "timestamp",
+        description: "タイムスタンプ",
+        example: "2025-05-01 00:00",
+    },
+]} />
+
+### フォーマット
+
+### デフォルト
+`moripa_fishing.fish.lore.default.rarity` : レアリティについて <br />
+
+`moripa_fishing.fish.lore.default.size` : サイズについて
+
+`moripa_fishing.fish.lore.default.angler` : つりびとについて
+
+#### 追加
+
+`moripa_fishing.fish.<fish_id>.lore.additional.<index>` : 追加 fish_config.loreから追加されます
+
+### 仕組み
+
+<details>
+    <summary>仕組み</summary>
+    
+    `moripa_fishing.fish.lore.default.rarity`は
+    `<gray>レアリティ: </gray> <rarity>`もしくは
+    `<gray>Rarity: </gray> <rarity>`に解釈されます。
+
+    その後`<rarity>`には
+    `<lang:moripa_fishing.rarity.<rarity>.name>`が解釈されます。
+    今回commonであるとして、
+    `<lang:moripa_fishing.rarity.common.name>`が解釈されます。
+
+    `<lang:moripa_fishing.rarity.common.name>`は
+    `コモン`もしくは`Common`に解釈されます。
+
+    結果として、ja_JPでは
+    `<gray>レアリティ: </gray> コモン`、
+    `<gray>Rarity: </gray> Common`と表示されます。
+</details>
+

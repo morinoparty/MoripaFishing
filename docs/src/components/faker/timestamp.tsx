@@ -1,4 +1,4 @@
-export const Timestamp = () => {
+export const TimeStamp = () => {
     return <>{toISOStringWithTimezone(new Date())}</>;
 };
 
