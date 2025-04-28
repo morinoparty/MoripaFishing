@@ -4,13 +4,10 @@ import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.koin.core.component.KoinComponent
 import org.koin.java.KoinJavaComponent.getKoin
-import party.morino.moripafishing.api.core.angler.Angler
-import party.morino.moripafishing.api.core.fish.Fish
-import party.morino.moripafishing.api.core.fish.FishManager
-import party.morino.moripafishing.api.core.world.FishingWorld
-import java.util.Locale
 import party.morino.moripafishing.api.core.fish.CaughtFish
-import party.morino.moripafishing.api.model.fish.CaughtFishData
+import party.morino.moripafishing.api.core.fish.FishManager
+import java.util.Locale
+
 /**
  * BukkitのItemStackを利用した魚アイテムの実装クラス
  */
@@ -21,9 +18,7 @@ class BukkitFishItem : KoinComponent {
          * @param fish 魚
          * @return ItemStack
          */
-        fun create(
-            caughtFish: CaughtFish
-        ): ItemStack {
+        fun create(caughtFish: CaughtFish): ItemStack {
             val fishManager = getKoin().get<FishManager>()
             val fishData = fishManager.getFishWithId(caughtFish.getId()) ?: throw IllegalArgumentException("Fish not found")
             val item =
@@ -38,7 +33,10 @@ class BukkitFishItem : KoinComponent {
                     Argument.component("rarity", Component.translatable("moripa_fishing.fish.${fishData.rarity.value}.name")),
                     Argument.component("size", Component.text(caughtFish.getSize().toString())),
                     Argument.component("angler", Component.text(caughtFish.getAngler().getName())),
-                    Argument.component("world", Component.translatable("moripa_fishing.world.${caughtFish.getCaughtAtWorld().getId().value}.name")),
+                    Argument.component(
+                        "world",
+                        Component.translatable("moripa_fishing.world.${caughtFish.getCaughtAtWorld().getId().value}.name"),
+                    ),
                     Argument.component("timestamp", Component.text(caughtFish.getCaughtAt().toString())),
                 )
             val translatableComponents: List<Component> =

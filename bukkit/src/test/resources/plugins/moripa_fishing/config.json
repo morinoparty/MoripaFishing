@@ -18,17 +18,24 @@
         "defaultWorldSize": 100.0,
         "defaultWorldGenerator": "Terra:OVERWORLD",
         "defaultWorldBiome": null,
-        "defaultWeatherConfig": {
-            "weatherUpdateInterval": 8,
-            "weatherUpdateOffset": 4,
-            "isAutoDayCycleEnabled": true,
-            "dayCycleOffset": 0,
-            "maxWeatherInclination": 30,
-            "weatherProbabilities": {
-                "SUNNY": 4,
-                "CLOUDY": 2,
-                "RAINY": 2,
-                "THUNDERSTORM": 1
+        "defaultClimateConfig": {
+            "constant": {
+                "weather": null,
+                "dayCycle": null
+            },
+            "dayCycle": {
+                "offset": 0
+            },
+            "weather": {
+                "weight": {
+                    "SUNNY": 4,
+                    "CLOUDY": 2,
+                    "RAINY": 2,
+                    "THUNDERSTORM": 1
+                },
+                "offset": 0,
+                "interval": 8,
+                "maxInclination": 30
             },
             "hashPepper": "pepper"
         },
@@ -44,5 +51,5 @@
         "spawnAnimals": false,
         "receiveDamage": false
     },
-    "defaultLocale": "ja_JP"
+    "defaultLocale": "ja-JP"
 }

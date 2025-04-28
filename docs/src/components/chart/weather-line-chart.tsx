@@ -2,18 +2,18 @@ import { WeatherType } from "@site/src/lib/weather-random";
 import ReactECharts from "echarts-for-react";
 import { LineChart } from "echarts/charts";
 import * as echarts from "echarts/core";
-import { weight } from "../weather-noise";
-
+import { weight } from "../core/weather/weather-noise";
+import { useState, useEffect } from "react";
 type WeatherLineChartProps = {
     data: { x: number; y: number }[];
     size: number;
 };
 
 const colorDifinition = [
-    { weather: WeatherType.SUNNY, color: "rgb(255, 200, 100)" }, // 晴れ: 明るいオレンジ色
+    { weather: WeatherType.SUNNY, color: "rgb(255, 100, 100)" }, // 晴れ: 赤
     { weather: WeatherType.CLOUDY, color: "rgb(150, 150, 150)" }, // 曇り: グレー
     { weather: WeatherType.RAIN, color: "rgb(100, 150, 255)" }, // 雨: 青
-    { weather: WeatherType.THUNDER, color: "rgb(255, 100, 100)" }, // 雷: 赤
+    { weather: WeatherType.THUNDER, color: "rgb(247, 182, 62)" }, // 雷: 黄色
 ];
 
 const weatherColor = () => {
@@ -42,6 +42,8 @@ const weatherColor = () => {
 };
 
 export const WeatherLineChart = ({ data, size }: WeatherLineChartProps) => {
+
+
     const option = {
         xAxis: {
             type: "category",
@@ -63,5 +65,8 @@ export const WeatherLineChart = ({ data, size }: WeatherLineChartProps) => {
     };
 
     echarts.use([LineChart]);
-    return <ReactECharts echarts={echarts} option={option} />;
+
+    return (
+        <ReactECharts echarts={echarts} option={option}/>
+    );
 };

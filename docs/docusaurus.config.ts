@@ -6,7 +6,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 
 const config: Config = {
     title: "MoripaFishing Documentation",
-    favicon: "img/favicon.svg",
+    // favicon: "img/favicon.svg",
     staticDirectories: ["static"],
     trailingSlash: true,
 
@@ -63,10 +63,10 @@ const config: Config = {
         },
         navbar: {
             title: "MoripaFishing",
-            logo: {
-                alt: "MoripaFishing Logo",
-                src: "img/favicon.svg",
-            },
+            // logo: {
+            //     alt: "MoripaFishing Logo",
+            //     src: "img/favicon.svg",
+            // },
             items: [
                 {
                     href: "https://github.com/morinoparty/moripafishing",

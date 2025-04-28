@@ -95,7 +95,8 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             return false
         }
         val namespacedKey = NamespacedKey(plugin, fishingWorldId.value)
-        plugin.logger.info("Creating world ${fishingWorldId.value}")
+
+        plugin.logger.info("Creating or Loading world ${fishingWorldId.value}")
 
         val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
         if (!file.exists()) {

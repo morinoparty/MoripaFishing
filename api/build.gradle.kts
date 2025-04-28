@@ -6,14 +6,14 @@ plugins {
     `maven-publish`
 }
 
-group = project.group
+group = "party.morino"
 version = project.version.toString()
 
 publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/morino-party/moripafishing")
+            url = uri("https://maven.pkg.github.com/morinoparty/MoripaFishing")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")

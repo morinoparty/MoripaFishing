@@ -9,39 +9,40 @@ sidebar_position: 1
 
 ```json title="plugins/MoripaFishing/config.yml"
 {
-  "database": {
-      "type": "SQLITE",
-      "host": "localhost",
-      "port": 3306,
-      "database": "moripafishing",
-      "username": "root",
-      "password": "password"
-  },
-  "world": {
-      "defaultId": "default",
-      "spawnConfig": {
-          "spawnMobs": false,
-          "spawnMonsters": false,
-          "spawnAnimals": false,
-          "receiveDamage": false
-      },
-      "defaultWorldSize": 100.0,
-      "defaultWorldGenerator": "Terra:OVERWORLD",
-      "defaultWorldBiome": null,
-      "defaultWeatherConfig": "省略",
-      "refreshInterval": 60,
-      "defaultTimeZone": "Asia/Tokyo"
-  },
-  "fishing": {
-      "test": "test"
-  },
-  "spawn": {
-      "spawnMobs": false,
-      "spawnMonsters": false,
-      "spawnAnimals": false,
-      "receiveDamage": false
-  }
+    "database": {
+        "type": "SQLITE",
+        "host": "localhost",
+        "port": 3306,
+        "database": "moripafishing",
+        "username": "root",
+        "password": "password"
+    },
+    "world": {
+        "defaultId": "default",
+        "spawnConfig": {
+            "spawnMobs": false,
+            "spawnMonsters": false,
+            "spawnAnimals": false,
+            "receiveDamage": false
+        },
+        "defaultWorldSize": 100.0,
+        "defaultWorldGenerator": "Terra:OVERWORLD",
+        "defaultWorldBiome": null,
+        "defaultClimateConfig":"省略",
+        "refreshInterval": 60,
+        "defaultTimeZone": "Asia/Tokyo"
+    },
+    "fishing": {
+        "test": "test"
+    },
+    "spawn": {
+        "spawnMobs": false,
+        "spawnMonsters": false,
+        "spawnAnimals": false,
+        "receiveDamage": false
+    },
+    "defaultLocale": "ja-JP"
 }
 ```
 
-defaultWeatherConfigについては項目が多いため[weather.mdx](./weather.mdx)を参照
+defaultClimateConfigについては項目が多いため[climate.mdx](./climate.mdx)を参照

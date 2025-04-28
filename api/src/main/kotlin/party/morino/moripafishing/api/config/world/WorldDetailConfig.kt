@@ -1,7 +1,7 @@
 package party.morino.moripafishing.api.config.world
 
 import kotlinx.serialization.Serializable
-import party.morino.moripafishing.api.config.weather.WeatherConfig
+import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 
@@ -19,5 +19,5 @@ data class WorldDetailConfig(
     // スポーン地点の座標
     val spawnLocationData: LocationData = LocationData(0.0, 64.0, 0.0, 90.0, 0.0),
     // 天気設定
-    val weatherConfig: WeatherConfig? = null,
+    val climateConfig: ClimateConfig? = null,
 )

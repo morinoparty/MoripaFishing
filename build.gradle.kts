@@ -8,9 +8,8 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-val projectVersion: String by project
+val version: String by project
 group = "party.morino.moripafishing"
-version = projectVersion
 
 buildscript {
     repositories {

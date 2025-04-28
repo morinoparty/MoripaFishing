@@ -3,7 +3,6 @@ package party.morino.moripafishing.core.random.weather
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.api.config.weather.WeatherConfig
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
@@ -12,6 +11,8 @@ import party.morino.moripafishing.utils.XorShiftRandom
 import java.security.MessageDigest
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlin.math.floor
+import party.morino.moripafishing.api.config.climate.ClimateConfig
 
 /**
  * 天気をランダムに生成する実装クラス
@@ -20,9 +21,9 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
     private val configManager: ConfigManager by inject()
     private val worldManager: WorldManager by inject()
 
-    private fun getWeatherConfig(): WeatherConfig {
-        return worldManager.getWorld(fishingWorldId).getWorldDetails().weatherConfig
-            ?: configManager.getConfig().world.defaultWeatherConfig
+    private fun getClimateConfig(): ClimateConfig {
+        return worldManager.getWorld(fishingWorldId).getWorldDetails().climateConfig
+            ?: configManager.getConfig().world.defaultClimateConfig
     }
 
     private val startDate: ZonedDateTime by lazy {
@@ -55,16 +56,16 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
     override fun drawWeatherForecast(limit: Int): List<WeatherType> {
         val weatherList = mutableListOf<WeatherType>()
         val now = ZonedDateTime.now()
-        val weather = getWeatherConfig()
+        val weather = getClimateConfig()
         for (i in 0 until limit) {
-            val date = now.plusHours(i * weather.weatherUpdateInterval.toLong() + weather.weatherUpdateOffset)
+            val date = now.plusHours(i * weather.weather.interval.toLong() + weather.weather.offset)
             weatherList.add(getWeatherByDate(date))
         }
         return weatherList
     }
 
     fun get(x: Long): Long {
-        val check = Math.floor(100 / getWeatherConfig().maxWeatherInclination.toDouble()).toLong()
+        val check = floor(100 / getClimateConfig().weather.maxInclination.toDouble()).toLong()
         if (x % check == 0L) {
             val random = XorShiftRandom(getHash(x)).nextInt(0, 100)
             return random.toLong()
@@ -81,12 +82,12 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
      */
     fun getWeatherByDate(date: ZonedDateTime): WeatherType {
         val random = get(getTimeDiff(date))
-        val total = getWeatherConfig().weatherProbabilities.values.sum()
+        val total = getClimateConfig().weather.weight.values.sum()
 
         val normalizedRandom = (random.toDouble() / 100) * total
 
         var acc = 0
-        for ((weatherType, probability) in getWeatherConfig().weatherProbabilities.toList()) {
+        for ((weatherType, probability) in getClimateConfig().weather.weight.toList()) {
             acc += probability
             if (normalizedRandom < acc) {
                 return weatherType
@@ -110,7 +111,7 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
         val hashBytes =
             MessageDigest.getInstance(
                 "SHA-256",
-            ).digest((fishingWorldId.value + getWeatherConfig().hashPepper + x.toString()).toByteArray())
+            ).digest((fishingWorldId.value + getClimateConfig().hashPepper + x.toString()).toByteArray())
         // バイト配列を16進数文字列に変換
         val hexString = hashBytes.joinToString("") { "%02x".format(it) }
         // 16進数文字列の先頭8文字を取得してLongに変換 (TypeScriptの実装に合わせる)

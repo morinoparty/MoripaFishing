@@ -79,8 +79,6 @@ data class TimeRange(
     val end: Int, // 0-95
 )
 
-
-
 @Serializable
 data class FishSizeData(
     val min: Double,

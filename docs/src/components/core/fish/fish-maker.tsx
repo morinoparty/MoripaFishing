@@ -41,8 +41,8 @@ const RadioRarety = () => {
             <Select
                 onValueChange={(value) => {
                     setRarity(value as Rarity);
-                    console.log(value);
                 }}
+                defaultValue={rarity}
             >
                 <SelectTrigger className="w-[180px]">
                     <SelectValue
@@ -73,12 +73,12 @@ const SizeSelector = () => {
                 <Input
                     type="number"
                     value={size[0]}
-                    onChange={(e) => setSize([Number(e.target.value), size[1]])}
+                    onChange={(e) => setSize([Number(e.target.value) != size[1] ? Number(e.target.value) : size[0], size[1]])}
                 />
                 <Input
                     type="number"
                     value={size[1]}
-                    onChange={(e) => setSize([size[0], Number(e.target.value)])}
+                    onChange={(e) => setSize([size[0], Number(e.target.value) != size[0] ? Number(e.target.value) : size[1]])}
                 />
             </div>
         </div>
@@ -140,7 +140,7 @@ const DisplayScore = () => {
 
     return (
         <>
-            {expression}
+            計算式: <code className="text-sm">{expression}</code>
             <table className="w-2/3 pt-4">
                 <thead className="bg-gray-100">
                     <tr>

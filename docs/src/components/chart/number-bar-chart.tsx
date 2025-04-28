@@ -1,6 +1,7 @@
 import ReactECharts from "echarts-for-react";
 import { LineChart } from "echarts/charts";
 import * as echarts from "echarts/core";
+import { useState, useEffect } from "react";
 
 type NumberBarChartProps = {
     data: { x: number; y: string }[];
@@ -8,6 +9,7 @@ type NumberBarChartProps = {
 };
 
 export const NumberBarChart = ({ data, size }: NumberBarChartProps) => {
+
     const xLabels = [...new Set(data.map((d) => d.y.toString()))].sort();
     const yData = xLabels.map(
         (y) => data.filter((d) => d.y.toString() === y).length,
@@ -29,5 +31,8 @@ export const NumberBarChart = ({ data, size }: NumberBarChartProps) => {
     };
 
     echarts.use([LineChart]);
-    return <ReactECharts echarts={echarts} option={option} />;
+
+    return (
+        <ReactECharts echarts={echarts} option={option} />
+    );
 };

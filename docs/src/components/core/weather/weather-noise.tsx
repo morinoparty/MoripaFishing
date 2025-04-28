@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { WeatherRandom, WeatherType } from "../lib/weather-random";
-import { NumberBarChart } from "./chart/number-bar-chart";
-import { WeatherLineChart } from "./chart/weather-line-chart";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { WeatherRandom, WeatherType } from "../../../lib/weather-random";
+import { NumberBarChart } from "../../chart/number-bar-chart";
+import { WeatherLineChart } from "../../chart/weather-line-chart";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
 
 export const weight: { x: number; weather: WeatherType }[] = [
     { x: 4, weather: WeatherType.SUNNY },
