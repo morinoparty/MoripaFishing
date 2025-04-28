@@ -7,32 +7,45 @@ import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fish.Fish
 import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.core.world.WorldManager
 import java.util.UUID
-
+import party.morino.moripafishing.api.core.fish.CaughtFish
 class AnglerImpl(
     private val uniqueId: UUID,
 ) : Angler, KoinComponent {
     val plugin: MoripaFishing by inject()
-
+    val worldManager: WorldManager by inject()
     /**
      * 釣り人のIDを取得する
      * @return 釣り人のID
      */
-    override fun getId(): AnglerId {
+    override fun getAnglerUniqueId(): AnglerId {
         return AnglerId(uniqueId)
     }
 
-    override fun recordCaughtFish(fish: Fish) {
-        plugin.logger.info("Caught fish: $fish")
+    override fun getMinecraftUniqueId(): UUID {
+        return uniqueId
+    }
+
+    override fun getName(): String {
+        // オフラインプレイヤーかもしれないので、getOfflinePlayerを使う
+        // nameがnullの場合は "Unknown" を返す
+        return Bukkit.getOfflinePlayer(uniqueId).name ?: "Unknown"
+    }
+
+    override fun recordCaughtFish(caughtFish: CaughtFish) {
+        plugin.logger.info("Caught fish: $caughtFish")
         // TODO databaseに記録する
     }
 
-    override fun getWorld(): FishingWorldId? {
+    override fun getWorld(): FishingWorld? {
         val offlinePlayer = Bukkit.getOfflinePlayer(uniqueId)
         if (!offlinePlayer.isOnline) return null
         val player = offlinePlayer.player ?: return null
-        val world = FishingWorldId(player.world.name)
+        val world = worldManager.getWorld(FishingWorldId(player.world.name))
+
         return world
     }
 }

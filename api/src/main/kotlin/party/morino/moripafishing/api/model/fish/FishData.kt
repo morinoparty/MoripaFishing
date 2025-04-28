@@ -64,7 +64,22 @@ data class FishData(
 data class ConditionData(
     val weather: List<WeatherType> = emptyList(),
     val world: List<FishingWorldId> = emptyList(),
+    val time: List<TimeRange> = emptyList(),
 )
+
+/**
+ * 時間範囲
+ * @param start 開始時間(0-95) 0: 00:00, 32: 8:00, 64: 16:00, 95: 23:45
+ * @param end 終了時間(0-95) 0: 00:00, 32: 8:00, 64: 16:00, 95: 23:45
+ * @example 20:00-04:00 {start: 80, end: 16}
+ */
+@Serializable
+data class TimeRange(
+    val start: Int, // 0-95
+    val end: Int, // 0-95
+)
+
+
 
 @Serializable
 data class FishSizeData(

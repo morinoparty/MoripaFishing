@@ -43,5 +43,6 @@
         "spawnMonsters": false,
         "spawnAnimals": false,
         "receiveDamage": false
-    }
+    },
+    "defaultLocale": "ja_JP"
 }

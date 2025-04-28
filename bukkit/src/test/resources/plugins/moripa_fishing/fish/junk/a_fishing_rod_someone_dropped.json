@@ -3,7 +3,8 @@
   "catchCommands": [],
   "conditions": {
     "weather": [],
-    "world": []
+    "world": [],
+    "time": []
   },
   "displayName": {
     "en_US": "A Fishing Rod Someone Dropped",
@@ -13,7 +14,7 @@
   "itemStack": {
     "material": "FISHING_ROD",
     "itemMeta": {
-      "customModelData": 1
+      "customModelData": [1.0]
     }
   },
   "size": {

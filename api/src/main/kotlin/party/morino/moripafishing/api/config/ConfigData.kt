@@ -6,6 +6,7 @@ import party.morino.moripafishing.api.config.fish.FishingConfig
 import party.morino.moripafishing.api.config.world.SpawnConfig
 import party.morino.moripafishing.api.config.world.WorldConfig
 import java.util.Locale
+import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
 /**
  * プラグイン全体の設定データを保持するデータクラス
  *
@@ -25,5 +26,5 @@ data class ConfigData(
     // スポーン設定
     val spawn: SpawnConfig = SpawnConfig(),
 
-    val defaultLocale: Locale = Locale.JAPAN
+    val defaultLocale: @Serializable(with = LocaleSerializer::class) Locale = Locale.JAPAN
 )

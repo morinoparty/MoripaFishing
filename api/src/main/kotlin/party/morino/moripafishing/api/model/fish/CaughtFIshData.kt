@@ -1,3 +1,5 @@
+package party.morino.moripafishing.api.model.fish
+
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId

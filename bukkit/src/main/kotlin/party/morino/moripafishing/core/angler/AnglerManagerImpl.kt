@@ -16,7 +16,7 @@ class AnglerManagerImpl : AnglerManager, KoinComponent {
      * @param uuid プレイヤーのUUID
      * @return 釣り人（存在しない場合はnull）
      */
-    override fun getAnglerByUUID(uuid: UUID): Angler? {
+    override fun getAnglerByMinecraftUniqueId(uuid: UUID): Angler? {
         return AnglerImpl(uuid)
     }
 
@@ -25,7 +25,7 @@ class AnglerManagerImpl : AnglerManager, KoinComponent {
      * @param anglerId 釣り人ID
      * @return 釣り人（存在しない場合はnull）
      */
-    override fun getAnglerById(anglerId: AnglerId): Angler? {
+    override fun getAnglerByAnglerUniqueId(anglerId: AnglerId): Angler? {
         return AnglerImpl(anglerId.uuid)
     }
 

@@ -6,7 +6,8 @@
   ],
   "conditions": {
     "weather": [],
-    "world": []
+    "world": [],
+    "time": []
   },
   "displayName": {
     "en_US": "Bigfin Reef Squid",
@@ -16,7 +17,7 @@
   "itemStack": {
     "material": "COD",
     "itemMeta": {
-      "customModelData": 101
+      "customModelData": [101.0]
     }
   },
   "size": {

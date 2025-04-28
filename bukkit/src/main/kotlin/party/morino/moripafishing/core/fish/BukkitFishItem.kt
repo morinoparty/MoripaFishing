@@ -10,7 +10,7 @@ import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.world.FishingWorld
 import java.util.Locale
 import party.morino.moripafishing.api.core.fish.CaughtFish
-
+import party.morino.moripafishing.api.model.fish.CaughtFishData
 /**
  * BukkitのItemStackを利用した魚アイテムの実装クラス
  */
@@ -57,6 +57,7 @@ class BukkitFishItem : KoinComponent {
                     lore(translatableComponents)
                     setCustomModelDataComponent(customModelDataComponent)
                 }
+            return item
         }
 
         /**

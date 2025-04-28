@@ -62,7 +62,7 @@ class FishImpl(
      */
     override fun getWorth(): Double {
         val expression = getWorthExpression()
-        val lengthRate = calculateLengthRate()
+        val lengthRate = getCFD()
         return evaluateExpression(expression, lengthRate)
     }
 
@@ -70,7 +70,7 @@ class FishImpl(
      * 魚のサイズに基づいて正規分布の累積分布関数を計算する
      * @return 正規分布の累積分布関数の値
      */
-    private fun calculateLengthRate(): Double {
+    override fun getCFD(): Double {
         val (min, max) = fishData.size
         val mid = (min + max) / 2.0
         val standardDeviation = (max - min) / 6.0

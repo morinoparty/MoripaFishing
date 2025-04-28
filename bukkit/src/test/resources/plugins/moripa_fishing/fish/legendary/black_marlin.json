@@ -3,7 +3,8 @@
   "catchCommands": [],
   "conditions": {
     "weather": [],
-    "world": []
+    "world": [],
+    "time": []
   },
   "displayName": {
     "en_US": "Black Marlin",
@@ -13,7 +14,7 @@
   "itemStack": {
     "material": "COD",
     "itemMeta": {
-      "customModelData": 10001
+      "customModelData": [10001.0]
     }
   },
   "size": {

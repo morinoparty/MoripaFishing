@@ -31,7 +31,7 @@ class FishRandomizerImplTest : KoinTest {
     fun getRandomFishWithFishData() {
         val list: ArrayList<Pair<Double, Double>> = arrayListOf()
         repeat(100) {
-            val targetFish = fishManager.getFishWithId(FishId("red_jelly_fish")) ?: error("Fish not found")
+            val targetFish = fishManager.getFishWithId(FishId("sillago_japonica")) ?: error("Fish not found")
             val fish: Fish = fishRandomizer.selectRandomFishByFishData(targetFish)
             list.add(Pair(fish.getSize(), fish.getWorth()))
         }

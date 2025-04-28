@@ -3,7 +3,8 @@
   "catchCommands": [],
   "conditions": {
     "weather": [],
-    "world": []
+    "world": [],
+    "time": []
   },
   "displayName": {
     "en_US": "Black Seabream",
@@ -13,7 +14,7 @@
   "itemStack": {
     "material": "COD",
     "itemMeta": {
-      "customModelData": 105
+      "customModelData": [105.0]
     }
   },
   "size": {

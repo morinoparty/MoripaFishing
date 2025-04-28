@@ -3,7 +3,8 @@
   "catchCommands": [],
   "conditions": {
     "weather": [],
-    "world": []
+    "world": [],
+    "time": []
   },
   "displayName": {
     "en_US": "Atlantic Salmon",
@@ -13,7 +14,7 @@
   "itemStack": {
     "material": "SALMON",
     "itemMeta": {
-      "customModelData": 1
+      "customModelData": [1.0]
     }
   },
   "size": {

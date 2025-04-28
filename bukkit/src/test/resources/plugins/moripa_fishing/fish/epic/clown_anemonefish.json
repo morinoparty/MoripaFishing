@@ -3,7 +3,8 @@
   "catchCommands": [],
   "conditions": {
     "weather": [],
-    "world": []
+    "world": [],
+    "time": []
   },
   "displayName": {
     "en_US": "Clown Anemonefish",
@@ -13,7 +14,7 @@
   "itemStack": {
     "material": "TROPICAL_FISH",
     "itemMeta": {
-      "customModelData": 1
+      "customModelData": [1.0]
     }
   },
   "size": {
