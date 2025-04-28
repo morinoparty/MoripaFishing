@@ -23,12 +23,6 @@ importers:
       '@easyops-cn/docusaurus-search-local':
         specifier: ^0.48.4
         version: 0.48.4(@docusaurus/faster@3.7.0(@docusaurus/types@3.7.0(@swc/core@1.11.13)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)))(@docusaurus/theme-common@3.7.0(@docusaurus/plugin-content-docs@3.7.0(@docusaurus/faster@3.7.0(@docusaurus/types@3.7.0(@swc/core@1.11.13)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)))(@mdx-js/react@3.1.0(@types/react@19.0.8)(react@19.0.0))(@swc/core@1.11.13)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.6.3))(@swc/core@1.11.13)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@mdx-js/react@3.1.0(@types/react@19.0.8)(react@19.0.0))(@swc/core@1.11.13)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.6.3)
-      '@fontsource-variable/noto-sans-jp':
-        specifier: ^5.2.5
-        version: 5.2.5
-      '@fontsource/poppins':
-        specifier: ^5.2.5
-        version: 5.2.5
       '@mdx-js/react':
         specifier: ^3.0.0
         version: 3.1.0(@types/react@19.0.8)(react@19.0.0)
@@ -1333,12 +1327,6 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
-
-  '@fontsource-variable/noto-sans-jp@5.2.5':
-    resolution: {integrity: sha512-+ieDlugS+FCva2eLahVgybiaPMs1xLcBYByflzw1WghvFPFNJzsQHw85N+dadXzaqccVTiVDGYW4E0bMv4CHAQ==}
-
-  '@fontsource/poppins@5.2.5':
-    resolution: {integrity: sha512-1S3k45pZOz2jqGPPqKw0in3uxFwnB+d5jSU8Tp9YwH/dIJptE3jdkQbYN0QD861GtuOpn6QhPW/yKt1w7hVRBQ==}
 
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
@@ -8886,10 +8874,6 @@ snapshots:
       react-dom: 19.0.0(react@19.0.0)
 
   '@floating-ui/utils@0.2.9': {}
-
-  '@fontsource-variable/noto-sans-jp@5.2.5': {}
-
-  '@fontsource/poppins@5.2.5': {}
 
   '@hapi/hoek@9.3.0': {}
 
