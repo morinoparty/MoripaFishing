@@ -7,6 +7,9 @@ import org.koin.java.KoinJavaComponent.getKoin
 import party.morino.moripafishing.api.core.fish.CaughtFish
 import party.morino.moripafishing.api.core.fish.FishManager
 import java.util.Locale
+import org.bukkit.NamespacedKey
+import org.bukkit.persistence.PersistentDataType
+import party.morino.moripafishing.MoripaFishing
 
 /**
  * BukkitのItemStackを利用した魚アイテムの実装クラス
@@ -20,6 +23,7 @@ class BukkitFishItem : KoinComponent {
          */
         fun create(caughtFish: CaughtFish): ItemStack {
             val fishManager = getKoin().get<FishManager>()
+            val plugin = getKoin().get<MoripaFishing>()
             val fishData = fishManager.getFishWithId(caughtFish.getId()) ?: throw IllegalArgumentException("Fish not found")
             val item =
                 ItemStack(
@@ -28,6 +32,9 @@ class BukkitFishItem : KoinComponent {
                 )
             val customModelDataComponent = item.itemMeta.getCustomModelDataComponent()
             // TODO Add to persistant data container
+            val key = NamespacedKey(plugin, "moripa_fishing.fish")
+            val persistentDataContainer = item.itemMeta.persistentDataContainer
+
             val translateTags =
                 listOf(
                     Argument.component("rarity", Component.translatable("moripa_fishing.fish.${fishData.rarity.value}.name")),
@@ -53,6 +60,7 @@ class BukkitFishItem : KoinComponent {
                 item.itemMeta.apply {
                     displayName(Component.text("moripa_fishing.fish.${fishData.id.value}.name"))
                     lore(translatableComponents)
+                    persistentDataContainer.set(key, PersistentDataType.STRING, caughtFish.getId().value)
                     setCustomModelDataComponent(customModelDataComponent)
                 }
             return item
@@ -64,7 +72,10 @@ class BukkitFishItem : KoinComponent {
          * @return 魚アイテムの場合はtrue
          */
         fun isBukkitFishItem(item: ItemStack): Boolean {
-            return item.itemMeta?.lore?.contains("§a§lフィッシング§f§lフィッシング§a§lフィッシング") ?: false
+            val plugin = getKoin().get<MoripaFishing>()
+            val key = NamespacedKey(plugin, "moripa_fishing.fish")
+            val persistentDataContainer = item.itemMeta.persistentDataContainer
+            return persistentDataContainer.has(key, PersistentDataType.STRING)
         }
     }
 }

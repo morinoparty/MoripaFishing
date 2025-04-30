@@ -50,8 +50,6 @@ export class WeatherRandom {
 
     async getWeather(x: number): Promise<WeatherType> {
         const random = await this.get(x);
-
-        console.log("x: " + x + " random: " + random);
         // 重みの合計を計算
         const totalWeight = this.weight.reduce((sum, w) => sum + w.x, 0);
         // 0-100の乱数を重みの合計で割って、0-1の範囲に正規化
@@ -70,9 +68,6 @@ export class WeatherRandom {
     private async getHash(x: number) {
         const hash = await this.sha256(
             this.fishingWorldId + this.pepper + x.toString(),
-        );
-        console.log(
-            "x: " + x + " hash: " + Number.parseInt(hash.slice(0, 8), 16),
         );
         return Number.parseInt(hash.slice(0, 8), 16);
     }

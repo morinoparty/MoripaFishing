@@ -3,13 +3,12 @@ import ReactECharts from "echarts-for-react";
 import { LineChart } from "echarts/charts";
 import * as echarts from "echarts/core";
 import { weight } from "../core/weather/weather-noise";
-import { useState, useEffect } from "react";
 type WeatherLineChartProps = {
     data: { x: number; y: number }[];
     size: number;
 };
 
-const colorDifinition = [
+const colorDefinition = [
     { weather: WeatherType.SUNNY, color: "rgb(255, 100, 100)" }, // 晴れ: 赤
     { weather: WeatherType.CLOUDY, color: "rgb(150, 150, 150)" }, // 曇り: グレー
     { weather: WeatherType.RAIN, color: "rgb(100, 150, 255)" }, // 雨: 青
@@ -33,7 +32,7 @@ const weatherColor = () => {
                 sum) *
             100;
         const color =
-            colorDifinition.find((c) => c.weather === w.weather)?.color ||
+            colorDefinition.find((c) => c.weather === w.weather)?.color ||
             "oklch(0.71 0.1598 116.47)";
         return { min, max, color };
     });
@@ -42,8 +41,6 @@ const weatherColor = () => {
 };
 
 export const WeatherLineChart = ({ data, size }: WeatherLineChartProps) => {
-
-
     const option = {
         xAxis: {
             type: "category",
@@ -66,7 +63,5 @@ export const WeatherLineChart = ({ data, size }: WeatherLineChartProps) => {
 
     echarts.use([LineChart]);
 
-    return (
-        <ReactECharts echarts={echarts} option={option}/>
-    );
+    return <ReactECharts echarts={echarts} option={option} />;
 };

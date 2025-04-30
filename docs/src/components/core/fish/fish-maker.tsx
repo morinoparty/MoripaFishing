@@ -73,12 +73,26 @@ const SizeSelector = () => {
                 <Input
                     type="number"
                     value={size[0]}
-                    onChange={(e) => setSize([Number(e.target.value) != size[1] ? Number(e.target.value) : size[0], size[1]])}
+                    onChange={(e) =>
+                        setSize([
+                            Number(e.target.value) !== size[1]
+                                ? Number(e.target.value)
+                                : size[0],
+                            size[1],
+                        ])
+                    }
                 />
                 <Input
                     type="number"
                     value={size[1]}
-                    onChange={(e) => setSize([size[0], Number(e.target.value) != size[0] ? Number(e.target.value) : size[1]])}
+                    onChange={(e) =>
+                        setSize([
+                            size[0],
+                            Number(e.target.value) !== size[0]
+                                ? Number(e.target.value)
+                                : size[1],
+                        ])
+                    }
                 />
             </div>
         </div>
@@ -133,8 +147,6 @@ const DisplayScore = () => {
         ([r, expression]) => r === rarity,
     )[1];
     const score: number[] = list.map((size) => {
-        //evalで計算
-        console.log(size, cdf(size));
         return eval(expression.replace("<length_rate>", cdf(size).toString()));
     });
 

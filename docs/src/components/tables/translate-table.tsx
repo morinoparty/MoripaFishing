@@ -8,7 +8,7 @@ type TranslateTableProps = {
     }[];
 };
 
-export const TranslateTable: React.FC<TranslateTableProps> = ({ columns } ) => {
+export const TranslateTable: React.FC<TranslateTableProps> = ({ columns }) => {
     return (
         <table>
             <thead>

@@ -14,21 +14,10 @@ export class Random {
     // XorShift
     next() {
         const t = this.x ^ (this.x << 11);
-        console.log("t: " + t);
         this.x = this.y;
         this.y = this.z;
         this.z = this.w;
         this.w = this.w ^ (this.w >>> 19) ^ (t ^ (t >>> 8));
-        console.log(
-            "x: " +
-                this.x +
-                " y: " +
-                this.y +
-                " z: " +
-                this.z +
-                " w: " +
-                this.w,
-        );
         return this.w;
     }
 

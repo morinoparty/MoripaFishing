@@ -3,7 +3,7 @@ export const TimeStamp = () => {
 };
 
 function toISOStringWithTimezone(date: Date): string {
-    const pad = (str: string): string => ("0" + str).slice(-2);
+    const pad = (str: string): string => `0${str}`.slice(-2);
     const year = date.getFullYear().toString();
     const month = pad((date.getMonth() + 1).toString());
     const day = pad(date.getDate().toString());

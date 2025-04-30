@@ -55,7 +55,6 @@ class WorldManagerMock : WorldManager, KoinComponent {
 
     /**
      * ワールドを取得する (モック用、未実装)
-     * TODO: FishingWorldのモックを返すように実装する必要がある
      */
     override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld {
         return FishingWorldMock(fishingWorldId)
