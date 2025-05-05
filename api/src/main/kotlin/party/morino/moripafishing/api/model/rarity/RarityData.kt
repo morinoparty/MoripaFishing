@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
 import party.morino.moripafishing.api.utils.serializer.ComponentSerializer
 import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
-import java.util.*
+import java.util.Locale
 
 /**
  * 魚のレアリティを表すクラス

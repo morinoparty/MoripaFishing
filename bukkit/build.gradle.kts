@@ -34,6 +34,8 @@ dependencies {
 
     implementation(libs.koin.core)
 
+    implementation(libs.uuid.creator)
+
     compileOnly(libs.vault.api)
 
     implementation(libs.bundles.kyori)

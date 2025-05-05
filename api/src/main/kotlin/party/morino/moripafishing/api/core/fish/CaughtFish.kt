@@ -3,11 +3,18 @@ package party.morino.moripafishing.api.core.fish
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.world.FishingWorld
 import java.time.ZonedDateTime
+import java.util.UUID
 
 /**
  * 魚を表すインターフェース
  */
 interface CaughtFish : Fish {
+    /**
+     * 魚のユニークIDを取得する(UUID v7)
+     * @return 魚のユニークID
+     */
+    fun getUniqueId(): UUID
+
     /**
      * 魚の捕獲日時を取得する
      * @return 魚の捕獲日時
