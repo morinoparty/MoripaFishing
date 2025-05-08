@@ -3,10 +3,8 @@ name: Sync Labels
 on:
   workflow_dispatch:
   push:
-    branches:
-      - '*'
-  paths:
-    - ".github/labels.json"
+    paths:
+      - ".github/labels.json"
 
 permissions:
   issues: write
