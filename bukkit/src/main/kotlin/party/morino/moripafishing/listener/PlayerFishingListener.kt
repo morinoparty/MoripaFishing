@@ -8,5 +8,13 @@ class PlayerFishingListener : Listener, KoinComponent {
     fun onPlayerFish(event: PlayerFishEvent) {
         val player = event.player
         val state = event.state
+
+        when (state) {
+            PlayerFishEvent.State.CAUGHT_FISH -> {
+                val fish = event.
+            }
+            else -> {
+                return
+            }        }
     }
 }
