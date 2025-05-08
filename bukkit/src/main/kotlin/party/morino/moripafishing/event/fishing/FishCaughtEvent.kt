@@ -7,8 +7,14 @@ import org.bukkit.event.HandlerList
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fish.Fish
 
+/**
+ * このイベントは、釣り人が魚を釣ったときに発生します。
+ *
+ * @param angler 釣りをした釣り人
+ * @param fish 釣れた魚
+ */
 class FishCaughtEvent(
-    private val player: Angler,
+    private val angler: Angler,
     private val fish: Fish,
 ) : Event(), Cancellable {
     private val handlers = HandlerList()
