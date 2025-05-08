@@ -57,6 +57,11 @@ task build
 
 ### Commit 📝
 
+Install cz-emoji 💻
+```bash
+pnpm install --global cz-emoji
+```
+
 Commit the changes 💻.
 ```bash
 task commit
