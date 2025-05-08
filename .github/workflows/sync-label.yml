@@ -1,0 +1,35 @@
+name: Sync Labels
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '*'
+  paths:
+    - ".github/labels.json"
+
+permissions:
+  issues: write
+
+jobs:
+  sync-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm add -D @azu/github-label-setup
+
+      - name: Run github-label-setup
+        run: pnpm github-label-setup --token ${{ secrets.GITHUB_TOKEN }} --labels .github/labels.json
