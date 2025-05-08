@@ -30,7 +30,7 @@ jobs:
         run: pnpm add -D @azu/github-label-setup
 
       - name: Remove color prefix
-        run: sed -i 's/^#//g' .github/labels.json
+        run: sed -i 's/#//g' .github/labels.json
 
       - name: Run github-label-setup
         run: pnpm github-label-setup --token ${{ secrets.GITHUB_TOKEN }} --labels .github/labels.json
