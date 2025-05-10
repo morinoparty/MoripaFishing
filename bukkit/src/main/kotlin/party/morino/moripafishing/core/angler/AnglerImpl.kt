@@ -10,6 +10,7 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.event.fishing.FishCaughtEvent
 import java.util.UUID
 
 class AnglerImpl(
@@ -37,8 +38,15 @@ class AnglerImpl(
     }
 
     override fun recordCaughtFish(caughtFish: CaughtFish) {
-        plugin.logger.info("Caught fish: $caughtFish")
-        // TODO databaseに記録する
+        // 魚を釣った際にイベントを発火する
+        val event = FishCaughtEvent(this, caughtFish)
+        Bukkit.getPluginManager().callEvent(event)
+        
+        // イベントがキャンセルされていなければ記録する
+        if (!event.isCancelled()) {
+            plugin.logger.info("Caught fish: $caughtFish")
+            // TODO databaseに記録する
+        }
     }
 
     override fun getWorld(): FishingWorld? {
