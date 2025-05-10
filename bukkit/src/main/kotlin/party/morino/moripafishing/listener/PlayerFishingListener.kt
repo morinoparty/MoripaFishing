@@ -12,6 +12,7 @@ import party.morino.moripafishing.api.core.fish.Fish
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.world.WorldManager
+import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.event.fishing.FishCaughtEvent
 
 /**
@@ -37,16 +38,18 @@ class PlayerFishingListener : Listener, KoinComponent {
         if (caught !is Item) return
         
         val player = event.player
-        val angler = anglerManager.getAngler(player.uniqueId)
+        val angler = anglerManager.getAnglerByMinecraftUniqueId(player.uniqueId)
         
         // 釣り人が取得できない場合は処理しない
         if (angler == null) return
         
         // 釣った場所の世界を取得
-        val world = worldManager.getWorld(player.world.name) ?: return
+        val worldId = FishingWorldId(player.world.name)
+        val world = worldManager.getWorld(worldId) ?: return
         
         // ランダムな魚を生成
-        val fish = randomizeManager.randomizeFish(world) ?: return
+        val fishRandomizer = randomizeManager.getFishRandomizer()
+        val fish = fishRandomizer.selectRandomFish(world.getId())
         
         // FishCaughtEventを発火
         val fishCaughtEvent = FishCaughtEvent(angler, fish)
