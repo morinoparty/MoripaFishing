@@ -8,7 +8,6 @@ import org.bukkit.event.player.PlayerFishEvent
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.angler.AnglerManager
-import party.morino.moripafishing.api.core.fish.Fish
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.world.WorldManager
