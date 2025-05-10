@@ -31,32 +31,32 @@ class PlayerFishingListener : Listener, KoinComponent {
     fun onPlayerFish(event: PlayerFishEvent) {
         // 魚を釣った時のみ処理する
         if (event.state != PlayerFishEvent.State.CAUGHT_FISH) return
-        
+
         // 釣ったエンティティがアイテムでない場合は処理しない
         val caught = event.caught
         if (caught !is Item) return
-        
+
         val player = event.player
         val angler = anglerManager.getAnglerByMinecraftUniqueId(player.uniqueId)
-        
+
         // 釣り人が取得できない場合は処理しない
         if (angler == null) return
-        
+
         // 釣った場所の世界を取得
         val worldId = FishingWorldId(player.world.name)
         val world = worldManager.getWorld(worldId) ?: return
-        
+
         // ランダムな魚を生成
         val fishRandomizer = randomizeManager.getFishRandomizer()
         val fish = fishRandomizer.selectRandomFish(world.getId())
-        
+
         // FishCaughtEventを発火
         val fishCaughtEvent = FishCaughtEvent(angler, fish)
         Bukkit.getPluginManager().callEvent(fishCaughtEvent)
-        
+
         // イベントがキャンセルされた場合は処理を中断
         if (fishCaughtEvent.isCancelled()) return
-        
+
         // TODO: 釣ったアイテムを魚のアイテムに置き換える処理
     }
 }
