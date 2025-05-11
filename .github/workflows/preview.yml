@@ -33,7 +33,7 @@ jobs:
         run: |
           before="$GITHUB_ENV"
           after="${before//v/}"
-          sed -i "s/VersionPlaceholder/$after/" './gradle.properties'
+          sed -i 's/VersionPlaceholder/$after/' ./gradle.properties
 
       - name: Build with Gradle
         run: ./gradlew build -x test
