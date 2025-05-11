@@ -1,4 +1,4 @@
-package party.morino.moripafishing.listener
+package party.morino.moripafishing.listener.minecraft
 
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler

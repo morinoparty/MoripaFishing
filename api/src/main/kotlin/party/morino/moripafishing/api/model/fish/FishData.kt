@@ -23,13 +23,9 @@ data class FishData(
             with = LocaleSerializer::class,
         )
         Locale,
-        @Serializable(
-            with = ComponentSerializer::class,
-        )
-        Component,
-        > =
+        String> =
         mapOf(
-            Locale.JAPAN to Component.text("さかな"),
+            Locale.JAPAN to "さかな",
         ),
     // 条件
     val conditions: ConditionData,
@@ -49,11 +45,7 @@ data class FishData(
     val lore: Map<
         @Serializable(with = LocaleSerializer::class)
         Locale,
-        ArrayList<
-            @Serializable(with = ComponentSerializer::class)
-            Component,
-            >,
-        > =
+        ArrayList<String>> =
         mapOf(
             Locale.JAPAN to arrayListOf(),
             Locale.ENGLISH to arrayListOf(),

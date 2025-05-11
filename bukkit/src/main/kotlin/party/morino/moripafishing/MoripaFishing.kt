@@ -21,9 +21,12 @@ import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
+import party.morino.moripafishing.core.internationalization.TranslateManager
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
+import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
+import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
 import party.morino.moripafishing.utils.coroutines.async
 
 class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
@@ -61,10 +64,15 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         getInstanceForAPI()
 
         // データベースの初期化
-//         databaseManager.initialize()
+        // databaseManager.initialize()
         worldManager.initializeWorlds()
 
         updateWorlds()
+        // リスナーの登録
+        loadListeners()
+
+        // i18n
+        TranslateManager.load()
         logger.info("MoripaFishing enabled")
     }
 
@@ -123,6 +131,14 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
                     }
                 }
             },
+        )
+    }
+
+    private fun loadListeners() {
+        this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
+        this.server.pluginManager.registerEvents(
+            PlayerJoinListener(),
+            this,
         )
     }
 

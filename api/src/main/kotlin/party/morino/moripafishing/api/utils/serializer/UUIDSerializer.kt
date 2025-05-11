@@ -1,7 +1,7 @@
 package party.morino.moripafishing.api.utils.serializer
 
 import kotlinx.serialization.Serializable
-import java.util.*
+import java.util.UUID
 
 // UUIDをシリアライズ・デシリアライズするためのカスタムシリアライザ
 @Serializable

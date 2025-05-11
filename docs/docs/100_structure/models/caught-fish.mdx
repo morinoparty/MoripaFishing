@@ -1,0 +1,42 @@
+# 🎣 CaughtFish
+
+## 📝 概要
+
+`CaughtFish`は、釣り上げた魚の情報を表すデータクラスです。DB保存やAPI返却用の純粋なデータ構造として利用されます。
+
+---
+
+## 🏷️ フィールド
+- `fish: FishId` … 魚種ID
+- `size: Double` … 魚のサイズ
+- `rarity: RarityId` … レアリティ
+- `worth: Double` … 価値
+- `cfd: Double` … 累積分布関数値
+- `angler: AnglerId` … 釣り人ID
+- `world: FishingWorldId` … 釣り場ID
+- `timestamp: ZonedDateTime` … 捕獲日時
+
+---
+
+## 🏗️ 設計意図
+- ドメイン層の`CaughtFish`インターフェースとは分離し、永続化やAPI用の純粋なデータ構造として設計しています。
+- Kotlinの`data class`として、`@Serializable`でシリアライズ可能にしています。
+- 変換用に`from(domain: CaughtFish)`ファクトリを持ちます。
+
+---
+
+## 💡 利用例
+```kotlin
+val caughtFishData = CaughtFish.from(domainCaughtFish)
+```
+
+---
+
+## 📝 備考
+- FishIdやAnglerIdなど、他のmodel型と連携しています。
+- ZonedDateTimeはISO8601でシリアライズされます。
+
+---
+
+> 📝 **カテゴリ:**  
+> このドキュメントは「構造（Structure）」カテゴリに属します。

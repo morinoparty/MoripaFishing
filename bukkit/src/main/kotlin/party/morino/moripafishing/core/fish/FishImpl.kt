@@ -35,7 +35,7 @@ class FishImpl(
      * 魚の表示名を取得する
      * @return 魚の表示名
      */
-    override fun getDisplayName(): Map<Locale, Component> {
+    override fun getDisplayName(): Map<Locale, String> {
         return fishData.displayName
     }
 

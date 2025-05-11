@@ -66,6 +66,9 @@ kyori-minimessage = {group =  "net.kyori",name = "adventure-text-minimessage", v
 
 exp4j = { group = "net.objecthunter", name = "exp4j", version = "0.4.8" }
 
+uuid-creator = { group = "com.github.f4b6a3", name = "uuid-creator", version = "6.1.1" }
+
+
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.1" }
 resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.2.1" }

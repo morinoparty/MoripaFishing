@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kaml)
     implementation(libs.bundles.kyori)
+
+    implementation(libs.uuid.creator)
 }
 
 kotlin {
