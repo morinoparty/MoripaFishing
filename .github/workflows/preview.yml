@@ -6,19 +6,12 @@ on:
 permissions:
   pull-requests: write
   contents: write
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set commit status as pending
-        uses: myrotvorets/set-commit-status-action@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: pending
-          context: Check pull request
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
