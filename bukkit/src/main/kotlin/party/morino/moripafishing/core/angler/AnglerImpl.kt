@@ -5,7 +5,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.angler.Angler
-import party.morino.moripafishing.api.core.fish.CaughtFish
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
@@ -34,11 +33,6 @@ class AnglerImpl(
         // オフラインプレイヤーかもしれないので、getOfflinePlayerを使う
         // nameがnullの場合は "Unknown" を返す
         return Bukkit.getOfflinePlayer(uniqueId).name ?: "Unknown"
-    }
-
-    override fun recordCaughtFish(caughtFish: CaughtFish) {
-        plugin.logger.info("Caught fish: $caughtFish")
-        // TODO databaseに記録する
     }
 
     override fun getWorld(): FishingWorld? {

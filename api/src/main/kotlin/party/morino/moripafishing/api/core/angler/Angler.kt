@@ -1,6 +1,5 @@
 package party.morino.moripafishing.api.core.angler
 
-import party.morino.moripafishing.api.core.fish.CaughtFish
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
 import java.util.UUID
@@ -27,13 +26,6 @@ interface Angler {
      * @return 釣り人の名前
      */
     fun getName(): String
-
-    /**
-     * 釣り人が釣った魚を記録する
-     * @param fish 釣った魚のID
-     * @return 更新された釣り人のデータ
-     */
-    fun recordCaughtFish(caughtFish: CaughtFish)
 
     /**
      * 釣り人のデータを取得する

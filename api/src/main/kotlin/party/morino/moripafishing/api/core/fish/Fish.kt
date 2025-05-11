@@ -19,7 +19,7 @@ interface Fish {
      * 魚の表示名を取得する
      * @return 魚の表示名
      */
-    fun getDisplayName(): Map<Locale, Component>
+    fun getDisplayName(): Map<Locale, String>
 
     /**
      * 魚のサイズを取得する

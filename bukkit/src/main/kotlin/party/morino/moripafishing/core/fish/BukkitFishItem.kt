@@ -7,10 +7,10 @@ import org.bukkit.persistence.PersistentDataType
 import org.koin.core.component.KoinComponent
 import org.koin.java.KoinJavaComponent.getKoin
 import party.morino.moripafishing.MoripaFishing
-import party.morino.moripafishing.api.core.fish.CaughtFish
+import party.morino.moripafishing.api.config.ConfigManager
+import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
-import party.morino.moripafishing.api.model.fish.CaughtFishData
-import java.util.Locale
+import party.morino.moripafishing.api.model.fish.CaughtFish
 
 /**
  * BukkitのItemStackを利用した魚アイテムの実装クラス
@@ -18,6 +18,11 @@ import java.util.Locale
  * このクラスは、魚のデータをBukkitのItemStackとして表現し、Minecraft内でアイテムとして扱えるようにする
  */
 class BukkitFishItem : KoinComponent {
+    /**
+     * 魚アイテムを作成する
+     * @param caughtFish 捕獲された魚のデータ
+     * @return ItemStack 魚アイテム
+     */
     companion object {
         /**
          * 魚からItemStackを作成する
@@ -27,10 +32,12 @@ class BukkitFishItem : KoinComponent {
         fun create(caughtFish: CaughtFish): ItemStack {
             // Koinから依存関係を取得
             val fishManager = getKoin().get<FishManager>()
+            val configManager = getKoin().get<ConfigManager>()
+            val anglerManager = getKoin().get<AnglerManager>()
             val plugin = getKoin().get<MoripaFishing>()
 
             // 魚の基本データを取得
-            val fishData = fishManager.getFishWithId(caughtFish.getId()) ?: throw IllegalArgumentException("Fish not found")
+            val fishData = fishManager.getFishWithId(caughtFish.fish) ?: throw IllegalArgumentException("Fish not found")
 
             // マテリアルからItemStackを作成
             val item =
@@ -45,31 +52,30 @@ class BukkitFishItem : KoinComponent {
             // 永続化データ用のキーを作成
             val key = NamespacedKey(plugin, "moripa_fishing.fish")
 
-            // 捕獲された魚のデータを取得
-            val caughtFishData = CaughtFishData.from(caughtFish)
+            val anglerName = anglerManager.getAnglerByAnglerUniqueId(caughtFish.angler)?.getName() ?: throw IllegalArgumentException("Angler not found")
 
             // 翻訳用のタグを準備
             val translateTags =
                 listOf(
                     Argument.component("rarity", Component.translatable("moripa_fishing.fish.${fishData.rarity.value}.name")),
-                    Argument.component("size", Component.text(caughtFish.getSize().toString())),
-                    Argument.component("angler", Component.text(caughtFish.getAngler().getName())),
+                    Argument.component("size", Component.text(caughtFish.size.toString())),
+                    Argument.component("angler", Component.text(anglerName)),
                     Argument.component(
                         "world",
-                        Component.translatable("moripa_fishing.world.${caughtFish.getCaughtAtWorld().getId().value}.name"),
+                        Component.translatable("moripa_fishing.world.${caughtFish.world.value}.name"),
                     ),
-                    Argument.component("timestamp", Component.text(caughtFish.getCaughtAt().toString())),
+                    Argument.component("timestamp", Component.text(caughtFish.timestamp.toString())),
                 )
 
             // 翻訳可能なコンポーネントを準備
             val translatableComponents: List<Component> =
                 arrayListOf(
-                    Component.translatable("moripa_fishing.fish.lore.rarity", translateTags),
-                    Component.translatable("moripa_fishing.fish.lore.size", translateTags),
-                    Component.translatable("moripa_fishing.fish.lore.angler", translateTags),
+                    Component.translatable("moripa_fishing.fish.lore.default.rarity", translateTags),
+                    Component.translatable("moripa_fishing.fish.lore.default.size", translateTags),
+                    Component.translatable("moripa_fishing.fish.lore.default.angler", translateTags),
                 ) +
-                    fishData.lore.get(Locale.getDefault())!!.mapIndexed { index, _ ->
-                        Component.translatable("moripa_fishing.fish.${caughtFish.getId().value}.lore.additional.$index", translateTags)
+                    fishData.lore[configManager.getConfig().defaultLocale]!!.mapIndexed { index, _ ->
+                        Component.translatable("moripa_fishing.fish.lore.${caughtFish.fish.value}.additional.$index", translateTags)
                     }.toList()
 
             // カスタムモデルデータを設定
@@ -81,7 +87,7 @@ class BukkitFishItem : KoinComponent {
                     displayName(Component.text("moripa_fishing.fish.${fishData.id.value}.name"))
                     lore(translatableComponents)
                     // 永続化データコンテナに魚のデータを保存
-                    persistentDataContainer.set(key, PersistentDataType.STRING, Utils.json.encodeToString(caughtFishData))
+                    persistentDataContainer.set(key, PersistentDataType.STRING, caughtFish.uniqueId.toString())
                     setCustomModelDataComponent(customModelDataComponent)
                 }
             return item
