@@ -38,10 +38,8 @@ jobs:
 
       - name: Change file name
         run: 
-          before="${{ github.event.release.tag_name }}"
-          version="${before//v/}"
-          mv ./bukkit/build/libs/bukkit-$version-all.jar ./bukkit/build/libs/MoripaFishing_$version.jar
-
+          mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
+          
       - uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: vOFF1aw9
