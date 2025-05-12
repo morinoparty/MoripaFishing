@@ -12,3 +12,5 @@ bukkit/run
 
 */bin/*
 */build/*
+
+.cursor/

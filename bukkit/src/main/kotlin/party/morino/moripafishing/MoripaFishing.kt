@@ -27,6 +27,7 @@ import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
 import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
+import party.morino.moripafishing.listener.moripafishing.PlayerFishingAnnounceListener
 import party.morino.moripafishing.utils.coroutines.async
 
 class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
@@ -138,6 +139,10 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
         this.server.pluginManager.registerEvents(
             PlayerJoinListener(),
+            this,
+        )
+        this.server.pluginManager.registerEvents(
+            PlayerFishingAnnounceListener(),
             this,
         )
     }

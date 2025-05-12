@@ -18,15 +18,15 @@ tasks:
     silent: true
   format:
     cmds:
-      - ./gradlew ktlintFormat
+      - ./gradlew clean ktlintFormat
     silent: true
   build:
     cmds:
-      - ./gradlew build
+      - ./gradlew clean build
     silent: true
   run:
     cmds:
-      - ./gradlew runServer
+      - ./gradlew clean runServer
     silent: true
   commit:
     cmds:
