@@ -15,7 +15,7 @@ import party.morino.moripafishing.api.model.world.WeatherType
 data class WeatherConfig(
     val weight: Map<WeatherType, Int> = mapOf(
         WeatherType.SUNNY to 4,
-        WeatherType.CLOUDY to 2,
+        WeatherType.CLOUDY to 1,
         WeatherType.RAINY to 2,
         WeatherType.THUNDERSTORM to 1,
     ),

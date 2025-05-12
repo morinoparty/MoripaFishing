@@ -1,6 +1,8 @@
 package party.morino.moripafishing.listener.minecraft
 
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
@@ -14,7 +16,12 @@ class PlayerJoinListener : Listener, KoinComponent {
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
-        val defaultWorld = Bukkit.getWorld(worldManager.getDefaultWorldId().value) ?: return
-        player.teleport(defaultWorld.spawnLocation)
+        val defaultWorldId = worldManager.getDefaultWorldId()
+        val fishingWorld = worldManager.getWorld(defaultWorldId)
+        val defaultWorld = Bukkit.getWorld(defaultWorldId.value) ?: return
+        val spawnLocation = fishingWorld.getWorldDetails().spawnLocationData
+        val location = Location(defaultWorld, spawnLocation.x, spawnLocation.y, spawnLocation.z,
+            spawnLocation.yaw.toFloat(), spawnLocation.pitch.toFloat())
+        player.teleport(location)
     }
 }

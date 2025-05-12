@@ -1,11 +1,9 @@
 package party.morino.moripafishing.api.model.fish
 
 import kotlinx.serialization.Serializable
-import net.kyori.adventure.text.Component
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
-import party.morino.moripafishing.api.utils.serializer.ComponentSerializer
 import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
 import java.util.Locale
 
@@ -23,7 +21,8 @@ data class FishData(
             with = LocaleSerializer::class,
         )
         Locale,
-        String> =
+        String,
+        > =
         mapOf(
             Locale.JAPAN to "さかな",
         ),
@@ -45,7 +44,8 @@ data class FishData(
     val lore: Map<
         @Serializable(with = LocaleSerializer::class)
         Locale,
-        ArrayList<String>> =
+        ArrayList<String>,
+        > =
         mapOf(
             Locale.JAPAN to arrayListOf(),
             Locale.ENGLISH to arrayListOf(),
@@ -67,8 +67,10 @@ data class ConditionData(
  */
 @Serializable
 data class TimeRange(
-    val start: Int, // 0-95
-    val end: Int, // 0-95
+    // 0-95
+    val start: Int,
+    // 0-95
+    val end: Int,
 )
 
 @Serializable

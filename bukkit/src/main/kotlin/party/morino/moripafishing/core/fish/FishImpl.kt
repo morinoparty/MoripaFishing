@@ -1,6 +1,5 @@
 package party.morino.moripafishing.core.fish
 
-import net.kyori.adventure.text.Component
 import net.objecthunter.exp4j.ExpressionBuilder
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

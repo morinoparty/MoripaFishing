@@ -21,7 +21,8 @@ object LocaleSerializer : KSerializer<Locale> {
      * @return デシリアライズされたLocale
      */
     override fun deserialize(decoder: Decoder): Locale {
-        return Locale.forLanguageTag(decoder.decodeString())
+        val localeFromString = Locale.forLanguageTag(decoder.decodeString().replace('_', '-'))
+        return localeFromString
     }
 
     /**
@@ -33,6 +34,6 @@ object LocaleSerializer : KSerializer<Locale> {
         encoder: Encoder,
         value: Locale,
     ) {
-        encoder.encodeString(value.toLanguageTag())
+        encoder.encodeString(value.toString())
     }
 }

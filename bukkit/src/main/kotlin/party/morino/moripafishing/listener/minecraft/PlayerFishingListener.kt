@@ -1,5 +1,6 @@
 package party.morino.moripafishing.listener.minecraft
 
+import org.bukkit.Bukkit
 import org.bukkit.entity.Item
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -10,7 +11,7 @@ import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.fish.CaughtFish
-import party.morino.moripafishing.event.fishing.FishCaughtEvent
+import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
 
 class PlayerFishingListener : Listener, KoinComponent {
     val randomizerManager: RandomizeManager by inject()
@@ -24,7 +25,6 @@ class PlayerFishingListener : Listener, KoinComponent {
 
         when (state) {
             PlayerFishEvent.State.CAUGHT_FISH -> {
-                // TODO: 釣りを成功させたときの処理
                 val minecraftFish = event.caught
                 if (minecraftFish !is Item) {
                     return
@@ -34,17 +34,16 @@ class PlayerFishingListener : Listener, KoinComponent {
                 val fish = randomizerManager.getFishRandomizer().selectRandomFish(anglerWorld.getId())
                 val caughtFish = CaughtFish.Companion.fromFish(fish, angler, anglerWorld)
                 val fishCaughtEvent =
-                    FishCaughtEvent(
+                    AnglerFishCaughtEvent(
                         angler,
-                        fish,
+                        caughtFish,
                     )
+
                 fishCaughtEvent.callEvent()
-                println("Fish caught event called")
                 if (fishCaughtEvent.isCancelled) {
                     event.isCancelled = true
                     return
                 }
-
                 val fishItem = BukkitFishItem.create(caughtFish)
                 minecraftFish.itemStack = fishItem
             }

@@ -52,12 +52,14 @@ class BukkitFishItem : KoinComponent {
             // 永続化データ用のキーを作成
             val key = NamespacedKey(plugin, "moripa_fishing.fish")
 
-            val anglerName = anglerManager.getAnglerByAnglerUniqueId(caughtFish.angler)?.getName() ?: throw IllegalArgumentException("Angler not found")
+            val anglerName =
+                anglerManager.getAnglerByAnglerUniqueId(caughtFish.angler)?.getName()
+                    ?: throw IllegalArgumentException("Angler not found")
 
             // 翻訳用のタグを準備
             val translateTags =
                 listOf(
-                    Argument.component("rarity", Component.translatable("moripa_fishing.fish.${fishData.rarity.value}.name")),
+                    Argument.component("rarity", Component.translatable("moripa_fishing.rarity.${fishData.rarity.value}.name")),
                     Argument.component("size", Component.text(caughtFish.size.toString())),
                     Argument.component("angler", Component.text(anglerName)),
                     Argument.component(

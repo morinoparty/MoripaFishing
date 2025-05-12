@@ -1,6 +1,5 @@
 package party.morino.moripafishing.api.core.fish
 
-import net.kyori.adventure.text.Component
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityData
 import java.util.Locale

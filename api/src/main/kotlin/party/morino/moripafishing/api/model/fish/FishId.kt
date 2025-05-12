@@ -24,4 +24,8 @@ class FishId(val value: String) {
     override fun toString(): String {
         return "FishId(value='$value')"
     }
+
+    fun toTranslateKey(): String {
+        return "moripa_fishing.fish.$value.name"
+    }
 }
