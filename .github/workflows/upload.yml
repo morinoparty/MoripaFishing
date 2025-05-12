@@ -23,11 +23,18 @@ jobs:
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
-      - name: change plugin.yml version
+
+      - name: Set version env
         run: |
           before="${{ github.event.release.tag_name }}"
           after="${before//v/}"
-          sed -i 's/VersionPlaceholder/$after/' ./gradle.properties
+          echo "PLUGIN_VERSION=$after" >> $GITHUB_ENV
+
+      - name: change plugin.yml version
+        run: |
+          echo "バージョンは ${{ env.PLUGIN_VERSION }} なのだ！"
+          sed -i "s/VersionPlaceholder/${{ env.PLUGIN_VERSION }}/" ./gradle.properties
+
 
       - name: Build with Gradle
         run: ./gradlew :bukkit:build -x test
@@ -38,7 +45,7 @@ jobs:
 
       - name: Change file name
         run: 
-          mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
+          mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
           
       - uses: Kir-Antipov/mc-publish@v3.3
         with:
@@ -49,7 +56,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-draft: false
           files: |
-            ./bukkit/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
+            ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
           loaders: |
             paper
             purpur
