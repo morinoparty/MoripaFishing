@@ -27,7 +27,7 @@ jobs:
         run: |
           before="${{ github.event.release.tag_name }}"
           after="${before//v/}"
-          sed -i -e "s/VersionPlaceholder/$after/i" './gradle.properties'
+          sed -i 's/VersionPlaceholder/$after/' ./gradle.properties
 
       - name: Build with Gradle
         run: ./gradlew :bukkit:build -x test
@@ -37,7 +37,10 @@ jobs:
         run: ./gradlew publish
 
       - name: Change file name
-        run: mv ./bukkit/build/libs/bukkit-all.jar ./bukkit/build/libs/MoripaFishing_${{ github.event.release.tag_name }}.jar
+        run: 
+          before="${{ github.event.release.tag_name }}"
+          version="${before//v/}"
+          mv ./bukkit/build/libs/bukkit-$version-all.jar ./bukkit/build/libs/MoripaFishing_$version.jar
 
       - uses: Kir-Antipov/mc-publish@v3.3
         with:
