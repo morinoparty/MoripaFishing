@@ -33,4 +33,8 @@ interface FishManager {
      * @return 魚
      */
     fun getFishesWithRarity(rarity: RarityId): List<FishData>
+
+    fun unloadFishes()
+
+    fun loadFishes()
 }

@@ -44,8 +44,8 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
      * @return 現在の天気
      */
     override fun drawWeather(): WeatherType {
-        val now = ZonedDateTime.now()
-        return getWeatherByDate(now)
+        val now = ZonedDateTime.now(ZoneId.of(configManager.getConfig().world.defaultTimeZone))
+        return getClimateConfig().constant.weather ?: getWeatherByDate(now)
     }
 
     /**
@@ -54,8 +54,11 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
      * @return 天気のリスト
      */
     override fun drawWeatherForecast(limit: Int): List<WeatherType> {
+        if (getClimateConfig().constant.weather != null) {
+            return List(limit) { getClimateConfig().constant.weather!! }
+        }
         val weatherList = mutableListOf<WeatherType>()
-        val now = ZonedDateTime.now()
+        val now = ZonedDateTime.now(ZoneId.of(configManager.getConfig().world.defaultTimeZone))
         val weather = getClimateConfig()
         for (i in 0 until limit) {
             val date = now.plusHours(i * weather.weather.interval.toLong() + weather.weather.offset)

@@ -50,7 +50,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
         // plugin.logger.info("Thread: ${t.map { it }}")
     }
 
-    fun loadConfig() {
+    override fun loadConfig() {
         val file = pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
         if (!file.exists()) {
             throw IllegalArgumentException("World detail config file not found: ${file.absolutePath}")

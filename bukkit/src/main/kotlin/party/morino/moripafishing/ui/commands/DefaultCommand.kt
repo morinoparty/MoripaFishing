@@ -18,19 +18,17 @@ class DefaultCommand : KoinComponent {
     private val worldManager: WorldManager by inject()
     private val fishManager: FishManager by inject()
     private val rarityManager: RarityManager by inject()
-    private val configManager : ConfigManager by inject()
+    private val configManager: ConfigManager by inject()
 
     @Command("reload")
     @Permission("moripa_fishing.command.world.default")
-    fun transfer(
-            sender: CommandSender
-    ) {
+    fun transfer(sender: CommandSender) {
         val n = 5
-        //config
+        // config
         configManager.reload()
         sender.sendRichMessage("<green>[1 / $n] Reloaded root config")
 
-        //world
+        // world
         worldManager.getWorldIdList().forEach { worldId ->
             val fishingWorld = worldManager.getWorld(worldId)
             fishingWorld.loadConfig()
@@ -38,16 +36,16 @@ class DefaultCommand : KoinComponent {
         }
         sender.sendRichMessage("<green>[2 / $n] Reloaded world")
 
-        //rarity
+        // rarity
         rarityManager.unloadRarities()
         rarityManager.loadRarities()
         sender.sendRichMessage("<green>[3 / $n] Reloaded all rarities")
 
-        //fishing
+        // fishing
         fishManager.unloadFishes()
         fishManager.loadFishes()
         sender.sendRichMessage("<green>[4 / $n] Reloaded all fishes")
 
-        //TODO i18n
+        // TODO i18n
     }
 }

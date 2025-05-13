@@ -95,4 +95,9 @@ interface FishingWorld {
      * @return WorldDetailConfig ワールドの詳細設定
      */
     fun getWorldDetails(): WorldDetailConfig
+
+    /**
+     * ワールドの設定を再読み込みする。
+     */
+    fun loadConfig()
 }

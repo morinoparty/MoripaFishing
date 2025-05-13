@@ -5,11 +5,13 @@ import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationSt
 import net.kyori.adventure.translation.GlobalTranslator
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import java.util.Locale
 
 object TranslateManager : KoinComponent {
+    private val configManager: ConfigManager by inject()
     private val fishManager: FishManager by inject()
 
     private val worldManager: WorldManager by inject()
@@ -18,6 +20,7 @@ object TranslateManager : KoinComponent {
 
     fun load() {
         myStore = MiniMessageTranslationStore.create(Key.key("moripafishing:translations"))
+        myStore.defaultLocale(configManager.getConfig().defaultLocale)
 
         loadFishData()
         loadWorldData()

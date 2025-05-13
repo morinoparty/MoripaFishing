@@ -10,6 +10,7 @@ import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import org.incendo.cloud.paper.PaperCommandManager
+import party.morino.moripafishing.ui.commands.DefaultCommand
 import party.morino.moripafishing.ui.commands.WorldCommand
 import party.morino.moripafishing.utils.commands.CommandSenderMapper
 import party.morino.moripafishing.utils.commands.parser.FishingWorldParser
@@ -42,6 +43,7 @@ class MoripaFishingBootstrap : PluginBootstrap {
             parse(
                 // ここにコマンドのアノテーションを追加する
                 WorldCommand(),
+                DefaultCommand(),
             )
         }
         // ゲームイベントのレジストリに関する情報へのリンク

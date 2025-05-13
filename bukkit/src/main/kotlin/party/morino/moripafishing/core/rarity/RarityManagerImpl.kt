@@ -47,7 +47,7 @@ class RarityManagerImpl : RarityManager, KoinComponent {
     /**
      * レアリティを読み込む
      */
-    private fun loadRarities() {
+    override fun loadRarities() {
         val rarityDir = pluginDirectory.getRarityDirectory()
         if (!rarityDir.exists()) {
             rarityDir.mkdirs()
@@ -64,5 +64,9 @@ class RarityManagerImpl : RarityManager, KoinComponent {
             val rarity = json.decodeFromString<RarityData>(file.readText())
             registerRarity(rarity)
         }
+    }
+
+    override fun unloadRarities() {
+        rarities.clear()
     }
 }
