@@ -73,4 +73,8 @@ class FishingWorldMock(
     override fun getWorldDetails(): WorldDetailConfig {
         return WorldDetailConfig()
     }
+
+    override fun loadConfig() {
+        // モックなので何もしないのだ
+    }
 }
