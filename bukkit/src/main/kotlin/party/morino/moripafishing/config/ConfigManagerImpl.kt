@@ -1,12 +1,11 @@
 package party.morino.moripafishing.config
 
-import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigData
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
-
+import party.morino.moripafishing.utils.Utils
 /**
  * ConfigManagerのモッククラス
  * テスト用の設定値を提供する
@@ -19,26 +18,17 @@ class ConfigManagerImpl : ConfigManager, KoinComponent {
         reload()
     }
 
-    val json: Json
-        get() =
-            Json {
-                ignoreUnknownKeys = true
-                prettyPrint = true
-                encodeDefaults = true
-                isLenient = true
-            }
-
     override fun reload() {
         val file = pluginDirectory.getRootDirectory().resolve("config.json")
         if (!file.exists() || file.length() == 0L) {
             file.parentFile.mkdirs()
             file.createNewFile()
             val defaultConfig = ConfigData()
-            val data = json.encodeToString(ConfigData.serializer(), defaultConfig)
+            val data = Utils.json.encodeToString(ConfigData.serializer(), defaultConfig)
             file.writeText(data)
         }
         val text = file.readText()
-        config = json.decodeFromString(text)
+        config = Utils.json.decodeFromString(text)
     }
 
     override fun getConfig(): ConfigData {
@@ -48,6 +38,6 @@ class ConfigManagerImpl : ConfigManager, KoinComponent {
     override fun applyConfig(configData: ConfigData) {
         config = configData
         val file = pluginDirectory.getRootDirectory().resolve("config.json")
-        file.writeText(json.encodeToString(config))
+        file.writeText(Utils.json.encodeToString(config))
     }
 }

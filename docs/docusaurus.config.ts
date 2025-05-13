@@ -84,6 +84,12 @@ const config: Config = {
                     position: "left",
                     target: "_blank",
                 },
+                // {
+                //     href: "/javadoc",
+                //     label: "Javadoc",
+                //     position: "left",
+                //     target: "_blank",
+                // },
             ],
         },
         footer: {

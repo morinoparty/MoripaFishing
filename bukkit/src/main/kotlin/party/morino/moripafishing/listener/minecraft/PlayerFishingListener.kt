@@ -1,6 +1,5 @@
 package party.morino.moripafishing.listener.minecraft
 
-import org.bukkit.Bukkit
 import org.bukkit.entity.Item
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener

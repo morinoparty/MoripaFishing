@@ -1,6 +1,5 @@
 package party.morino.moripafishing.core.world
 
-import kotlinx.serialization.json.Json
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.WorldCreator
@@ -15,6 +14,7 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.core.world.biome.ConstBiomeGenerator
+import party.morino.moripafishing.utils.Utils
 
 @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 class WorldManagerImpl : WorldManager, KoinComponent {
@@ -103,11 +103,7 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             val worldDetailConfig = WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
             file.createNewFile()
             file.writeText(
-                Json {
-                    prettyPrint = true
-                    encodeDefaults = true
-                    ignoreUnknownKeys = true
-                }.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
+                Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
             )
         }
 
