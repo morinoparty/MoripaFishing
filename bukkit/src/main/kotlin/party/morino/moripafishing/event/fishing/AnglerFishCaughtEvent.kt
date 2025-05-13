@@ -17,10 +17,10 @@ class AnglerFishCaughtEvent(
     private val angler: Angler,
     private val caughtFish: CaughtFish,
 ) : Event(), Cancellable {
-    companion object{
-
+    companion object {
         @JvmStatic
         private val HANDLER_LIST: HandlerList = HandlerList()
+
         /**
          * イベントのハンドラリストを取得します。
          * 必須メソッドです。
@@ -30,9 +30,8 @@ class AnglerFishCaughtEvent(
         fun getHandlerList(): HandlerList {
             return HANDLER_LIST
         }
-
     }
-    
+
     private var isCancelled: Boolean
 
     init {

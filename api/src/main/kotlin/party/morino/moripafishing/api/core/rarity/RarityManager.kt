@@ -25,4 +25,8 @@ interface RarityManager {
      * @return レアリティの一覧
      */
     fun getRarities(): List<RarityData>
+
+    fun unloadRarities()
+
+    fun loadRarities()
 }

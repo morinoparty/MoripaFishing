@@ -35,11 +35,9 @@ jobs:
           echo "バージョンは ${{ env.PLUGIN_VERSION }} なのだ！"
           sed -i "s/VersionPlaceholder/${{ env.PLUGIN_VERSION }}/" ./gradle.properties
 
-
       - name: Build with Gradle
         run: ./gradlew :bukkit:build -x test
 
-      
       - name: Upload package
         run: ./gradlew publish
 

@@ -5,6 +5,7 @@ plugins {
     java
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.ktlint)
 }
 
@@ -21,6 +22,7 @@ allprojects {
 
     apply(plugin = "java")
     apply(plugin = "org.jetbrains.dokka")
+    apply(plugin = "org.jetbrains.dokka-javadoc")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
@@ -83,5 +85,8 @@ dokka {
     }
     dokkaPublications.html {
         outputDirectory.set(file("${project.rootDir}/docs/static/dokka"))
+    }
+    dokkaPublications.javadoc {
+        outputDirectory.set(file("${project.rootDir}/docs/static/javadoc"))
     }
 }

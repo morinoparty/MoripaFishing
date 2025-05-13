@@ -1,3 +1,4 @@
+package party.morino.moripafishing.utils
 import kotlinx.serialization.json.Json
 
 object Utils {

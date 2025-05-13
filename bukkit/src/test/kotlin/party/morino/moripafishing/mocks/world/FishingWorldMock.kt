@@ -62,6 +62,10 @@ class FishingWorldMock(
         // モックなので何もしないのだ
     }
 
+    override fun syncronoizeTime() {
+        // モックなので何もしないのだ
+    }
+
     override fun updateState() {
         // モックなので何もしないのだ
     }

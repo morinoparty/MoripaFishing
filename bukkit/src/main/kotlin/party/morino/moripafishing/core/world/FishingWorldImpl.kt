@@ -20,7 +20,10 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.io.writeText
 
 @kotlinx.serialization.ExperimentalSerializationApi
@@ -47,7 +50,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
         // plugin.logger.info("Thread: ${t.map { it }}")
     }
 
-    fun loadConfig() {
+    override fun loadConfig() {
         val file = pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
         if (!file.exists()) {
             throw IllegalArgumentException("World detail config file not found: ${file.absolutePath}")
@@ -87,6 +90,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
                     }
 
                     WeatherType.CLOUDY -> {
+                        // TODO 置き換え
                         world.setStorm(false)
                         world.isThundering = true
                     }
@@ -180,14 +184,41 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
         worldDetailConfig = newData
     }
 
+    override fun syncronoizeTime() {
+        val timezone = configManager.getConfig().world.defaultTimeZone
+        val zone = ZoneId.of(timezone)
+        val time = LocalDateTime.now(zone)
+        val climateConfig = worldDetailConfig.climateConfig ?: configManager.getConfig().world.defaultClimateConfig
+        val offset: Int = climateConfig.dayCycle.offset
+        val hour = time.hour + offset
+        val minute = time.minute
+        runBlocking {
+            withContext(Dispatchers.minecraft) {
+                if (climateConfig.constant.dayCycle != null) {
+                    world.time = (climateConfig.constant.dayCycle!!.toLong() * 1000 + 18000) % 24000
+                } else {
+                    // 0 で 6:00
+                    // 1000 で 7:00
+                    world.time = ((hour * 1000 + minute * 16).toLong() + 18000) % 24000
+                }
+            }
+        }
+    }
+
     override fun updateState() {
         setCenter(worldDetailConfig.borderCentral.first, worldDetailConfig.borderCentral.second)
         setSize(worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize)
+        updateGameRule()
         updateWeather()
+        syncronoizeTime()
     }
 
     private fun updateGameRule() {
-        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
+        runBlocking {
+            withContext(Dispatchers.minecraft) {
+                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
+                world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
+            }
+        }
     }
 }

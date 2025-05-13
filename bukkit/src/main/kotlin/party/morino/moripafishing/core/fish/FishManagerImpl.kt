@@ -64,7 +64,7 @@ class FishManagerImpl : FishManager, KoinComponent {
      * 魚のデータを読み込む
      * 管理しやすいようにfish/<rarity>/<fish_name>.jsonに移動
      */
-    private fun loadFishes() {
+    override fun loadFishes() {
         val fishDir = pluginDirectory.getFishDirectory()
         if (!fishDir.exists()) {
             fishDir.mkdirs()
@@ -84,6 +84,10 @@ class FishManagerImpl : FishManager, KoinComponent {
         fishDir.listFiles { file -> file.isDirectory }?.forEach { rarityDir ->
             processFishFiles(rarityDir, json)
         }
+    }
+
+    override fun unloadFishes() {
+        fishes.clear()
     }
 
     /**

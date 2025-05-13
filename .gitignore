@@ -14,3 +14,6 @@ bukkit/run
 */build/*
 
 .cursor/
+
+docs/static/dokka
+docs/static/javadoc

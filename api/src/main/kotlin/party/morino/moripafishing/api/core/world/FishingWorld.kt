@@ -23,6 +23,7 @@ interface FishingWorld {
 
     /**
      * 現在の天候タイプを取得する。
+     * 魚の計算などの場合は、プレイヤーの認識を阻害しないためにこちらを使用する。
      * @return WeatherType 現在の天候タイプ
      */
     fun getCurrentWeather(): WeatherType
@@ -78,6 +79,11 @@ interface FishingWorld {
     )
 
     /**
+     * ワールドの時間を同期する。
+     */
+    fun syncronoizeTime()
+
+    /**
      * ワールドの設定を更新する。
      * ワールドの設定は、ワールドの中心位置や半径、天気および時間などの情報を含む。
      * このメソッドは、ワールドの設定を更新するために使用される。
@@ -89,4 +95,9 @@ interface FishingWorld {
      * @return WorldDetailConfig ワールドの詳細設定
      */
     fun getWorldDetails(): WorldDetailConfig
+
+    /**
+     * ワールドの設定を再読み込みする。
+     */
+    fun loadConfig()
 }

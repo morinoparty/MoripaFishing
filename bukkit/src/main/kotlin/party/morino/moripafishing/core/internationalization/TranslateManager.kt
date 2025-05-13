@@ -5,12 +5,13 @@ import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationSt
 import net.kyori.adventure.translation.GlobalTranslator
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import java.util.Locale
-import party.morino.moripafishing.MoripaFishing
 
 object TranslateManager : KoinComponent {
+    private val configManager: ConfigManager by inject()
     private val fishManager: FishManager by inject()
 
     private val worldManager: WorldManager by inject()
@@ -19,6 +20,7 @@ object TranslateManager : KoinComponent {
 
     fun load() {
         myStore = MiniMessageTranslationStore.create(Key.key("moripafishing:translations"))
+        myStore.defaultLocale(configManager.getConfig().defaultLocale)
 
         loadFishData()
         loadWorldData()
@@ -40,7 +42,6 @@ object TranslateManager : KoinComponent {
             fish.lore.forEach { locale, list ->
                 list.forEachIndexed { index, lore ->
                     myStore.register("moripa_fishing.fish.lore.${fish.id.value}.additional.$index", locale, lore)
-
                 }
             }
             fish.displayName.forEach { locale, name ->
@@ -66,7 +67,15 @@ object TranslateManager : KoinComponent {
         // <angler>: 釣り人の名前
         // <world>: 釣りが行われた世界の名前
         // <timestamp>: 釣りが行われた時間
-        myStore.register("moripa_fishing.message.angler_fish_caught", Locale.JAPAN, "🎣 <yellow>つり人: <angler> </yellow>が<world>で<size>cmの<fish_name>を釣りました。")
-        myStore.register("moripa_fishing.message.angler_fish_caught", Locale.ENGLISH, "🎣 <yellow>Angler: <angler> </yellow>has caught <size>cm <fish_name> in <world>.")
+        myStore.register(
+            "moripa_fishing.message.angler_fish_caught",
+            Locale.JAPAN,
+            "🎣 <yellow>つり人: <angler> </yellow>が<world>で<size>cmの<fish_name>を釣りました。",
+        )
+        myStore.register(
+            "moripa_fishing.message.angler_fish_caught",
+            Locale.ENGLISH,
+            "🎣 <yellow>Angler: <angler> </yellow>has caught <size>cm <fish_name> in <world>.",
+        )
     }
 }

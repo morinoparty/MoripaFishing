@@ -30,5 +30,10 @@ tasks:
     silent: true
   commit:
     cmds:
+      - task format
       - pnpm dlx git-cz
+  dokka:
+    cmds:
+      - ./gradlew clean dokkaGenerate
+    silent: true
 

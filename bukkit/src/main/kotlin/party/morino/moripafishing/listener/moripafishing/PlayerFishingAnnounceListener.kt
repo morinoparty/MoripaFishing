@@ -4,14 +4,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.translation.Argument
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.koin.core.component.KoinComponent
 import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
 
 class PlayerFishingAnnounceListener : Listener, KoinComponent {
-
-
     @EventHandler
     fun onPlayerFishingAnnounce(event: AnglerFishCaughtEvent) {
         val angler = event.getAngler().getName()
