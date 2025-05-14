@@ -95,6 +95,9 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     override fun onDisable() {
         // プラグインが無効化された際のログ出力
+        worldManager.getWorldIdList().forEach {
+            worldManager.getWorld(it).effectFinish()
+        }
         logger.info("MoripaFishing disabled")
     }
 

@@ -2,7 +2,6 @@ package party.morino.moripafishing.ui.commands
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.command.CommandSender
@@ -17,6 +16,7 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
+import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
 
 @Command("mf world")
@@ -158,12 +158,7 @@ class WorldCommand : KoinComponent {
         @Argument("world") world: FishingWorld,
     ) {
         val details = world.getWorldDetails()
-        val text =
-            Json {
-                prettyPrint = true
-                encodeDefaults = true
-                ignoreUnknownKeys = true
-            }.encodeToString(details)
+        val text = Utils.json.encodeToString(details)
         sender.sendMessage(text)
     }
 }

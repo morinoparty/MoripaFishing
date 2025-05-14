@@ -11,11 +11,11 @@ import party.morino.moripafishing.api.model.world.WeatherType
  * FishingWorldのモッククラスなのだ
  */
 class FishingWorldMock(
-    private val worldId: FishingWorldId,
-    private val weatherType: WeatherType = WeatherType.SUNNY,
-    private val worldSpawnPosition: LocationData = LocationData(0.0, 64.0, 0.0, 90.0, 0.0),
-    private val radius: Double = 100.0,
-    private val center: Pair<Double, Double> = Pair(0.0, 0.0),
+        private val worldId: FishingWorldId,
+        private val weatherType: WeatherType = WeatherType.SUNNY,
+        private val worldSpawnPosition: LocationData = LocationData(0.0, 64.0, 0.0, 90.0, 0.0),
+        private val radius: Double = 100.0,
+        private val center: Pair<Double, Double> = Pair(0.0, 0.0),
 ) : FishingWorld, KoinComponent {
     private var currentWeather: WeatherType = weatherType
 
@@ -56,8 +56,8 @@ class FishingWorldMock(
     }
 
     override fun setCenter(
-        x: Double,
-        z: Double,
+            x: Double,
+            z: Double,
     ) {
         // モックなので何もしないのだ
     }
@@ -72,5 +72,13 @@ class FishingWorldMock(
 
     override fun getWorldDetails(): WorldDetailConfig {
         return WorldDetailConfig()
+    }
+
+    override fun loadConfig() {
+        // モックなので何もしないのだ
+    }
+
+    override fun effectFinish() {
+        // モックなので何もしないのだ
     }
 }
