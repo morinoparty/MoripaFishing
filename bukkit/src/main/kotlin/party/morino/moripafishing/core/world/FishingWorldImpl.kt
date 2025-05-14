@@ -1,5 +1,7 @@
 package party.morino.moripafishing.core.world
 
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -17,14 +19,12 @@ import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
 import party.morino.moripafishing.api.core.world.FishingWorld
+import party.morino.moripafishing.api.core.world.WeatherEffect
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
-import java.time.LocalDateTime
-import java.time.ZoneId
-import kotlin.io.writeText
 
 @kotlinx.serialization.ExperimentalSerializationApi
 class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, KoinComponent {
@@ -32,6 +32,8 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     private val pluginDirectory: PluginDirectory by inject()
     private val configManager: ConfigManager by inject()
     private val randomizeManager: RandomizeManager by inject()
+
+    private var weatherEffect: WeatherEffect = WeatherTypeRegistry.getEffect(WeatherType.SUNNY)
 
     private lateinit var worldDetailConfig: WorldDetailConfig
 
@@ -81,35 +83,15 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     }
 
     override fun setWeather(weatherType: WeatherType) {
-        runBlocking {
-            withContext(Dispatchers.minecraft) {
-                when (weatherType) {
-                    WeatherType.SUNNY -> {
-                        world.setStorm(false)
-                        world.isThundering = false
-                    }
-
-                    WeatherType.CLOUDY -> {
-                        // TODO 置き換え
-                        world.setStorm(false)
-                        world.isThundering = true
-                    }
-
-                    WeatherType.RAINY -> {
-                        world.setStorm(true)
-                        world.isThundering = false
-                    }
-
-                    WeatherType.THUNDERSTORM -> {
-                        world.setStorm(true)
-                        world.isThundering = true
-                    }
-
-                    else -> {}
-                }
-            }
+        if (weatherType == this.weatherType) {
+            return
         }
+        println("Weather changing ${this.weatherType} => $weatherType")
         this.weatherType = weatherType
+        this.weatherEffect.reset()
+        val newEffect = WeatherTypeRegistry.getEffect(weatherType)
+        this.weatherEffect = newEffect
+        this.weatherEffect.apply(fishingWorldId = worldId)
     }
 
     override fun getWorldSpawnPosition(): LocationData {
