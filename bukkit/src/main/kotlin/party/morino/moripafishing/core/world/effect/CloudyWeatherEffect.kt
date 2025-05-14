@@ -18,9 +18,14 @@ import party.morino.moripafishing.utils.coroutines.minecraft
  * 晴れの天候効果
  */
 class CloudyWeatherEffect : WeatherEffect, KoinComponent {
+    companion object {
+        private const val BARRIER_HEIGHT = 200
+    }
+
     private val worldManager: WorldManager by inject()
     private val configManager: ConfigManager by inject()
     private var world: World? = null
+
     lateinit var center: Pair<Double, Double>
     lateinit var range: IntRange
 
@@ -42,7 +47,7 @@ class CloudyWeatherEffect : WeatherEffect, KoinComponent {
                 // start sync
                 for (x in range) {
                     for (z in range) {
-                        val block = world?.getBlockAt(center.first.toInt() + x, 200, center.second.toInt() + z)
+                        val block = world?.getBlockAt(center.first.toInt() + x, BARRIER_HEIGHT, center.second.toInt() + z)
                         if (block?.type == Material.AIR) {
                             block.type = Material.BARRIER
                         }
@@ -61,11 +66,14 @@ class CloudyWeatherEffect : WeatherEffect, KoinComponent {
                 world?.let { world ->
                     for (x in range) {
                         for (z in range) {
-                            val block = world.getBlockAt(center.first.toInt() + x, 200, center.second.toInt() + z)
-                            block.type = Material.AIR
+                            val block = world.getBlockAt(center.first.toInt() + x, BARRIER_HEIGHT, center.second.toInt() + z)
+                            if (block.type == Material.BARRIER) {
+                                block.type = Material.AIR
+                            }
                         }
                     }
                 }
+                world?.setStorm(false)
             }
         }
     }

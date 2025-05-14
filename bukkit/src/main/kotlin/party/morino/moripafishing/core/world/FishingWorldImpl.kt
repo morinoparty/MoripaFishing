@@ -1,7 +1,5 @@
 package party.morino.moripafishing.core.world
 
-import java.time.LocalDateTime
-import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -25,6 +23,8 @@ import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 @kotlinx.serialization.ExperimentalSerializationApi
 class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, KoinComponent {
@@ -202,5 +202,16 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
                 world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
             }
         }
+    }
+
+    /**
+     * 天候や特殊効果の終了時に呼び出されるメソッド
+     * ここでは天候効果のリセットや、必要な後処理を実装する
+     */
+    override fun effectFinish() {
+        // 現在の天候効果をリセット
+        weatherEffect.reset()
+        // 必要に応じて追加の後処理をここに記述
+        plugin.logger.info("[${worldId.value}] effectFinish called: weatherEffect reset.")
     }
 }

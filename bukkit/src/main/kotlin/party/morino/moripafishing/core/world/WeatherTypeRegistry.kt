@@ -2,7 +2,10 @@ package party.morino.moripafishing.core.world
 
 import party.morino.moripafishing.api.core.world.WeatherEffect
 import party.morino.moripafishing.api.model.world.WeatherType
-import party.morino.moripafishing.core.world.effect.*
+import party.morino.moripafishing.core.world.effect.CloudyWeatherEffect
+import party.morino.moripafishing.core.world.effect.RainWeatherEffect
+import party.morino.moripafishing.core.world.effect.SunnyWeatherEffect
+import party.morino.moripafishing.core.world.effect.ThunderWeatherEffect
 
 /**
  * 天候タイプごとにWeatherEffectを返すレジストリ
