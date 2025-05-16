@@ -1,6 +1,7 @@
 package party.morino.moripafishing.api.core.world
 
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.generator.GeneratorData
 
 /**
  * ワールドの管理を行うクラス
@@ -35,13 +36,10 @@ interface WorldManager {
     /**
      * ワールドを作成する
      * @param fishingWorldId ワールドID
+     * @param generatorData ワールド生成データ
      * @return ワールド
      */
-    fun createWorld(
-        fishingWorldId: FishingWorldId,
-        generator: String?,
-        biome: String?,
-    ): Boolean
+    fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean
 
     /**
      * ワールドを削除する

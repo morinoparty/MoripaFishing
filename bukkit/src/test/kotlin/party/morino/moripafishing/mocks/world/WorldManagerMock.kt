@@ -8,6 +8,7 @@ import party.morino.moripafishing.api.config.world.WorldConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.generator.GeneratorData
 
 /**
  * WorldManagerのモッククラス
@@ -68,11 +69,7 @@ class WorldManagerMock : WorldManager, KoinComponent {
         return true
     }
 
-    override fun createWorld(
-        fishingWorldId: FishingWorldId,
-        generator: String?,
-        biome: String?,
-    ): Boolean {
+    override fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean {
         worldIdList.plus(fishingWorldId)
         return true
     }

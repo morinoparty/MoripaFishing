@@ -5,6 +5,7 @@ import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
+import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
 
 /**
@@ -46,4 +47,10 @@ interface MoripaFishingAPI {
      * @return 釣り人マネージャー
      */
     fun getAnglerManager(): AnglerManager
+
+    /**
+     * ワールドのジェネレーター管理マネージャーを取得する
+     * @return ジェネレーター管理マネージャー
+     */
+    fun getGeneratorManager(): GeneratorManager
 }

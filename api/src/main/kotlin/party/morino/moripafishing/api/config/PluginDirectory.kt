@@ -29,4 +29,10 @@ interface PluginDirectory {
      * @return ワールドの設定ファイルが格納されているディレクトリ
      */
     fun getWorldDirectory(): File
+
+    /**
+     * ジェネレータの設定ファイルが格納されているディレクトリを取得する
+     * @return ジェネレータの設定ファイルが格納されているディレクトリ
+     */
+    fun getGeneratorDirectory(): File
 }

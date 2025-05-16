@@ -1,5 +1,7 @@
 package party.morino.moripafishing.core.world
 
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -23,8 +25,6 @@ import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 @kotlinx.serialization.ExperimentalSerializationApi
 class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, KoinComponent {
@@ -60,11 +60,11 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
         worldDetailConfig = Utils.json.decodeFromStream<WorldDetailConfig>(file.inputStream())
     }
 
-    var world: World =
-        lazy {
-            Bukkit.getWorld(worldId.value)
-                ?: throw IllegalStateException("World not found")
-        }.value
+    private var world: World =
+            lazy {
+                Bukkit.getWorld(worldId.value)
+                        ?: throw IllegalStateException("World not found")
+            }.value
 
     override fun getWorldDetails(): WorldDetailConfig {
         return worldDetailConfig
@@ -86,7 +86,6 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
         if (weatherType == this.weatherType) {
             return
         }
-        println("Weather changing ${this.weatherType} => $weatherType")
         this.weatherType = weatherType
         this.weatherEffect.reset()
         val newEffect = WeatherTypeRegistry.getEffect(weatherType)
@@ -102,19 +101,19 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
         runBlocking {
             withContext(Dispatchers.minecraft) {
                 world.spawnLocation =
-                    Location(
-                        world,
-                        locationData.x,
-                        locationData.y,
-                        locationData.z,
-                        locationData.yaw.toFloat(),
-                        locationData.pitch.toFloat(),
-                    )
+                        Location(
+                                world,
+                                locationData.x,
+                                locationData.y,
+                                locationData.z,
+                                locationData.yaw.toFloat(),
+                                locationData.pitch.toFloat(),
+                        )
             }
         }
 
         val file =
-            pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
+                pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
         val newData = worldDetailConfig.copy(spawnLocationData = locationData)
         file.writeText(Utils.json.encodeToString(WorldDetailConfig.serializer(), newData))
         if (worldDetailConfig.spawnLocationData != locationData) {
@@ -134,7 +133,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
             }
         }
         val file =
-            pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
+                pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
         val newData = worldDetailConfig.copy(borderSize = size)
         file.writeText(Utils.json.encodeToString(WorldDetailConfig.serializer(), newData))
         if (worldDetailConfig.borderSize != size) {
@@ -148,8 +147,8 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
     }
 
     override fun setCenter(
-        x: Double,
-        z: Double,
+            x: Double,
+            z: Double,
     ) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
@@ -157,7 +156,7 @@ class FishingWorldImpl(private val worldId: FishingWorldId) : FishingWorld, Koin
             }
         }
         val file =
-            pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
+                pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
         val newData = worldDetailConfig.copy(borderCentral = Pair(x, z))
         file.writeText(Utils.json.encodeToString(WorldDetailConfig.serializer(), newData))
         if (worldDetailConfig.borderCentral != Pair(x, z)) {

@@ -16,6 +16,7 @@ import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
+import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
@@ -24,6 +25,7 @@ import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.internationalization.TranslateManager
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
+import party.morino.moripafishing.core.world.GeneratorManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
 import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
@@ -51,6 +53,9 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     // AnglerManagerのインスタンスを遅延初期化する
     private lateinit var anglerManager: AnglerManager
 
+    // GeneratorManagerのインスタンスを遅延初期化する
+    private lateinit var generatorManager: GeneratorManager
+
     /**
      * プラグインの有効化時に呼び出されるメソッド
      *
@@ -68,13 +73,13 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         // databaseManager.initialize()
         worldManager.initializeWorlds()
 
-        updateWorlds()
         // リスナーの登録
         loadListeners()
 
         // i18n
         TranslateManager.load()
         logger.info("MoripaFishing enabled")
+        updateWorlds()
     }
 
     private fun getInstanceForAPI() {
@@ -91,6 +96,8 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         fishManager = GlobalContext.get().get()
         // AnglerManagerのインスタンスを取得
         anglerManager = GlobalContext.get().get()
+        // GeneratorManagerのインスタンスを取得
+        generatorManager = GlobalContext.get().get()
     }
 
     override fun onDisable() {
@@ -103,16 +110,17 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     private fun setupKoin() {
         val appModule =
-            module {
-                single<MoripaFishing> { this@MoripaFishing }
-                single<ConfigManager> { ConfigManagerImpl() }
-                single<RandomizeManager> { RandomizeManagerImpl() }
-                single<RarityManager> { RarityManagerImpl() }
-                single<WorldManager> { WorldManagerImpl() }
-                single<PluginDirectory> { PluginDirectoryImpl() }
-                single<FishManager> { FishManagerImpl() }
-                single<AnglerManager> { AnglerManagerImpl() }
-            }
+                module {
+                    single<MoripaFishing> { this@MoripaFishing }
+                    single<ConfigManager> { ConfigManagerImpl() }
+                    single<RandomizeManager> { RandomizeManagerImpl() }
+                    single<RarityManager> { RarityManagerImpl() }
+                    single<WorldManager> { WorldManagerImpl() }
+                    single<PluginDirectory> { PluginDirectoryImpl() }
+                    single<FishManager> { FishManagerImpl() }
+                    single<AnglerManager> { AnglerManagerImpl() }
+                    single<GeneratorManager> { GeneratorManagerImpl() }
+                }
 
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
@@ -121,32 +129,32 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     private fun updateWorlds() {
         Bukkit.getScheduler().runTaskAsynchronously(
-            this,
-            Runnable {
-                runBlocking {
-                    withContext(Dispatchers.async) {
-                        val interval = configManager.getConfig().world.refreshInterval * 1000L
-                        while (true) {
-                            worldManager.getWorldIdList().forEach {
-                                worldManager.getWorld(it).updateState()
+                this,
+                Runnable {
+                    runBlocking {
+                        withContext(Dispatchers.async) {
+                            val interval = configManager.getConfig().world.refreshInterval * 1000L
+                            while (true) {
+                                worldManager.getWorldIdList().forEach {
+                                    worldManager.getWorld(it).updateState()
+                                }
+                                delay(interval)
                             }
-                            delay(interval)
                         }
                     }
-                }
-            },
+                },
         )
     }
 
     private fun loadListeners() {
         this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
         this.server.pluginManager.registerEvents(
-            PlayerJoinListener(),
-            this,
+                PlayerJoinListener(),
+                this,
         )
         this.server.pluginManager.registerEvents(
-            PlayerFishingAnnounceListener(),
-            this,
+                PlayerFishingAnnounceListener(),
+                this,
         )
     }
 
@@ -172,5 +180,9 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     override fun getAnglerManager(): AnglerManager {
         return anglerManager
+    }
+
+    override fun getGeneratorManager(): GeneratorManager {
+        return generatorManager
     }
 }
