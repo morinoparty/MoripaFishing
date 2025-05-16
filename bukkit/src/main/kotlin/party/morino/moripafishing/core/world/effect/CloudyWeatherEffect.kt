@@ -60,7 +60,6 @@ class CloudyWeatherEffect : WeatherEffect, KoinComponent {
     }
 
     override fun reset() {
-        // 必要なら元の状態に戻す処理を書く
         runBlocking {
             withContext(Dispatchers.minecraft) {
                 world?.let { world ->

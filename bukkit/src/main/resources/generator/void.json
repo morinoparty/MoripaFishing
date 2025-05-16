@@ -1,0 +1,7 @@
+{
+    "id": "void",
+    "generator": null,
+    "type": "FLAT",
+    "biomeProvider": null,
+    "generatorSetting": "{\"layers\": [{\"block\": \"air\", \"height\": 1}], \"biome\":\"plains\"}"
+}

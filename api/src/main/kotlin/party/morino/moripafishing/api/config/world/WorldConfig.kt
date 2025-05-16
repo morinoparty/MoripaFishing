@@ -16,10 +16,6 @@ data class WorldConfig(
     val spawnConfig: SpawnConfig = SpawnConfig(),
     // デフォルトのワールドサイズ
     val defaultWorldSize: Double = 100.0,
-    // デフォルトのワールドジェネレータ
-    val defaultWorldGenerator: String = "Terra:OVERWORLD",
-    // デフォルトのワールドバイオーム
-    val defaultWorldBiome: String? = null,
     // デフォルトの天気設定
     val defaultClimateConfig: ClimateConfig = ClimateConfig(),
     // 更新の感覚

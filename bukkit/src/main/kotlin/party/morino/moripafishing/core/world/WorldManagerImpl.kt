@@ -3,6 +3,7 @@ package party.morino.moripafishing.core.world
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.WorldCreator
+import org.bukkit.WorldType
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
@@ -13,6 +14,7 @@ import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.generator.GeneratorData
 import party.morino.moripafishing.core.world.biome.ConstBiomeGenerator
 import party.morino.moripafishing.utils.Utils
 
@@ -38,11 +40,11 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             worldDirectory.mkdirs()
         }
         worldIdList =
-            pluginDirectory.getWorldDirectory()
-                .listFiles()
-                .filter { it.name.endsWith(".json") }
-                .map { FishingWorldId(it.nameWithoutExtension) }
-                .toMutableSet()
+                pluginDirectory.getWorldDirectory()
+                        .listFiles()
+                        .filter { it.name.endsWith(".json") }
+                        .map { FishingWorldId(it.nameWithoutExtension) }
+                        .toMutableSet()
     }
 
     override fun initializeWorlds() {
@@ -75,17 +77,7 @@ class WorldManagerImpl : WorldManager, KoinComponent {
         }
     }
 
-    override fun createWorld(fishingWorldId: FishingWorldId): Boolean {
-        val worldGenerator = worldConfig.defaultWorldGenerator
-        val biomeProvider = worldConfig.defaultWorldBiome
-        return createWorld(fishingWorldId, worldGenerator, biomeProvider)
-    }
-
-    override fun createWorld(
-        fishingWorldId: FishingWorldId,
-        generator: String?,
-        biome: String?,
-    ): Boolean {
+    override fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean {
         if (Bukkit.getWorld(fishingWorldId.value) != null) {
             return false
         }
@@ -103,16 +95,21 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             val worldDetailConfig = WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
             file.createNewFile()
             file.writeText(
-                Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
+                    Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
             )
         }
 
-        val biomeProvider = biome?.let { ConstBiomeGenerator(biome) }
+        val biomeProvider = generatorData.biomeProvider?.let { ConstBiomeGenerator(it) }
         val creator =
-            WorldCreator(namespacedKey).generator(
-                generator
-                    ?: worldConfig.defaultWorldGenerator,
-            ).biomeProvider(biomeProvider)
+                WorldCreator(namespacedKey)
+                        .generator(generatorData.generator)
+                        .let { creator ->
+                            generatorData.generatorSetting?.let { it1 -> creator.generatorSettings(it1) } ?: creator
+                        }
+                        .let { creator ->
+                            generatorData.type?.let { type -> creator.type(WorldType.valueOf(type)) } ?: creator
+                        }
+                        .biomeProvider(biomeProvider)
         val world = Bukkit.createWorld(creator)
         if (world == null) {
             plugin.logger.warning("Failed to create world ${fishingWorldId.value}")
@@ -128,6 +125,12 @@ class WorldManagerImpl : WorldManager, KoinComponent {
         return true
     }
 
+    override fun createWorld(fishingWorldId: FishingWorldId): Boolean {
+        val detailConfig = getWorldDetailConfig(fishingWorldId)
+        val generator = detailConfig.generator.toGeneratorData()
+        return createWorld(fishingWorldId, generator)
+    }
+
     override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
         val world = Bukkit.getWorld(fishingWorldId.value) ?: return false
         Bukkit.unloadWorld(world, false)
@@ -136,5 +139,16 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             worldFile.delete()
         }
         return true
+    }
+
+    fun getWorldDetailConfig(fishingWorldId: FishingWorldId): WorldDetailConfig {
+        val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
+        if (!file.exists()) {
+            return WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
+        }
+        return Utils.json.decodeFromString(
+                WorldDetailConfig.serializer(),
+                file.readText(),
+        )
     }
 }

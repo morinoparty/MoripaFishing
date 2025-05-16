@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.ktlint)
+    id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
 val version: String by project
@@ -89,4 +90,38 @@ dokka {
     dokkaPublications.javadoc {
         outputDirectory.set(file("${project.rootDir}/docs/static/javadoc"))
     }
+}
+
+detekt {
+    // Version of detekt that will be used. When unspecified the latest detekt
+    // version found will be used. Override to stay on the same version.
+    toolVersion = "1.23.8"
+
+    // The directories where detekt looks for source files.
+    // Defaults to `files("src/main/java", "src/test/java", "src/main/kotlin", "src/test/kotlin")`.
+    source.setFrom("api/src/main/java", "api/src/main/kotlin", "bukkit/src/main/java", "bukkit/src/main/kotlin")
+
+    // Builds the AST in parallel. Rules are always executed in parallel.
+    // Can lead to speedups in larger projects. `false` by default.
+    parallel = true
+
+    // Applies the config files on top of detekt's default config file. `false` by default.
+    buildUponDefaultConfig = true
+
+    // Turns on all the rules. `false` by default.
+    allRules = true
+
+    // Specifying a baseline file. All findings stored in this file in subsequent runs of detekt.
+    baseline = file("./detekt-baseline.xml")
+
+    // Disables all default detekt rulesets and will only run detekt with custom rules
+    // defined in plugins passed in with `detektPlugins` configuration. `false` by default.
+    disableDefaultRuleSets = false
+
+    // Adds debug output during task execution. `false` by default.
+    debug = false
+
+    // If set to `true` the build does not fail when there are any issues.
+    // Defaults to `false`.
+    ignoreFailures = true
 }
