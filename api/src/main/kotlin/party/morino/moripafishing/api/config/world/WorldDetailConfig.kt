@@ -18,7 +18,7 @@ data class WorldDetailConfig(
         // ワールドの中心座標
         val borderCentral: Pair<Double, Double> = Pair(0.0, 0.0),
         // スポーン地点の座標
-        val spawnLocationData: LocationData = LocationData(0.0, 64.0, 0.0, 90.0, 0.0),
+        val spawnLocationData: LocationData = LocationData(id, 0.0, 64.0, 0.0, 90.0, 0.0),
         // 天気設定
         val climateConfig: ClimateConfig? = null,
         // ワールドのジェネレータ

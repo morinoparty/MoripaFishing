@@ -13,7 +13,7 @@ import party.morino.moripafishing.api.model.world.WeatherType
 class FishingWorldMock(
     private val worldId: FishingWorldId,
     private val weatherType: WeatherType = WeatherType.SUNNY,
-    private val worldSpawnPosition: LocationData = LocationData(0.0, 64.0, 0.0, 90.0, 0.0),
+    private val worldSpawnPosition: LocationData = LocationData(worldId, 0.0, 64.0, 0.0, 90.0, 0.0),
     private val radius: Double = 100.0,
     private val center: Pair<Double, Double> = Pair(0.0, 0.0),
 ) : FishingWorld, KoinComponent {

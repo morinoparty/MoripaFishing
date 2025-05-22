@@ -119,7 +119,7 @@ class WorldCommand : KoinComponent {
             return
         }
         val location = sender.location
-        val locationData = LocationData(location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
+        val locationData = LocationData(world.getId(), location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
         world.setWorldSpawnPosition(locationData)
         sender.sendMessage("Spawn position set for world ${world.getId()}.")
     }

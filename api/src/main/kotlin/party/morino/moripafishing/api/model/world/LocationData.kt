@@ -1,7 +1,7 @@
 package party.morino.moripafishing.api.model.world
 
 import kotlinx.serialization.Serializable
-
+import party.morino.moripafishing.api.model.world.FishingWorldId
 /**
  * LocationDataクラスは、位置情報を表すデータクラスです。
  * @param x 位置のX座標
@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class LocationData(
+    val worldId: FishingWorldId,
     val x: Double,
     val y: Double,
     val z: Double,
