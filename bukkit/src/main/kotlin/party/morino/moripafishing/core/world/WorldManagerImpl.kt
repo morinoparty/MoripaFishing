@@ -40,11 +40,11 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             worldDirectory.mkdirs()
         }
         worldIdList =
-                pluginDirectory.getWorldDirectory()
-                        .listFiles()
-                        .filter { it.name.endsWith(".json") }
-                        .map { FishingWorldId(it.nameWithoutExtension) }
-                        .toMutableSet()
+            pluginDirectory.getWorldDirectory()
+                .listFiles()
+                .filter { it.name.endsWith(".json") }
+                .map { FishingWorldId(it.nameWithoutExtension) }
+                .toMutableSet()
     }
 
     override fun initializeWorlds() {
@@ -77,7 +77,10 @@ class WorldManagerImpl : WorldManager, KoinComponent {
         }
     }
 
-    override fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean {
+    override fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generatorData: GeneratorData,
+    ): Boolean {
         if (Bukkit.getWorld(fishingWorldId.value) != null) {
             return false
         }
@@ -95,21 +98,21 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             val worldDetailConfig = WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
             file.createNewFile()
             file.writeText(
-                    Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
+                Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
             )
         }
 
         val biomeProvider = generatorData.biomeProvider?.let { ConstBiomeGenerator(it) }
         val creator =
-                WorldCreator(namespacedKey)
-                        .generator(generatorData.generator)
-                        .let { creator ->
-                            generatorData.generatorSetting?.let { it1 -> creator.generatorSettings(it1) } ?: creator
-                        }
-                        .let { creator ->
-                            generatorData.type?.let { type -> creator.type(WorldType.valueOf(type)) } ?: creator
-                        }
-                        .biomeProvider(biomeProvider)
+            WorldCreator(namespacedKey)
+                .generator(generatorData.generator)
+                .let { creator ->
+                    generatorData.generatorSetting?.let { it1 -> creator.generatorSettings(it1) } ?: creator
+                }
+                .let { creator ->
+                    generatorData.type?.let { type -> creator.type(WorldType.valueOf(type)) } ?: creator
+                }
+                .biomeProvider(biomeProvider)
         val world = Bukkit.createWorld(creator)
         if (world == null) {
             plugin.logger.warning("Failed to create world ${fishingWorldId.value}")
@@ -147,8 +150,8 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             return WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
         }
         return Utils.json.decodeFromString(
-                WorldDetailConfig.serializer(),
-                file.readText(),
+            WorldDetailConfig.serializer(),
+            file.readText(),
         )
     }
 }

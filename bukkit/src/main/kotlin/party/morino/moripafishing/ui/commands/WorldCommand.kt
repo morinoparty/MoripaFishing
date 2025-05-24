@@ -3,7 +3,6 @@ package party.morino.moripafishing.ui.commands
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
@@ -15,7 +14,7 @@ import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.LocationData
+import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.generator.GeneratorData
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
@@ -35,7 +34,7 @@ class WorldCommand : KoinComponent {
     ) {
         val spawnPosition = fishingWorld.getWorldSpawnPosition()
         val location =
-                Location(
+                org.bukkit.Location(
                         Bukkit.getWorld(fishingWorld.getId().value),
                         spawnPosition.x,
                         spawnPosition.y,
@@ -119,7 +118,8 @@ class WorldCommand : KoinComponent {
             return
         }
         val location = sender.location
-        val locationData = LocationData(world.getId(), location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
+        val locationData =
+                Location(world.getId(), location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
         world.setWorldSpawnPosition(locationData)
         sender.sendMessage("Spawn position set for world ${world.getId()}.")
     }

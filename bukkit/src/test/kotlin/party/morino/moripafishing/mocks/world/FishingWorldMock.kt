@@ -4,7 +4,7 @@ import org.koin.core.component.KoinComponent
 import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.LocationData
+import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.WeatherType
 
 /**
@@ -13,7 +13,7 @@ import party.morino.moripafishing.api.model.world.WeatherType
 class FishingWorldMock(
     private val worldId: FishingWorldId,
     private val weatherType: WeatherType = WeatherType.SUNNY,
-    private val worldSpawnPosition: LocationData = LocationData(worldId, 0.0, 64.0, 0.0, 90.0, 0.0),
+    private val worldSpawnPosition: Location = Location(worldId, 0.0, 64.0, 0.0, 90.0, 0.0),
     private val radius: Double = 100.0,
     private val center: Pair<Double, Double> = Pair(0.0, 0.0),
 ) : FishingWorld, KoinComponent {
@@ -35,11 +35,11 @@ class FishingWorldMock(
         currentWeather = weatherType
     }
 
-    override fun getWorldSpawnPosition(): LocationData {
+    override fun getWorldSpawnPosition(): Location {
         return worldSpawnPosition
     }
 
-    override fun setWorldSpawnPosition(locationData: LocationData) {
+    override fun setWorldSpawnPosition(location: Location) {
         // モックなので何もしないのだ
     }
 
