@@ -15,6 +15,7 @@ import party.morino.moripafishing.ui.commands.WorldCommand
 import party.morino.moripafishing.utils.commands.CommandSenderMapper
 import party.morino.moripafishing.utils.commands.parser.FishingWorldParser
 import party.morino.moripafishing.utils.commands.parser.GeneratorParser
+
 /**
  * MoripaFishingプラグインのブートストラップクラス
  * プラグインの初期化処理

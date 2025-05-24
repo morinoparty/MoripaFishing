@@ -2,6 +2,7 @@ package party.morino.moripafishing.api.core.angler
 
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.model.world.Location
 import java.util.UUID
 
 /**
@@ -32,4 +33,10 @@ interface Angler {
      * @return 釣り人のデータ(オフラインプレイヤーの場合はnull)
      */
     fun getWorld(): FishingWorld?
+
+    /**
+     *  釣り人の現在の位置を取得する
+     *  @return 釣り人の現在の位置(オフラインプレイヤーの場合はnull)
+     */
+    fun getLocation(): Location?
 }

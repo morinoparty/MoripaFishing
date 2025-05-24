@@ -1,58 +1,67 @@
 [
-    {
-      "name": "bug",
-      "color": "#FC2C2B",
-      "description": "種別: 不具合の修正"
-    },
-    {
-      "name": "requirement",
-      "color": "#EF2816",
-      "description": "種別: 実装の必要"
-    },
-    {
-      "name": "test",
-      "color": "#23E523",
-      "description": "種別: テスト"
-    },
-    {
-        "name": "enhancement",
-        "color": "#375E97",
-        "description": "種別: 機能の改善"
-    },
-    {
-      "name": "document",
-      "color": "#3B62BD",
-      "description": "種別: ドキュメントの変更"
-    },
-    {
-      "name": "chore",
-      "color": "#E2601E",
-      "description": "種別: ツールやライブラリの変更"
-    },
-    {
-      "name": "refactor",
-      "color": "#AFD38D",
-      "description": "種別: リファクタリング"
-    },
-    {
-      "name": "duplicate",
-      "color": "#CCCCCC",
-      "description": "種別: 重複"
-    },
-    {
-      "name": "wontfix",
-      "color": "#CCCCCC",
-      "description": "種別: 対応しない"
-    },
-    {
-      "name": "dependencies",
-      "color": "#5319E7",
-      "description": "種別: セキュリティアップデート"
-    },
-    {
-      "name": "not-reviewed",
-      "color": "#F9C1CF",
-      "description": "未レビュー"
-    }
+  {
+    "name": "api",
+    "color": "#999b9e",
+    "description": "API関連"
+  },
+  {
+    "name": "core",
+    "color": "#52D5DC",
+    "description": "コア関連"
+  },
+  {
+    "name": "bug",
+    "color": "#FC2C2B",
+    "description": "種別: 不具合の修正"
+  },
+  {
+    "name": "requirement",
+    "color": "#EF2816",
+    "description": "種別: 実装の必要"
+  },
+  {
+    "name": "test",
+    "color": "#23E523",
+    "description": "種別: テスト"
+  },
+  {
+    "name": "enhancement",
+    "color": "#375E97",
+    "description": "種別: 機能の改善"
+  },
+  {
+    "name": "document",
+    "color": "#3B62BD",
+    "description": "種別: ドキュメントの変更"
+  },
+  {
+    "name": "chore",
+    "color": "#E2601E",
+    "description": "種別: ツールやライブラリの変更"
+  },
+  {
+    "name": "refactor",
+    "color": "#AFD38D",
+    "description": "種別: リファクタリング"
+  },
+  {
+    "name": "duplicate",
+    "color": "#CCCCCC",
+    "description": "種別: 重複"
+  },
+  {
+    "name": "wontfix",
+    "color": "#CCCCCC",
+    "description": "種別: 対応しない"
+  },
+  {
+    "name": "dependencies",
+    "color": "#5319E7",
+    "description": "種別: セキュリティアップデート"
+  },
+  {
+    "name": "not-reviewed",
+    "color": "#F9C1CF",
+    "description": "未レビュー"
+  }
 ]
-  

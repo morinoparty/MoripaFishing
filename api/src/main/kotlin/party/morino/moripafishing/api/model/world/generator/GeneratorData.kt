@@ -15,4 +15,4 @@ data class GeneratorData(
     val type: String? = null,
     val biomeProvider: String? = null,
     val generatorSetting: String? = null,
-) 
+)
