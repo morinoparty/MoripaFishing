@@ -14,6 +14,7 @@ import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.GeneratorManager
@@ -22,6 +23,7 @@ import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
+import party.morino.moripafishing.core.fishing.FishingManagerImpl
 import party.morino.moripafishing.core.internationalization.TranslateManager
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
@@ -55,6 +57,8 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     // GeneratorManagerのインスタンスを遅延初期化する
     private lateinit var generatorManager: GeneratorManager
+
+    private lateinit var fishingManager: FishingManager
 
     /**
      * プラグインの有効化時に呼び出されるメソッド
@@ -98,6 +102,8 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         anglerManager = GlobalContext.get().get()
         // GeneratorManagerのインスタンスを取得
         generatorManager = GlobalContext.get().get()
+        // FishingManager
+        fishingManager = GlobalContext.get().get()
     }
 
     override fun onDisable() {
@@ -120,6 +126,7 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
                     single<FishManager> { FishManagerImpl() }
                     single<AnglerManager> { AnglerManagerImpl() }
                     single<GeneratorManager> { GeneratorManagerImpl() }
+                    single<FishingManager> { FishingManagerImpl() }
                 }
 
         getOrNull() ?: GlobalContext.startKoin {
@@ -184,5 +191,9 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     override fun getGeneratorManager(): GeneratorManager {
         return generatorManager
+    }
+
+    override fun getFishingManager(): FishingManager {
+        return fishingManager
     }
 }

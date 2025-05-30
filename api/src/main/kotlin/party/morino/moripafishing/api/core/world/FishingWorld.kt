@@ -2,7 +2,7 @@ package party.morino.moripafishing.api.core.world
 
 import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.LocationData
+import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.WeatherType
 
 /**
@@ -43,13 +43,13 @@ interface FishingWorld {
      * ワールドのスポーン位置を取得する。
      * @return LocationData ワールドのスポーン位置
      */
-    fun getWorldSpawnPosition(): LocationData
+    fun getWorldSpawnPosition(): Location
 
     /**
      * ワールドのスポーン位置を設定する。
-     * @param locationData ワールドのスポーン位置
+     * @param location ワールドのスポーン位置
      */
-    fun setWorldSpawnPosition(locationData: LocationData)
+    fun setWorldSpawnPosition(location: Location)
 
     /**
      * ワールドの大きさを取得する。
