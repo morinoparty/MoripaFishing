@@ -47,7 +47,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
 
-    testImplementation(platform("org.junit:junit-bom:5.12.2"))
+    testImplementation(platform("org.junit:junit-bom:5.13.0"))
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
     testImplementation(libs.junit.platform.launcher)
