@@ -154,7 +154,7 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     }
 
     private fun loadListeners() {
-        this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
+        this.server.pluginManager.registerEvents(PlayerFishingListener(this), this)
         this.server.pluginManager.registerEvents(
                 PlayerJoinListener(),
                 this,
