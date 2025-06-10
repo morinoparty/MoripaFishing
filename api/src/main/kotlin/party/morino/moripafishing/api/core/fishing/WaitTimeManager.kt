@@ -51,5 +51,5 @@ interface WaitTimeManager {
      * @param angler プレイヤー
      * @return ルアータイム(秒)
      */
-    fun getWaitTime(angler: Angler): Pair<Int, Int>
+    fun getWaitTime(angler: Angler): Pair<Double, Double>
 }

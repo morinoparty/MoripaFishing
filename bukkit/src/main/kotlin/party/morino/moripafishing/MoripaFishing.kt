@@ -18,7 +18,6 @@ import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
-import party.morino.moripafishing.api.core.rod.RodPresetManager
 import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
@@ -30,7 +29,6 @@ import party.morino.moripafishing.core.internationalization.TranslateManager
 import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
-import party.morino.moripafishing.core.rod.RodPresetManagerImpl
 import party.morino.moripafishing.core.world.GeneratorManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
@@ -91,7 +89,6 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
                 single<GeneratorManager> { GeneratorManagerImpl() }
                 single<FishingManager> { FishingManagerImpl() }
                 single<LogManager> { LogManagerImpl() }
-                single<RodPresetManager> { RodPresetManagerImpl() }
             }
 
         getOrNull() ?: GlobalContext.startKoin {

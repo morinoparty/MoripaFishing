@@ -1,6 +1,6 @@
 package party.morino.moripafishing.api.core.fishing
 
-import party.morino.moripafishing.api.core.rod.RodPresetManager
+import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
 
 /**
  * 釣りの管理を行うインターフェース

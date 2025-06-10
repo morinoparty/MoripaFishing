@@ -1,11 +1,11 @@
-package party.morino.moripafishing.core.rod
+package party.morino.moripafishing.core.fishing.rod
 
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.PluginDirectory
+import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
 import party.morino.moripafishing.api.core.log.LogManager
-import party.morino.moripafishing.api.core.rod.RodPresetManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 import java.io.File
 

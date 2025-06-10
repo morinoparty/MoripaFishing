@@ -1,4 +1,4 @@
-package party.morino.moripafishing.api.core.rod
+package party.morino.moripafishing.api.core.fishing.rod
 
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 

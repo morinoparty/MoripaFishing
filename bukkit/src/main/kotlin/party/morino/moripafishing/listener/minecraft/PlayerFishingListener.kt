@@ -65,7 +65,7 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
                 val waitTime = fishingManager.getWaitTimeManager().getWaitTime(angler)
                 fishingHook.isSkyInfluenced = false
                 fishingHook.isRainInfluenced = false
-                fishingHook.setWaitTime(waitTime.first, waitTime.second)
+                fishingHook.setWaitTime(waitTime.first.toInt(), waitTime.second.toInt())
             }
 
             PlayerFishEvent.State.CAUGHT_ENTITY,

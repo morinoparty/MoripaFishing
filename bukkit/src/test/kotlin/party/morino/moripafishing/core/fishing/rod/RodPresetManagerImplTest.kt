@@ -1,4 +1,4 @@
-package party.morino.moripafishing.core.rod
+package party.morino.moripafishing.core.fishing.rod
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*

@@ -9,11 +9,14 @@ import party.morino.moripafishing.api.core.fishing.ApplyValue
 import party.morino.moripafishing.api.core.fishing.WaitTimeManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.Spot
 import java.time.Duration
 import java.time.ZonedDateTime
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 /**
  * WaitTimeManagerの実装クラス
@@ -72,7 +75,7 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
      * 釣り人に対する待機時間を取得
      * World → Angler → Spot の順で適用値を合成して最終的な待機時間を計算
      */
-    override fun getWaitTime(angler: Angler): Pair<Int, Int> {
+    override fun getWaitTime(angler: Angler): Pair<Double, Double> {
         // 設定からベース待機時間を取得
         val fishingConfig = configManager.getConfig().fishing
         var baseMinTime = fishingConfig.baseWaitTime.minSeconds
@@ -99,10 +102,9 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
             baseMaxTime = result.second
         }
 
-        // Spot レベルの適用値を取得・適用 (位置からスポットを計算)
+        // Spot レベルの適用値を取得・適用（プレイヤーの位置がSpotの範囲内にあるかを判定）
         angler.getLocation()?.let { location ->
-            val spot = party.morino.moripafishing.api.model.world.Spot(location, 1.0)
-            val spotEffects = getSpotEffects(spot)
+            val spotEffects = getSpotEffectsForLocation(location)
             for (effect in spotEffects) {
                 val result = applyEffect(baseMinTime, baseMaxTime, effect)
                 baseMinTime = result.first
@@ -111,8 +113,8 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
         }
 
         // 設定からの絶対制限値を適用
-        val finalMinTime = max(fishingConfig.baseWaitTime.absoluteMinSeconds, baseMinTime).toInt()
-        val finalMaxTime = max(finalMinTime.toDouble(), min(fishingConfig.baseWaitTime.absoluteMaxSeconds, baseMaxTime)).toInt()
+        val finalMinTime = max(fishingConfig.baseWaitTime.absoluteMinSeconds, baseMinTime)
+        val finalMaxTime = max(finalMinTime, min(fishingConfig.baseWaitTime.absoluteMaxSeconds, baseMaxTime))
 
         return finalMinTime to finalMaxTime
     }
@@ -145,6 +147,34 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
             .map { it.second }
     }
 
+    /**
+     * 指定された位置がSpotの範囲内にある場合、そのSpotの効果を取得
+     * @param location プレイヤーの位置
+     * @return 適用される効果のリスト
+     */
+    private fun getSpotEffectsForLocation(location: Location): List<ApplyValue> {
+        return spotValues
+            .filter { (spot, _, expirationTime) ->
+                // 期限チェック
+                val isNotExpired = expirationTime?.isAfter(ZonedDateTime.now()) != false
+                // 同じワールドかチェック
+                val isSameWorld = spot.location.worldId == location.worldId
+                // 距離チェック（プレイヤーがSpotの範囲内にいるか）
+                val isInRange = if (isSameWorld) {
+                    val distance = sqrt(
+                        (spot.location.x - location.x).pow(2.0) +
+                        (spot.location.z - location.z).pow(2.0)
+                    )
+                    distance <= spot.radius
+                } else {
+                    false
+                }
+                
+                isNotExpired && isInRange
+            }
+            .map { it.second }
+    }
+
     private fun applyEffect(
         minTime: Double,
         maxTime: Double,
@@ -169,5 +199,14 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
      */
     fun clearAnglerEffects(anglerId: AnglerId) {
         anglerValues.removeAll { it.first == anglerId }
+    }
+
+    /**
+     * テスト用：全ての適用値をクリア
+     */
+    fun clearAllEffects() {
+        spotValues.clear()
+        anglerValues.clear()
+        worldValues.clear()
     }
 }

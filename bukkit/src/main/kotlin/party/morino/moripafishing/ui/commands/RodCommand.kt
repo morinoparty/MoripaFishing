@@ -15,16 +15,18 @@ import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
-import party.morino.moripafishing.api.core.rod.RodPresetManager
+import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.utils.rod.RodAnalyzer
 import java.util.Locale
+import party.morino.moripafishing.api.core.fishing.FishingManager
 
 @Command("mf rod")
 @Permission("moripa_fishing.command.rod")
 class RodCommand : KoinComponent {
     private val plugin: MoripaFishing by inject()
-    private val rodPresetManager: RodPresetManager by inject()
+    private val fishingManager: FishingManager by inject()
+    private val rodPresetManager by lazy { fishingManager.getRodPresetManager() }
     private val rodAnalyzer by lazy { RodAnalyzer(plugin) }
 
     @Command("create <type> [multiplier] [addSeconds]")
