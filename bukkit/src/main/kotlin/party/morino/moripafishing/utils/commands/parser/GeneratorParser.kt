@@ -17,8 +17,8 @@ class GeneratorParser<C> : ArgumentParser<C, GeneratorData>, BlockingSuggestionP
     val generatorManager: GeneratorManager by inject()
 
     override fun parse(
-            commandContext: CommandContext<C & Any>,
-            commandInput: CommandInput,
+        commandContext: CommandContext<C & Any>,
+        commandInput: CommandInput,
     ): ArgumentParseResult<GeneratorData> {
         val generatorId = commandInput.readString()
         val generator = generatorManager.getGenerator(GeneratorId(generatorId))
@@ -30,8 +30,8 @@ class GeneratorParser<C> : ArgumentParser<C, GeneratorData>, BlockingSuggestionP
     }
 
     override fun stringSuggestions(
-            commandContext: CommandContext<CommandSender?>,
-            input: CommandInput,
+        commandContext: CommandContext<CommandSender?>,
+        input: CommandInput,
     ): Iterable<String> {
         return generatorManager.getAllGenerators().map { it.id.value }
     }

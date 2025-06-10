@@ -24,4 +24,4 @@ object GeneratorIdSerializer : KSerializer<GeneratorId> {
     override fun deserialize(decoder: Decoder): GeneratorId {
         return GeneratorId(decoder.decodeString())
     }
-} 
+}

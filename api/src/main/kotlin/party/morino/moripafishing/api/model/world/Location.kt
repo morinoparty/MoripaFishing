@@ -11,7 +11,8 @@ import kotlinx.serialization.Serializable
  * @param pitch 位置のピッチ角
  */
 @Serializable
-data class LocationData(
+data class Location(
+    val worldId: FishingWorldId,
     val x: Double,
     val y: Double,
     val z: Double,

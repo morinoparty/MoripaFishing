@@ -1,0 +1,13 @@
+{
+  "rodType": "test_master",
+  "waitTimeMultiplier": 0.8,
+  "bonusEffects": [],
+  "weatherImmunity": true,
+  "fishingWorldBonuses": {
+    "default": 1.1
+  },
+  "displayNameKey": "rod.test_master.name",
+  "loreKeys": [
+    "rod.test_master.lore.1"
+  ]
+}
