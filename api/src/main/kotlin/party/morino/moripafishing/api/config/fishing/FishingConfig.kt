@@ -1,16 +1,13 @@
 package party.morino.moripafishing.api.config.fishing
 
 import kotlinx.serialization.Serializable
-import party.morino.moripafishing.api.model.rod.RodConfiguration
 
 /**
  * 釣りの設定を保持するデータクラス
+ * エンチャント効果はハードコードされた値を使用する
+ * ロッドプリセットはリソースファイルから読み込む
  */
 @Serializable
 data class FishingConfig(
-    val baseWaitTime: BaseWaitTimeConfig = BaseWaitTimeConfig(),
-    val rodTemplates: Map<String, RodConfiguration> = emptyMap(),
-    val enchantmentEffects: EnchantmentEffects = EnchantmentEffects(),
-    @Deprecated("Legacy field, will be removed")
-    val test: String = "test",
+    val baseWaitTime: BaseWaitTimeConfig = BaseWaitTimeConfig()
 )

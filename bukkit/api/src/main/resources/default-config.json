@@ -1,0 +1,86 @@
+{
+  "database": {
+    "type": "SQLITE",
+    "host": "localhost",
+    "port": 3306,
+    "database": "moripafishing",
+    "username": "root",
+    "password": "password"
+  },
+  "world": {
+    "defaultId": {
+      "value": "default"
+    },
+    "spawnConfig": {
+      "spawnMobs": false,
+      "spawnMonsters": false,
+      "spawnAnimals": false,
+      "receiveDamage": false
+    },
+    "defaultWorldSize": 100.0,
+    "defaultClimateConfig": {
+      "constant": {
+        "weather": null,
+        "dayCycle": null
+      },
+      "dayCycle": {
+        "offset": 0
+      },
+      "weather": {
+        "weight": {
+          "SUNNY": 4,
+          "CLOUDY": 1,
+          "RAINY": 2,
+          "THUNDERSTORM": 1
+        },
+        "offset": 0,
+        "interval": 8,
+        "maxInclination": 30
+      },
+      "hashPepper": "pepper"
+    },
+    "refreshInterval": 60,
+    "defaultTimeZone": "Asia/Tokyo"
+  },
+  "fishing": {
+    "baseWaitTime": {
+      "minSeconds": 5.0,
+      "maxSeconds": 30.0,
+      "absoluteMinSeconds": 0.5,
+      "absoluteMaxSeconds": 300.0
+    },
+    "rodTemplates": {},
+    "enchantmentEffects": {
+      "lure": {
+        "1": {
+          "timeMultiplier": 0.85
+        },
+        "2": {
+          "timeMultiplier": 0.7
+        },
+        "3": {
+          "timeMultiplier": 0.55
+        }
+      },
+      "luckOfTheSea": {
+        "1": {
+          "addSeconds": -0.5
+        },
+        "2": {
+          "addSeconds": -1.0
+        },
+        "3": {
+          "addSeconds": -1.5
+        }
+      }
+    },
+    "test": "test"
+  },
+  "spawn": {
+    "spawnMobs": false,
+    "spawnMonsters": false,
+    "spawnAnimals": false,
+    "receiveDamage": false
+  },
+  "defaultLocale": "ja_JP"
+}

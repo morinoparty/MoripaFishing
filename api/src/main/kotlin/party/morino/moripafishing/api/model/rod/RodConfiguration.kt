@@ -9,7 +9,7 @@ data class RodConfiguration(
     val waitTimeMultiplier: Double = 1.0,
     val bonusEffects: List<ApplyValue> = emptyList(),
     val weatherImmunity: Boolean = false,
-    val biomeBonuses: Map<String, Double> = emptyMap(),
-    val displayName: String = "",
-    val lore: List<String> = emptyList(),
+    val fishingWorldBonuses: Map<String, Double> = emptyMap(),
+    val displayNameKey: String = "",
+    val loreKeys: List<String> = emptyList(),
 )

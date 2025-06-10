@@ -10,7 +10,6 @@ import party.morino.moripafishing.api.model.world.Spot
  * プレイヤーやワールド、ロケーションごとにルアータイムを制御できる
  */
 interface WaitTimeManager {
-
     /**
      * スポット単位でルアータイムを適用
      * @param spot スポット

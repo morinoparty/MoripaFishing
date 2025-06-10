@@ -22,7 +22,7 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
     val worldManager: WorldManager by inject()
     val angerManager: AnglerManager by inject()
     val fishingManager: FishingManager by inject()
-    
+
     private val rodAnalyzer = RodAnalyzer(plugin)
 
     @EventHandler
@@ -58,10 +58,10 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
             PlayerFishEvent.State.FISHING -> {
                 val fishingHook = event.hook
                 val angler = angerManager.getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
-                
+
                 // 釣竿の解析と効果適用
                 analyzeAndApplyRodEffects(player, angler)
-                
+
                 val waitTime = fishingManager.getWaitTimeManager().getWaitTime(angler)
                 fishingHook.isSkyInfluenced = false
                 fishingHook.isRainInfluenced = false
@@ -70,7 +70,8 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
 
             PlayerFishEvent.State.CAUGHT_ENTITY,
             PlayerFishEvent.State.FAILED_ATTEMPT,
-            PlayerFishEvent.State.REEL_IN -> {
+            PlayerFishEvent.State.REEL_IN,
+            -> {
                 // 釣り終了時にアングラー効果をクリア
                 val angler = angerManager.getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
                 val waitTimeManager = fishingManager.getWaitTimeManager() as? WaitTimeManagerImpl
@@ -82,37 +83,40 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
             }
         }
     }
-    
-    private fun analyzeAndApplyRodEffects(player: org.bukkit.entity.Player, angler: party.morino.moripafishing.api.core.angler.Angler) {
+
+    private fun analyzeAndApplyRodEffects(
+        player: org.bukkit.entity.Player,
+        angler: party.morino.moripafishing.api.core.angler.Angler,
+    ) {
         val heldItem = player.inventory.itemInMainHand
         val waitTimeManager = fishingManager.getWaitTimeManager()
-        
+
         // カスタム釣竿（NBTタグ付き）の解析
         val customRodConfig = rodAnalyzer.analyzeRod(heldItem)
         if (customRodConfig != null) {
             applyRodConfiguration(angler, customRodConfig, waitTimeManager)
             return
         }
-        
+
         // バニラ釣竿（エンチャント付き）の解析
         val vanillaRodConfig = rodAnalyzer.analyzeVanillaRod(heldItem)
         if (vanillaRodConfig != null) {
             applyRodConfiguration(angler, vanillaRodConfig, waitTimeManager)
         }
     }
-    
+
     private fun applyRodConfiguration(
         angler: party.morino.moripafishing.api.core.angler.Angler,
         rodConfig: party.morino.moripafishing.api.model.rod.RodConfiguration,
-        waitTimeManager: party.morino.moripafishing.api.core.fishing.WaitTimeManager
+        waitTimeManager: party.morino.moripafishing.api.core.fishing.WaitTimeManager,
     ) {
         val effects = rodAnalyzer.getAllEffects(rodConfig)
         val effectDuration = 300000L // 5分間有効
-        
+
         for (effect in effects) {
             waitTimeManager.applyForAngler(angler.getAnglerUniqueId(), effect, effectDuration)
         }
-        
+
         // バイオームボーナスの適用
         // TODO: バイオーム取得APIが利用可能になったら実装
         // if (rodConfig.biomeBonuses.isNotEmpty()) {
@@ -122,7 +126,7 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
         //         }
         //     }
         //     val biomeBonus = rodConfig.biomeBonuses[currentBiome]
-        //     
+        //
         //     if (biomeBonus != null) {
         //         val biomeEffect = party.morino.moripafishing.api.core.fishing.ApplyValue(
         //             party.morino.moripafishing.api.core.fishing.ApplyType.MULTIPLY,

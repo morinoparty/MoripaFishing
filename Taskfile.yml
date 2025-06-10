@@ -16,9 +16,10 @@ tasks:
       - pnpm install
       - pnpm start
     silent: true
-  format:
+  check:
     cmds:
       - ./gradlew clean ktlintFormat
+      - ./gradlew clean test
     silent: true
   build:
     cmds:

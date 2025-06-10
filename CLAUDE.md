@@ -39,6 +39,8 @@
 2. **純粋関数から実装**
    - 外部依存のない関数を先に実装
 
+3. 実装の確認ん
+    - テストを実行して、実装が正しいか確認 `taks check`を実行
 ## プラクティス
 
 - 小さく始めて段階的に拡張
@@ -77,6 +79,8 @@
 
 
 # Gitのルール
+
+コミットの前に、`task check`を実行して、フォーマットおよびコードの品質を確認してください。
 
 ## Repository
 - [MoripaFishing](https://github.com/morinoparty/MoripaFishing)

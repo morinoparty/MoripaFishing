@@ -5,11 +5,11 @@ sidebar_position: 6
 
 # 釣竿設定
 
+## 📁 基本設定（config.json）
+
 :::warning
 この設定は、`config.json`に存在するデータであり、独立して存在するものではありません。
 :::
-
-
 
 ```json
 {
@@ -19,22 +19,108 @@ sidebar_position: 6
       "maxSeconds": 30.0,
       "absoluteMinSeconds": 0.5,
       "absoluteMaxSeconds": 300.0
-    },
-    "enchantmentEffects": {
-      "lure": {
-        "1": {"timeMultiplier": 0.85},
-        "2": {"timeMultiplier": 0.70},
-        "3": {"timeMultiplier": 0.55}
-      },
-      "luckOfTheSea": {
-        "1": {"addSeconds": -0.5},
-        "2": {"addSeconds": -1.0},
-        "3": {"addSeconds": -1.5}
-      }
     }
   }
 }
 ```
+
+## 🎯 ロッドプリセット（リソースファイル）
+
+ロッドプリセットは`bukkit/src/main/resources/rod/`ディレクトリのJSONファイルで管理されます。
+
+### プリセットの構造
+
+```json
+{
+  "rodType": "master",
+  "waitTimeMultiplier": 0.6,
+  "bonusEffects": [
+    {
+      "type": "ADD",
+      "value": -3.0,
+      "unit": "seconds"
+    }
+  ],
+  "weatherImmunity": true,
+  "fishingWorldBonuses": {
+    "default": 0.8,
+    "ocean": 0.7,
+    "lake": 0.75
+  },
+  "displayNameKey": "rod.master.name",
+  "loreKeys": [
+    "rod.master.lore.1",
+    "rod.master.lore.2",
+    "rod.master.lore.3"
+  ]
+}
+```
+
+### フィールド説明
+
+- **rodType**: ロッドの種類識別子
+- **waitTimeMultiplier**: 待ち時間の倍率（1.0が標準、0.5で半分）
+- **bonusEffects**: 追加効果のリスト（ApplyValueの配列）
+- **weatherImmunity**: 天候の影響を受けないかどうか
+- **fishingWorldBonuses**: FishingWorldごとの倍率ボーナス
+- **displayNameKey**: 多言語対応の表示名キー
+- **loreKeys**: 多言語対応の説明文キーリスト
+
+### 🌍 FishingWorldボーナス
+
+各ロッドはFishingWorldごとに異なる効果倍率を持てます：
+
+- **beginner**: `default`ワールドでのみ0.9倍ボーナス
+- **master**: `default`(0.8倍), `ocean`(0.7倍), `lake`(0.75倍)
+- **legendary**: `default`(0.6倍), `ocean`(0.5倍), `lake`(0.55倍), `river`(0.4倍)
+- **speedster**: `default`(0.7倍), `ocean`(0.6倍)
+
+### 🗣️ 多言語対応
+
+表示名と説明文は翻訳キーで管理され、`TranslateManager`で自動的に翻訳されます：
+
+```kotlin
+// 日本語
+myStore.register("rod.master.name", Locale.JAPAN, "マスター釣り師の竿")
+
+// 英語  
+myStore.register("rod.master.name", Locale.ENGLISH, "Master Angler's Rod")
+```
+
+### 標準プリセット
+
+- **beginner.json** - 初心者向けロッド（遅い）
+- **master.json** - 熟練者向けロッド（天候無効・高速）
+- **legendary.json** - 伝説のロッド（固定時間）
+- **speedster.json** - 超高速ロッド
+
+:::info
+プリセットファイルは起動時に自動的に読み込まれ、`/mf rod list`で確認できます。
+:::
+
+## エンチャント効果（ハードコード）
+
+エンチャント効果は設定ファイルから削除され、プラグイン内でハードコードされた固定値を使用します。
+効果はマインクラフトの標準仕様に準拠しています。
+
+### 🎣 入れ食い（Lure）エンチャント
+マインクラフト標準: レベルあたり5秒短縮（ADD効果）
+- **レベル1**: -5.0秒
+- **レベル2**: -10.0秒  
+- **レベル3**: -15.0秒
+
+### 🍀 海運（Luck of the Sea）エンチャント
+マインクラフト標準では待ち時間に影響しませんが、プラグインの互換性のため軽微な効果を適用：
+- **レベル1**: -0.5秒
+- **レベル2**: -1.0秒
+- **レベル3**: -1.5秒
+
+:::info マインクラフト標準仕様について
+- **Lure**: 本来はレベルあたり5秒短縮（最大15秒短縮）
+- **Luck of the Sea**: 本来は待ち時間に影響せず、ルート確率（財宝・ゴミ・魚の割合）のみ変更
+
+これらの値は`api.core.fishing.EnchantmentEffects`に定義されており、設定ファイルでは変更できません。
+:::
 
 ## 効果タイプ
 

@@ -16,4 +16,3 @@ class FishingManagerImpl : FishingManager, KoinComponent {
      */
     override fun getWaitTimeManager(): WaitTimeManager = waitTimeManager
 }
-

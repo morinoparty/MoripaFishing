@@ -17,6 +17,7 @@ import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
+import party.morino.moripafishing.api.core.rod.RodPresetManager
 import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
@@ -27,6 +28,7 @@ import party.morino.moripafishing.core.fishing.FishingManagerImpl
 import party.morino.moripafishing.core.internationalization.TranslateManager
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
+import party.morino.moripafishing.core.rod.RodPresetManagerImpl
 import party.morino.moripafishing.core.world.GeneratorManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
@@ -116,18 +118,19 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     private fun setupKoin() {
         val appModule =
-                module {
-                    single<MoripaFishing> { this@MoripaFishing }
-                    single<ConfigManager> { ConfigManagerImpl() }
-                    single<RandomizeManager> { RandomizeManagerImpl() }
-                    single<RarityManager> { RarityManagerImpl() }
-                    single<WorldManager> { WorldManagerImpl() }
-                    single<PluginDirectory> { PluginDirectoryImpl() }
-                    single<FishManager> { FishManagerImpl() }
-                    single<AnglerManager> { AnglerManagerImpl() }
-                    single<GeneratorManager> { GeneratorManagerImpl() }
-                    single<FishingManager> { FishingManagerImpl() }
-                }
+            module {
+                single<MoripaFishing> { this@MoripaFishing }
+                single<ConfigManager> { ConfigManagerImpl() }
+                single<RandomizeManager> { RandomizeManagerImpl() }
+                single<RarityManager> { RarityManagerImpl() }
+                single<WorldManager> { WorldManagerImpl() }
+                single<PluginDirectory> { PluginDirectoryImpl() }
+                single<FishManager> { FishManagerImpl() }
+                single<AnglerManager> { AnglerManagerImpl() }
+                single<GeneratorManager> { GeneratorManagerImpl() }
+                single<FishingManager> { FishingManagerImpl() }
+                single<RodPresetManager> { RodPresetManagerImpl(get()) }
+            }
 
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
@@ -136,32 +139,32 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
 
     private fun updateWorlds() {
         Bukkit.getScheduler().runTaskAsynchronously(
-                this,
-                Runnable {
-                    runBlocking {
-                        withContext(Dispatchers.async) {
-                            val interval = configManager.getConfig().world.refreshInterval * 1000L
-                            while (true) {
-                                worldManager.getWorldIdList().forEach {
-                                    worldManager.getWorld(it).updateState()
-                                }
-                                delay(interval)
+            this,
+            Runnable {
+                runBlocking {
+                    withContext(Dispatchers.async) {
+                        val interval = configManager.getConfig().world.refreshInterval * 1000L
+                        while (true) {
+                            worldManager.getWorldIdList().forEach {
+                                worldManager.getWorld(it).updateState()
                             }
+                            delay(interval)
                         }
                     }
-                },
+                }
+            },
         )
     }
 
     private fun loadListeners() {
         this.server.pluginManager.registerEvents(PlayerFishingListener(this), this)
         this.server.pluginManager.registerEvents(
-                PlayerJoinListener(),
-                this,
+            PlayerJoinListener(),
+            this,
         )
         this.server.pluginManager.registerEvents(
-                PlayerFishingAnnounceListener(),
-                this,
+            PlayerFishingAnnounceListener(),
+            this,
         )
     }
 

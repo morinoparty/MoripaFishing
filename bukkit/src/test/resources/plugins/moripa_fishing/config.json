@@ -16,8 +16,6 @@
             "receiveDamage": false
         },
         "defaultWorldSize": 100.0,
-        "defaultWorldGenerator": "Terra:OVERWORLD",
-        "defaultWorldBiome": null,
         "defaultClimateConfig": {
             "constant": {
                 "weather": null,
@@ -29,7 +27,7 @@
             "weather": {
                 "weight": {
                     "SUNNY": 4,
-                    "CLOUDY": 2,
+                    "CLOUDY": 1,
                     "RAINY": 2,
                     "THUNDERSTORM": 1
                 },
@@ -43,7 +41,37 @@
         "defaultTimeZone": "Asia/Tokyo"
     },
     "fishing": {
-        "test": "test"
+        "baseWaitTime": {
+            "minSeconds": 5.0,
+            "maxSeconds": 30.0,
+            "absoluteMinSeconds": 0.5,
+            "absoluteMaxSeconds": 300.0
+        },
+        "rodTemplates": {},
+        "enchantmentEffects": {
+            "lure": {
+                "1": {
+                    "timeMultiplier": 0.85
+                },
+                "2": {
+                    "timeMultiplier": 0.7
+                },
+                "3": {
+                    "timeMultiplier": 0.55
+                }
+            },
+            "luckOfTheSea": {
+                "1": {
+                    "addSeconds": -0.5
+                },
+                "2": {
+                    "addSeconds": -1.0
+                },
+                "3": {
+                    "addSeconds": -1.5
+                }
+            }
+        }
     },
     "spawn": {
         "spawnMobs": false,
@@ -51,5 +79,5 @@
         "spawnAnimals": false,
         "receiveDamage": false
     },
-    "defaultLocale": "ja-JP"
+    "defaultLocale": "ja_JP"
 }

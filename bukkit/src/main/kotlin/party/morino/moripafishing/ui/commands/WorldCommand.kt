@@ -28,20 +28,20 @@ class WorldCommand : KoinComponent {
     @Command("transfer <world> <player>")
     @Permission("moripa_fishing.command.world.default")
     fun transfer(
-            sender: CommandSender,
-            @Argument("world") fishingWorld: FishingWorld,
-            @Argument("player") player: Player,
+        sender: CommandSender,
+        @Argument("world") fishingWorld: FishingWorld,
+        @Argument("player") player: Player,
     ) {
         val spawnPosition = fishingWorld.getWorldSpawnPosition()
         val location =
-                org.bukkit.Location(
-                        Bukkit.getWorld(fishingWorld.getId().value),
-                        spawnPosition.x,
-                        spawnPosition.y,
-                        spawnPosition.z,
-                        spawnPosition.yaw.toFloat(),
-                        spawnPosition.pitch.toFloat(),
-                )
+            org.bukkit.Location(
+                Bukkit.getWorld(fishingWorld.getId().value),
+                spawnPosition.x,
+                spawnPosition.y,
+                spawnPosition.z,
+                spawnPosition.yaw.toFloat(),
+                spawnPosition.pitch.toFloat(),
+            )
         player.teleportAsync(location)
     }
 
@@ -59,18 +59,18 @@ class WorldCommand : KoinComponent {
     @Command("create <id> <generator>")
     @Permission("moripa_fishing.command.world.create")
     suspend fun create(
-            sender: CommandSender,
-            @Argument("id") id: String,
-            @Argument("generator") generator: GeneratorData,
+        sender: CommandSender,
+        @Argument("id") id: String,
+        @Argument("generator") generator: GeneratorData,
     ) {
         if (worldManager.getWorldIdList().contains(FishingWorldId(id))) {
             sender.sendMessage("World $id already exists.")
             return
         }
         val res =
-                withContext(Dispatchers.minecraft) {
-                    worldManager.createWorld(FishingWorldId(id), generator)
-                }
+            withContext(Dispatchers.minecraft) {
+                worldManager.createWorld(FishingWorldId(id), generator)
+            }
         if (!res) {
             sender.sendMessage("Failed to create world $id.")
             return
@@ -81,17 +81,17 @@ class WorldCommand : KoinComponent {
     @Command("delete <world>")
     @Permission("moripa_fishing.command.world.delete")
     suspend fun delete(
-            sender: CommandSender,
-            @Argument("world") world: FishingWorld,
+        sender: CommandSender,
+        @Argument("world") world: FishingWorld,
     ) {
         if (!worldManager.getWorldIdList().contains(world.getId())) {
             sender.sendMessage("World ${world.getId()} does not exist.")
             return
         }
         val res =
-                withContext(Dispatchers.minecraft) {
-                    worldManager.deleteWorld(world.getId())
-                }
+            withContext(Dispatchers.minecraft) {
+                worldManager.deleteWorld(world.getId())
+            }
         if (!res) {
             sender.sendMessage("Failed to delete world ${world.getId()}.")
             return
@@ -110,8 +110,8 @@ class WorldCommand : KoinComponent {
     @Command("config set spawn <world>")
     @Permission("moripa_fishing.command.world.config")
     suspend fun setSpawn(
-            sender: CommandSender,
-            @Argument("world") world: FishingWorld,
+        sender: CommandSender,
+        @Argument("world") world: FishingWorld,
     ) {
         if (sender !is Player) {
             sender.sendMessage("This command can only be used by players.")
@@ -119,7 +119,7 @@ class WorldCommand : KoinComponent {
         }
         val location = sender.location
         val locationData =
-                Location(world.getId(), location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
+            Location(world.getId(), location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
         world.setWorldSpawnPosition(locationData)
         sender.sendMessage("Spawn position set for world ${world.getId()}.")
     }
@@ -127,10 +127,10 @@ class WorldCommand : KoinComponent {
     @Command("config set center <world> [x] [z]")
     @Permission("moripa_fishing.command.world.config")
     suspend fun setCenter(
-            sender: CommandSender,
-            @Argument("world") world: FishingWorld,
-            @Argument("x") x: Double? = null,
-            @Argument("z") z: Double? = null,
+        sender: CommandSender,
+        @Argument("world") world: FishingWorld,
+        @Argument("x") x: Double? = null,
+        @Argument("z") z: Double? = null,
     ) {
         if (sender !is Player && (x == null || z == null)) {
             sender.sendMessage("This command can only be used by players.")
@@ -143,9 +143,9 @@ class WorldCommand : KoinComponent {
     @Command("config set size <world> <size>")
     @Permission("moripa_fishing.command.world.config")
     suspend fun setSize(
-            sender: CommandSender,
-            @Argument("world") world: FishingWorld,
-            @Argument("size") size: Double,
+        sender: CommandSender,
+        @Argument("world") world: FishingWorld,
+        @Argument("size") size: Double,
     ) {
         world.setSize(size)
         sender.sendMessage("Size set for world ${world.getId().value}.")
@@ -154,8 +154,8 @@ class WorldCommand : KoinComponent {
     @Command("config view <world>")
     @Permission("moripa_fishing.command.world.config")
     suspend fun view(
-            sender: CommandSender,
-            @Argument("world") world: FishingWorld,
+        sender: CommandSender,
+        @Argument("world") world: FishingWorld,
     ) {
         val details = world.getWorldDetails()
         val text = Utils.json.encodeToString(details)
