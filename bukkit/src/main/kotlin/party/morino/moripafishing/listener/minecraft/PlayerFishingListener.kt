@@ -65,14 +65,16 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
                 val waitTime = fishingManager.getWaitTimeManager().getWaitTime(angler)
                 fishingHook.isSkyInfluenced = false
                 fishingHook.isRainInfluenced = false
-                fishingHook.setWaitTime(waitTime.first.toInt(), waitTime.second.toInt())
+                val minTick = (waitTime.first * 20).toInt() // 最小待機時間（ティック単位）
+                val maxTick = (waitTime.second * 20).toInt() // 最大待機時間（ティック単位）
+                fishingHook.setWaitTime(minTick, maxTick)
             }
 
             PlayerFishEvent.State.CAUGHT_ENTITY,
             PlayerFishEvent.State.FAILED_ATTEMPT,
             PlayerFishEvent.State.REEL_IN,
             -> {
-                // 釣り終了時にアングラー効果をクリア
+                // 釣り終了時に釣り人につけた効果をクリア
                 val angler = angerManager.getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
                 val waitTimeManager = fishingManager.getWaitTimeManager() as? WaitTimeManagerImpl
                 waitTimeManager?.clearAnglerEffects(angler.getAnglerUniqueId())
@@ -91,7 +93,7 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
         val heldItem = player.inventory.itemInMainHand
         val waitTimeManager = fishingManager.getWaitTimeManager()
 
-        // カスタム釣竿（NBTタグ付き）の解析
+        // カスタム釣竿（PDC）の解析
         val customRodConfig = rodAnalyzer.analyzeRod(heldItem)
         if (customRodConfig != null) {
             applyRodConfiguration(angler, customRodConfig, waitTimeManager)
@@ -116,25 +118,5 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
         for (effect in effects) {
             waitTimeManager.applyForAngler(angler.getAnglerUniqueId(), effect, effectDuration)
         }
-
-        // バイオームボーナスの適用
-        // TODO: バイオーム取得APIが利用可能になったら実装
-        // if (rodConfig.biomeBonuses.isNotEmpty()) {
-        //     val currentBiome = angler.getWorld()?.let { world ->
-        //         angler.getLocation()?.let { location ->
-        //             world.getBiome(location)?.toString()
-        //         }
-        //     }
-        //     val biomeBonus = rodConfig.biomeBonuses[currentBiome]
-        //
-        //     if (biomeBonus != null) {
-        //         val biomeEffect = party.morino.moripafishing.api.core.fishing.ApplyValue(
-        //             party.morino.moripafishing.api.core.fishing.ApplyType.MULTIPLY,
-        //             biomeBonus,
-        //             "seconds"
-        //         )
-        //         waitTimeManager.applyForAngler(angler.getAnglerUniqueId(), biomeEffect, effectDuration)
-        //     }
-        // }
     }
 }

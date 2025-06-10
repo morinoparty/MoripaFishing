@@ -69,6 +69,7 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
     fun setRodConfiguration(
         itemStack: ItemStack,
         configuration: RodConfiguration,
+        locale: Locale,
     ): ItemStack {
         if (itemStack.type != Material.FISHING_ROD) return itemStack
 
@@ -82,7 +83,7 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
             val translatedName =
                 GlobalTranslator.render(
                     Component.translatable(configuration.displayNameKey),
-                    Locale.getDefault(),
+                    locale,
                 )
             meta.displayName(translatedName)
         }
@@ -92,7 +93,7 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
                 configuration.loreKeys.map { loreKey ->
                     GlobalTranslator.render(
                         Component.translatable(loreKey),
-                        Locale.getDefault(),
+                        locale,
                     )
                 }
             meta.lore(translatedLore)

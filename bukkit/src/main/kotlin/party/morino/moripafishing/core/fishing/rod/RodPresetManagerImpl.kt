@@ -8,6 +8,8 @@ import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * プラグインディレクトリからロッドプリセットを読み込む実装
@@ -75,13 +77,12 @@ class RodPresetManagerImpl : RodPresetManager, KoinComponent {
         val rodDirectory = pluginDirectory.getRodDirectory()
 
         // デフォルトプリセットのリソースファイルからpluginDirにコピー
-        copyDefaultPresetsIfNotExists(rodDirectory)
 
-        // プラグインディレクトリからJSONファイルを読み込み
-        val presetFiles = rodDirectory.listFiles { file -> file.extension == "json" }
+        withContext(Dispatchers.IO) {
+            copyDefaultPresetsIfNotExists(rodDirectory)
+            val presetFiles = rodDirectory.listFiles { file -> file.extension == "json" }
 
-        if (presetFiles != null) {
-            presetFiles.forEach { file ->
+            presetFiles?.forEach { file ->
                 try {
                     val presetName = file.nameWithoutExtension
                     val jsonContent = file.readText()
@@ -93,7 +94,10 @@ class RodPresetManagerImpl : RodPresetManager, KoinComponent {
                 }
             }
         }
-
+        // プラグインディレクトリからJSONファイルを読み込み
+        if (presetCache.isEmpty()) {
+            logManager.warning("No rod presets found in plugin directory. Please check your configuration.")
+        }
         isLoaded = true
         logManager.info("Loaded ${presetCache.size} rod presets from plugin directory")
     }

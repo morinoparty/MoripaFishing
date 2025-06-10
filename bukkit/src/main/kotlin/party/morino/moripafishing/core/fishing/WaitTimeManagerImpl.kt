@@ -160,16 +160,18 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
                 // 同じワールドかチェック
                 val isSameWorld = spot.location.worldId == location.worldId
                 // 距離チェック（プレイヤーがSpotの範囲内にいるか）
-                val isInRange = if (isSameWorld) {
-                    val distance = sqrt(
-                        (spot.location.x - location.x).pow(2.0) +
-                        (spot.location.z - location.z).pow(2.0)
-                    )
-                    distance <= spot.radius
-                } else {
-                    false
-                }
-                
+                val isInRange =
+                    if (isSameWorld) {
+                        val distance =
+                            sqrt(
+                                (spot.location.x - location.x).pow(2.0) +
+                                    (spot.location.z - location.z).pow(2.0),
+                            )
+                        distance <= spot.radius
+                    } else {
+                        false
+                    }
+
                 isNotExpired && isInRange
             }
             .map { it.second }
