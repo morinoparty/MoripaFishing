@@ -16,6 +16,8 @@ import party.morino.moripafishing.ui.commands.WorldCommand
 import party.morino.moripafishing.utils.commands.CommandSenderMapper
 import party.morino.moripafishing.utils.commands.parser.FishingWorldParser
 import party.morino.moripafishing.utils.commands.parser.GeneratorParser
+import party.morino.moripafishing.utils.commands.parser.RodPresetParser
+import party.morino.moripafishing.utils.commands.parser.RodTypeParser
 
 /**
  * MoripaFishingプラグインのブートストラップクラス
@@ -36,6 +38,8 @@ class MoripaFishingBootstrap : PluginBootstrap {
 
         commandManager.parserRegistry().registerParser(FishingWorldParser.fishingIdParser())
         commandManager.parserRegistry().registerParser(GeneratorParser.generatorParser())
+        commandManager.parserRegistry().registerNamedParser("rodPreset", RodPresetParser.rodPresetParser())
+        commandManager.parserRegistry().registerNamedParser("rodType", RodTypeParser.rodTypeParser())
         // アノテーションパーサーのインスタンスを作成
         val annotationParser = AnnotationParser(commandManager, CommandSender::class.java)
         annotationParser.installCoroutineSupport()

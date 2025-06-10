@@ -15,11 +15,10 @@ import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
-import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
+import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.utils.rod.RodAnalyzer
 import java.util.Locale
-import party.morino.moripafishing.api.core.fishing.FishingManager
 
 @Command("mf rod")
 @Permission("moripa_fishing.command.rod")
@@ -33,7 +32,7 @@ class RodCommand : KoinComponent {
     @Permission("moripa_fishing.command.rod.create")
     suspend fun createRod(
         sender: CommandSender,
-        @Argument("type") rodType: String,
+        @Argument(value = "type", parserName = "rodType") rodType: String,
         @Argument("multiplier") multiplier: Double = 1.0,
         @Argument("addSeconds") addSeconds: Double = 0.0,
     ) {
@@ -69,7 +68,7 @@ class RodCommand : KoinComponent {
             )
 
         val fishingRod = ItemStack(Material.FISHING_ROD)
-        rodAnalyzer.setRodConfiguration(fishingRod, rodConfig)
+        rodAnalyzer.setRodConfiguration(fishingRod, rodConfig, sender.locale())
 
         player.inventory.addItem(fishingRod)
         player.sendRichMessage("<green>Created <yellow>${rodConfig.displayNameKey}</yellow> rod!")
@@ -79,7 +78,7 @@ class RodCommand : KoinComponent {
     @Permission("moripa_fishing.command.rod.preset")
     suspend fun createPresetRod(
         sender: CommandSender,
-        @Argument("presetName") presetName: String,
+        @Argument(value = "presetName", parserName = "rodPreset") rodConfig: RodConfiguration,
     ) {
         val player =
             sender as? Player ?: run {
@@ -87,19 +86,11 @@ class RodCommand : KoinComponent {
                 return
             }
 
-        val rodConfig =
-            rodPresetManager.getPreset(presetName) ?: run {
-                val availablePresets = rodPresetManager.getAllPresetNames().joinToString(", ")
-                player.sendRichMessage("<red>Unknown preset: $presetName")
-                player.sendRichMessage("<yellow>Available presets: $availablePresets")
-                return
-            }
-
         val fishingRod = ItemStack(Material.FISHING_ROD)
-        rodAnalyzer.setRodConfiguration(fishingRod, rodConfig)
+        rodAnalyzer.setRodConfiguration(fishingRod, rodConfig, sender.locale())
 
         player.inventory.addItem(fishingRod)
-        player.sendRichMessage("<green>Created preset rod: <yellow>${rodConfig.displayNameKey}</yellow>!")
+        player.sendRichMessage("<green>Created preset rod: <yellow><lang:${rodConfig.displayNameKey}></yellow>!")
     }
 
     @Command("info")
