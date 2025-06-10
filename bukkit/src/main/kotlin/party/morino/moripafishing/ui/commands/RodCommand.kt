@@ -1,6 +1,7 @@
 package party.morino.moripafishing.ui.commands
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.Material
 import org.bukkit.command.CommandSender
@@ -24,7 +25,7 @@ import java.util.Locale
 class RodCommand : KoinComponent {
     private val plugin: MoripaFishing by inject()
     private val rodPresetManager: RodPresetManager by inject()
-    private val rodAnalyzer = RodAnalyzer(plugin)
+    private val rodAnalyzer by lazy { RodAnalyzer(plugin) }
 
     @Command("create <type> [multiplier] [addSeconds]")
     @Permission("moripa_fishing.command.rod.create")
@@ -164,7 +165,7 @@ class RodCommand : KoinComponent {
                     } else {
                         Component.text(presetName)
                     }
-                sender.sendRichMessage("<yellow>$presetName <gray>- $translatedName")
+                sender.sendRichMessage("<yellow>$presetName <gray>- ${MiniMessage.miniMessage().serialize(translatedName)}")
             }
         }
         sender.sendRichMessage("")

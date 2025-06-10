@@ -21,4 +21,25 @@ class LogManagerImpl : LogManager, KoinComponent {
         plugin.logger.info("Caught fish: ${fish.getId().value}, Length: ${fish.getSize()}, Worth: ${fish.getWorth()}")
         // TODO: 将来的にはファイルやデータベースへのロギングを検討する
     }
+
+    /**
+     * INFOレベルのログを出力する
+     */
+    override fun info(message: String) {
+        plugin.logger.info(message)
+    }
+
+    /**
+     * WARNINGレベルのログを出力する
+     */
+    override fun warning(message: String) {
+        plugin.logger.warning(message)
+    }
+
+    /**
+     * SEVEREレベルのログを出力する
+     */
+    override fun severe(message: String) {
+        plugin.logger.severe(message)
+    }
 }

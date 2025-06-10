@@ -34,4 +34,16 @@ interface RodPresetManager {
      * ファイルが変更された際などに使用
      */
     suspend fun reloadPresets()
+
+    /**
+     * 新しいプリセットを追加する
+     *
+     * @param presetName プリセット名
+     * @param configuration ロッド設定
+     * @return 追加に成功した場合true
+     */
+    suspend fun addPreset(
+        presetName: String,
+        configuration: RodConfiguration,
+    ): Boolean
 }

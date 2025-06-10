@@ -8,16 +8,20 @@ import org.koin.dsl.module
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
+import party.morino.moripafishing.api.core.rod.RodPresetManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
-import party.morino.moripafishing.core.log.LogManagerImpl
+import party.morino.moripafishing.core.fishing.FishingManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
+import party.morino.moripafishing.core.rod.RodPresetManagerImpl
 import party.morino.moripafishing.mocks.config.PluginDirectoryMock
+import party.morino.moripafishing.mocks.log.LogManagerMock
 import party.morino.moripafishing.mocks.world.WorldManagerMock
 
 /**
@@ -37,7 +41,9 @@ class MoripaFishingTest : BeforeAllCallback {
                 single<PluginDirectory> { PluginDirectoryMock() }
                 single<FishManager> { FishManagerImpl() }
                 single<WorldManager> { WorldManagerMock() }
-                single<LogManager> { LogManagerImpl() }
+                single<LogManager> { LogManagerMock() }
+                single<RodPresetManager> { RodPresetManagerImpl() }
+                single<FishingManager> { FishingManagerImpl() }
             }
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)

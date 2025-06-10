@@ -1,8 +1,10 @@
 package party.morino.moripafishing.api.core.fishing
 
+import party.morino.moripafishing.api.core.rod.RodPresetManager
+
 /**
  * 釣りの管理を行うインターフェース
- * 釣れるまでの時間やレアリティの変更を管理する
+ * 釣れるまでの時間やレアリティの変更、ロッドプリセットを管理する
  */
 interface FishingManager {
     /**
@@ -10,4 +12,10 @@ interface FishingManager {
      * @return WaitTimeManager
      */
     fun getWaitTimeManager(): WaitTimeManager
+
+    /**
+     * RodPresetManagerを取得する
+     * @return RodPresetManager
+     */
+    fun getRodPresetManager(): RodPresetManager
 }

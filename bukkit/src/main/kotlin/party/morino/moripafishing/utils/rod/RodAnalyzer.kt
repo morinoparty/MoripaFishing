@@ -1,6 +1,5 @@
 package party.morino.moripafishing.utils.rod
 
-import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.Material
@@ -13,14 +12,11 @@ import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
 import party.morino.moripafishing.api.core.fishing.EnchantmentEffects
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.utils.Utils
 import java.util.Locale
 
 class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
     private val namespace = NamespacedKey(plugin, "rod_waiting")
-    private val json =
-        Json {
-            ignoreUnknownKeys = true
-        }
 
     fun analyzeRod(itemStack: ItemStack?): RodConfiguration? {
         if (itemStack?.type != Material.FISHING_ROD) return null
@@ -29,7 +25,7 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
         val nbtData = meta.persistentDataContainer.get(namespace, PersistentDataType.STRING)
 
         return try {
-            nbtData?.let { json.decodeFromString<RodConfiguration>(it) }
+            nbtData?.let { Utils.json.decodeFromString<RodConfiguration>(it) }
         } catch (e: Exception) {
             plugin.logger.warning("Failed to parse rod configuration from NBT: ${e.message}")
             null
@@ -77,7 +73,7 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
         if (itemStack.type != Material.FISHING_ROD) return itemStack
 
         val meta = itemStack.itemMeta ?: return itemStack
-        val jsonString = json.encodeToString(RodConfiguration.serializer(), configuration)
+        val jsonString = Utils.json.encodeToString(RodConfiguration.serializer(), configuration)
 
         meta.persistentDataContainer.set(namespace, PersistentDataType.STRING, jsonString)
 

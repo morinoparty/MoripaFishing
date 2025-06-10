@@ -5,7 +5,9 @@ import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.FishingManager
+import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
+import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
 
@@ -30,6 +32,12 @@ interface MoripaFishingAPI {
      * @return 魚マネージャー
      */
     fun getFishManager(): FishManager
+
+    /**
+     * レアリティマネージャーを取得する
+     * @return レアリティマネージャー
+     */
+    fun getRarityManager(): RarityManager
 
     /**
      * 世界マネージャーを取得する
@@ -60,4 +68,10 @@ interface MoripaFishingAPI {
      * @return
      */
     fun getFishingManager(): FishingManager
+
+    /**
+     * ログマネージャーを取得する
+     * @return ログマネージャー
+     */
+    fun getLogManager(): LogManager
 }

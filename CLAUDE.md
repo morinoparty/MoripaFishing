@@ -65,7 +65,7 @@
 ## 補足
 
 エディターの仕様上`Unresolved reference: UUIDkotlin(UNRESOLVED_REFERENCE)`などが出ることがあるが無視してください。
-
+Serializeのために、jsonを利用する場合、Utils.jsonを利用してください。
 
 # ドキュメント
 

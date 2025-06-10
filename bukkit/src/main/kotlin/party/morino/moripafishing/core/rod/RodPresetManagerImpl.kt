@@ -1,16 +1,20 @@
 package party.morino.moripafishing.core.rod
 
 import kotlinx.serialization.json.Json
-import org.bukkit.plugin.Plugin
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import party.morino.moripafishing.api.config.PluginDirectory
+import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.rod.RodPresetManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
-import java.io.InputStream
+import java.io.File
 
 /**
- * リソースファイルからロッドプリセットを読み込む実装
+ * プラグインディレクトリからロッドプリセットを読み込む実装
  */
-class RodPresetManagerImpl(private val plugin: Plugin) : RodPresetManager, KoinComponent {
+class RodPresetManagerImpl : RodPresetManager, KoinComponent {
+    private val pluginDirectory: PluginDirectory by inject()
+    private val logManager: LogManager by inject()
     private val json =
         Json {
             ignoreUnknownKeys = true
@@ -52,7 +56,7 @@ class RodPresetManagerImpl(private val plugin: Plugin) : RodPresetManager, KoinC
         presetCache.clear()
         isLoaded = false
         loadPresets()
-        plugin.logger.info("Rod presets reloaded. Found ${presetCache.size} presets.")
+        logManager.info("Rod presets reloaded. Found ${presetCache.size} presets.")
     }
 
     /**
@@ -65,30 +69,86 @@ class RodPresetManagerImpl(private val plugin: Plugin) : RodPresetManager, KoinC
     }
 
     /**
-     * リソースからプリセットを読み込む
+     * プラグインディレクトリまたはリソースからプリセットを読み込む
      */
     private suspend fun loadPresets() {
-        val presetNames = listOf("beginner", "master", "legendary", "speedster")
+        val rodDirectory = pluginDirectory.getRodDirectory()
 
-        presetNames.forEach { presetName ->
-            try {
-                val resourcePath = "rod/$presetName.json"
-                val inputStream: InputStream? = plugin.getResource(resourcePath)
+        // デフォルトプリセットのリソースファイルからpluginDirにコピー
+        copyDefaultPresetsIfNotExists(rodDirectory)
 
-                if (inputStream != null) {
-                    val jsonContent = inputStream.bufferedReader().use { it.readText() }
+        // プラグインディレクトリからJSONファイルを読み込み
+        val presetFiles = rodDirectory.listFiles { file -> file.extension == "json" }
+
+        if (presetFiles != null) {
+            presetFiles.forEach { file ->
+                try {
+                    val presetName = file.nameWithoutExtension
+                    val jsonContent = file.readText()
                     val rodConfiguration = json.decodeFromString<RodConfiguration>(jsonContent)
                     presetCache[presetName.lowercase()] = rodConfiguration
-                    plugin.logger.info("Loaded rod preset: $presetName")
-                } else {
-                    plugin.logger.warning("Rod preset file not found: $resourcePath")
+                    logManager.info("Loaded rod preset: $presetName")
+                } catch (e: Exception) {
+                    logManager.severe("Failed to load rod preset: ${file.name} - ${e.message}")
                 }
-            } catch (e: Exception) {
-                plugin.logger.severe("Failed to load rod preset: $presetName - ${e.message}")
             }
         }
 
         isLoaded = true
-        plugin.logger.info("Loaded ${presetCache.size} rod presets from resources")
+        logManager.info("Loaded ${presetCache.size} rod presets from plugin directory")
+    }
+
+    /**
+     * デフォルトプリセットがない場合、リソースからコピーする
+     */
+    private fun copyDefaultPresetsIfNotExists(rodDirectory: File) {
+        val defaultPresets = listOf("beginner", "master", "legendary", "speedster")
+
+        defaultPresets.forEach { presetName ->
+            val presetFile = File(rodDirectory, "$presetName.json")
+            if (!presetFile.exists()) {
+                try {
+                    val resourcePath = "rod/$presetName.json"
+                    val inputStream = pluginDirectory.getResource(resourcePath)
+
+                    if (inputStream != null) {
+                        inputStream.use { input ->
+                            presetFile.writeText(input.bufferedReader().readText())
+                        }
+                        logManager.info("Copied default rod preset: $presetName")
+                    } else {
+                        logManager.warning("Default rod preset resource not found: $resourcePath")
+                    }
+                } catch (e: Exception) {
+                    logManager.severe("Failed to copy default rod preset: $presetName - ${e.message}")
+                }
+            }
+        }
+    }
+
+    /**
+     * 新しいプリセットを追加する
+     */
+    override suspend fun addPreset(
+        presetName: String,
+        configuration: RodConfiguration,
+    ): Boolean {
+        return try {
+            val rodDirectory = pluginDirectory.getRodDirectory()
+            val presetFile = File(rodDirectory, "${presetName.lowercase()}.json")
+
+            // JSON形式でファイルに保存
+            val jsonContent = json.encodeToString(RodConfiguration.serializer(), configuration)
+            presetFile.writeText(jsonContent)
+
+            // キャッシュにも追加
+            presetCache[presetName.lowercase()] = configuration
+
+            logManager.info("Added new rod preset: $presetName")
+            true
+        } catch (e: Exception) {
+            logManager.severe("Failed to add rod preset: $presetName - ${e.message}")
+            false
+        }
     }
 }
