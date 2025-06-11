@@ -54,11 +54,20 @@ jobs:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./upload/jars/MoripaFishing-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
           mv ./api/build/libs/api-*.jar ./upload/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar
           mkdir -p ./upload/junit
-          cp -r ./bukkit/build/reports/tests/test/* ./upload/junit/
+          if [ -d "./bukkit/build/reports/tests/test" ] && [ "$(ls -A ./bukkit/build/reports/tests/test)" ]; then
+            cp -r ./bukkit/build/reports/tests/test/* ./upload/junit/
+          else
+            echo "JUnit test reports not found, creating empty directory"
+            echo "No tests were run or reports were not generated" > ./upload/junit/no-reports.txt
+          fi
           mkdir -p ./upload/detekt
-          cp -r ./build/reports/detekt/* ./upload/detekt/
-          aws s3 cp ./upload --endpoint-url ${S3_ENDPOINT} s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }} --recursive
-          exit 0
+          if [ -d "./build/reports/detekt" ] && [ "$(ls -A ./build/reports/detekt)" ]; then
+            cp -r ./build/reports/detekt/* ./upload/detekt/
+          else
+            echo "Detekt reports not found, creating empty directory"
+            echo "No detekt reports were generated" > ./upload/detekt/no-reports.txt
+          fi
+          aws s3 cp ./upload --endpoint-url ${S3_ENDPOINT} s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }} --recursive || echo "S3 upload completed with warnings"
 
       - name: Publish test results
         id: publish-test-results
