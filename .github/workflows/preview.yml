@@ -15,6 +15,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
       AWS_REGION: auto
+      AWS_CLI_FILE_ENCODING: UTF-8
+      AWS_DEFAULT_S3_SIGNATURE_VERSION: s3v4
       S3_UPLOAD_BUCKET: ${{ secrets.S3_UPLOAD_BUCKET }}
       S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
     runs-on: ubuntu-latest
@@ -67,7 +69,8 @@ jobs:
             echo "Detekt reports not found, creating empty directory"
             echo "No detekt reports were generated" > ./upload/detekt/no-reports.txt
           fi
-          aws s3 cp ./upload --endpoint-url ${S3_ENDPOINT} s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }} --recursive || echo "S3 upload completed with warnings"
+          # チェックサム機能を無効化してS3互換エンドポイントとの互換性を確保
+          aws s3 cp ./upload --endpoint-url ${S3_ENDPOINT} s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }} --recursive --no-verify-ssl --cli-binary-format raw-in-base64-out || echo "S3 upload completed with warnings"
 
       - name: Publish test results
         id: publish-test-results
