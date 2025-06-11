@@ -53,8 +53,16 @@ jobs:
         run: |
           mkdir -p ./upload
           mkdir -p ./upload/jars
-          mv ./bukkit/build/libs/bukkit-*-all.jar ./upload/jars/MoripaFishing-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
-          mv ./api/build/libs/api-*.jar ./upload/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          ls -la ./bukkit/build/libs
+          if [ -f "./bukkit/build/libs/bukkit-*-all.jar" ]; then
+            mv ./bukkit/build/libs/bukkit-*-all.jar ./upload/jars/MoripaFishing-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
+          else
+            echo "Bukkit jar not found, creating empty directory"
+            echo "No bukkit jar was generated" > ./upload/jars/no-bukkit-jar.txt
+          fi
+          if [ -f "./api/build/libs/api-*.jar" ]; then
+            mv ./api/build/libs/api-*.jar ./upload/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          else
           mkdir -p ./upload/junit
           if [ -d "./bukkit/build/reports/tests/test" ] && [ "$(ls -A ./bukkit/build/reports/tests/test)" ]; then
             cp -r ./bukkit/build/reports/tests/test/* ./upload/junit/
@@ -107,7 +115,9 @@ jobs:
               <td><a href="$DETEKT_REPORT_URL">$DETEKT_REPORT_URL</a></td>
             </tr>
           </table>
+
           ## Test summary
+
           <table>
               <tr>
               <th>
