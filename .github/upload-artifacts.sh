@@ -8,14 +8,14 @@ UPLOAD_DIR="${PROJECT_ROOT}/upload"
 # アップロード用ディレクトリを作成
 mkdir -p "${UPLOAD_DIR}"
 
-echo "COMMIT_HASH: ${COMMIT_HASH}"
+echo "COMMIT_HASH: ${COMMIT_SHORT_SHA}"
 
 # 1. JARファイルのコピー
 # JARファイルのコピー
 echo "JARファイルのコピー"
 mkdir -p "${UPLOAD_DIR}/jars"
-cp "${PROJECT_ROOT}/bukkit/build/libs/bukkit-${COMMIT_HASH}.jar" "${UPLOAD_DIR}/jars/MoripaFishing-bukkit-${COMMIT_HASH}.jar"
-cp "${PROJECT_ROOT}/api/build/libs/api-${COMMIT_HASH}.jar" "${UPLOAD_DIR}/jars/MoripaFishing-api-${COMMIT_HASH}.jar"
+cp "${PROJECT_ROOT}/bukkit/build/libs/bukkit-${COMMIT_SHORT_SHA}.jar" "${UPLOAD_DIR}/jars/MoripaFishing-bukkit-${COMMIT_SHORT_SHA}.jar"
+cp "${PROJECT_ROOT}/api/build/libs/api-${COMMIT_SHORT_SHA}.jar" "${UPLOAD_DIR}/jars/MoripaFishing-api-${COMMIT_SHORT_SHA}.jar"
 
 echo "テスト結果のコピー"
 mkdir -p "${UPLOAD_DIR}/junit"
