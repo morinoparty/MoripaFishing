@@ -1,5 +1,6 @@
 package party.morino.moripafishing.api.core.random.fish
 
+import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fish.Fish
 import party.morino.moripafishing.api.model.fish.FishData
 import party.morino.moripafishing.api.model.rarity.RarityId
@@ -52,4 +53,30 @@ interface FishRandomizer {
      * @return 抽選されたレアリティ
      */
     fun drawRandomRarity(): RarityId
+
+    /**
+     * アングラーのコンテキストを考慮してレアリティを抽選する
+     * 確率修正値を適用して抽選を行う
+     *
+     * @param angler 対象のアングラー
+     * @return 抽選されたレアリティ
+     */
+    fun drawRandomRarity(angler: Angler): RarityId {
+        return drawRandomRarity()
+    }
+
+    /**
+     * アングラーのコンテキストを考慮して魚を抽選する
+     * 確率修正値を適用して抽選を行う
+     *
+     * @param angler 対象のアングラー
+     * @param fishingWorldId 釣り場のID
+     * @return 抽選された魚
+     */
+    fun selectRandomFish(
+        angler: Angler,
+        fishingWorldId: FishingWorldId,
+    ): Fish {
+        return selectRandomFish(fishingWorldId)
+    }
 }

@@ -1,15 +1,15 @@
 package party.morino.moripafishing.core.fishing.rod
 
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.utils.Utils
 import java.io.File
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * プラグインディレクトリからロッドプリセットを読み込む実装
@@ -17,11 +17,6 @@ import kotlinx.coroutines.withContext
 class RodPresetManagerImpl : RodPresetManager, KoinComponent {
     private val pluginDirectory: PluginDirectory by inject()
     private val logManager: LogManager by inject()
-    private val json =
-        Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-        }
 
     // プリセットをキャッシュする
     private val presetCache = mutableMapOf<String, RodConfiguration>()
@@ -86,7 +81,7 @@ class RodPresetManagerImpl : RodPresetManager, KoinComponent {
                 try {
                     val presetName = file.nameWithoutExtension
                     val jsonContent = file.readText()
-                    val rodConfiguration = json.decodeFromString<RodConfiguration>(jsonContent)
+                    val rodConfiguration = Utils.json.decodeFromString<RodConfiguration>(jsonContent)
                     presetCache[presetName.lowercase()] = rodConfiguration
                     logManager.info("Loaded rod preset: $presetName")
                 } catch (e: Exception) {
@@ -142,7 +137,7 @@ class RodPresetManagerImpl : RodPresetManager, KoinComponent {
             val presetFile = File(rodDirectory, "${presetName.lowercase()}.json")
 
             // JSON形式でファイルに保存
-            val jsonContent = json.encodeToString(RodConfiguration.serializer(), configuration)
+            val jsonContent = Utils.json.encodeToString(RodConfiguration.serializer(), configuration)
             presetFile.writeText(jsonContent)
 
             // キャッシュにも追加

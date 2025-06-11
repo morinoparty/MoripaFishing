@@ -1,0 +1,512 @@
+---
+title: 🛠️ Fish Probability API Reference
+description: FishProbabilityManagerの開発者向けAPI完全リファレンス
+---
+
+# 🛠️ Fish Probability API Reference
+
+`FishProbabilityManager`の全APIメソッドと使用例を詳しく解説します。
+
+## 📚 目次
+
+- [基本重み管理](#基本重み管理)
+- [レアリティ確率修正](#レアリティ確率修正) 
+- [魚確率修正](#魚確率修正)
+- [修正後重みの取得](#修正後重みの取得)
+- [修正値のクリア](#修正値のクリア)
+- [実装パターン](#実装パターン)
+
+## 基本重み管理
+
+### setBaseRarityWeight
+
+```kotlin
+fun setBaseRarityWeight(rarityId: RarityId, baseWeight: Double)
+```
+
+レアリティの基本重みを設定します。通常は設定ファイルから自動読み込みされます。
+
+**パラメータ:**
+- `rarityId`: 対象のレアリティID
+- `baseWeight`: 基本重み（0.0以上）
+
+**使用例:**
+```kotlin
+fishProbabilityManager.setBaseRarityWeight(RarityId("common"), 70.0)
+fishProbabilityManager.setBaseRarityWeight(RarityId("legendary"), 0.4)
+```
+
+### setBaseFishWeight
+
+```kotlin
+fun setBaseFishWeight(fishId: FishId, baseWeight: Double)
+```
+
+魚の基本重みを設定します。
+
+**パラメータ:**
+- `fishId`: 対象の魚ID
+- `baseWeight`: 基本重み（0.0以上）
+
+**使用例:**
+```kotlin
+fishProbabilityManager.setBaseFishWeight(FishId("salmon"), 15.0)
+fishProbabilityManager.setBaseFishWeight(FishId("tuna"), 8.0)
+```
+
+### getBaseRarityWeight
+
+```kotlin
+fun getBaseRarityWeight(rarityId: RarityId): Double
+```
+
+レアリティの基本重みを取得します。
+
+**戻り値:** 設定されていない場合は1.0
+
+**使用例:**
+```kotlin
+val baseWeight = fishProbabilityManager.getBaseRarityWeight(RarityId("rare"))
+println("Rare基本重み: $baseWeight")
+```
+
+### getBaseFishWeight
+
+```kotlin
+fun getBaseFishWeight(fishId: FishId): Double
+```
+
+魚の基本重みを取得します。
+
+**戻り値:** 設定されていない場合は1.0
+
+## レアリティ確率修正
+
+### applyRarityModifierForWorld
+
+```kotlin
+fun applyRarityModifierForWorld(
+    worldId: FishingWorldId,
+    rarityId: RarityId, 
+    applyValue: ApplyValue,
+    limit: Long? = null
+)
+```
+
+ワールド単位でレアリティ確率を修正します。
+
+**パラメータ:**
+- `worldId`: 対象ワールドID
+- `rarityId`: 対象レアリティID
+- `applyValue`: 適用値（ApplyType + 数値 + 説明）
+- `limit`: 有効期限（ミリ秒、nullで無期限）
+
+**使用例:**
+```kotlin
+// イベントワールドでレジェンダリー5倍（1時間）
+fishProbabilityManager.applyRarityModifierForWorld(
+    worldId = FishingWorldId("event_world"),
+    rarityId = RarityId("legendary"),
+    applyValue = ApplyValue(ApplyType.MULTIPLY, 5.0, "Event Boost"),
+    limit = 3600000L
+)
+```
+
+### applyRarityModifierForAngler
+
+```kotlin
+fun applyRarityModifierForAngler(
+    anglerId: AnglerId,
+    rarityId: RarityId,
+    applyValue: ApplyValue, 
+    limit: Long? = null
+)
+```
+
+プレイヤー単位でレアリティ確率を修正します。
+
+**使用例:**
+```kotlin
+// VIPプレイヤーにレア魚1.5倍ボーナス（永続）
+fishProbabilityManager.applyRarityModifierForAngler(
+    anglerId = AnglerId(player.uniqueId),
+    rarityId = RarityId("rare"),
+    applyValue = ApplyValue(ApplyType.MULTIPLY, 1.5, "VIP Bonus"),
+    limit = null
+)
+```
+
+### applyRarityModifierForSpot
+
+```kotlin
+fun applyRarityModifierForSpot(
+    spot: Spot,
+    rarityId: RarityId,
+    applyValue: ApplyValue,
+    limit: Long? = null
+)
+```
+
+スポット単位でレアリティ確率を修正します。
+
+**使用例:**
+```kotlin
+// 特別な釣り場でミシック10倍（6時間）
+val hotSpot = Spot(
+    location = Location(worldId, 100.0, 64.0, 200.0, 0.0, 0.0),
+    radius = 25.0
+)
+fishProbabilityManager.applyRarityModifierForSpot(
+    spot = hotSpot,
+    rarityId = RarityId("mythic"),
+    applyValue = ApplyValue(ApplyType.MULTIPLY, 10.0, "Hot Spot"),
+    limit = 21600000L
+)
+```
+
+### applyRarityModifierForRod
+
+```kotlin
+fun applyRarityModifierForRod(
+    rodType: String,
+    rarityId: RarityId,
+    applyValue: ApplyValue,
+    limit: Long? = null
+)
+```
+
+ロッドタイプ単位でレアリティ確率を修正します。
+
+**使用例:**
+```kotlin
+// レジェンダリーロッドでレジェンダリー魚3倍
+fishProbabilityManager.applyRarityModifierForRod(
+    rodType = "legendary",
+    rarityId = RarityId("legendary"), 
+    applyValue = ApplyValue(ApplyType.MULTIPLY, 3.0, "Legendary Rod"),
+    limit = null
+)
+```
+
+## 魚確率修正
+
+### applyFishModifierForWorld
+
+```kotlin
+fun applyFishModifierForWorld(
+    worldId: FishingWorldId,
+    fishId: FishId,
+    applyValue: ApplyValue,
+    limit: Long? = null
+)
+```
+
+ワールド単位で特定魚種の確率を修正します。
+
+**使用例:**
+```kotlin
+// サーモンワールドでサーモン2倍
+fishProbabilityManager.applyFishModifierForWorld(
+    worldId = FishingWorldId("salmon_river"),
+    fishId = FishId("atlantic_salmon"),
+    applyValue = ApplyValue(ApplyType.MULTIPLY, 2.0, "Salmon River"),
+    limit = null
+)
+```
+
+### applyFishModifierForAngler
+
+```kotlin
+fun applyFishModifierForAngler(
+    anglerId: AnglerId,
+    fishId: FishId,
+    applyValue: ApplyValue,
+    limit: Long? = null
+)
+```
+
+プレイヤー単位で特定魚種の確率を修正します。
+
+### applyFishModifierForSpot
+
+```kotlin
+fun applyFishModifierForSpot(
+    spot: Spot,
+    fishId: FishId,
+    applyValue: ApplyValue,
+    limit: Long? = null
+)
+```
+
+スポット単位で特定魚種の確率を修正します。
+
+### applyFishModifierForRod
+
+```kotlin
+fun applyFishModifierForRod(
+    rodType: String,
+    fishId: FishId,
+    applyValue: ApplyValue,
+    limit: Long? = null
+)
+```
+
+ロッドタイプ単位で特定魚種の確率を修正します。
+
+## 修正後重みの取得
+
+### getModifiedRarityWeight
+
+```kotlin
+fun getModifiedRarityWeight(angler: Angler, rarityId: RarityId): Double
+```
+
+アングラーのコンテキストで修正後のレアリティ重みを取得します。
+
+**戻り値:** 全修正値を適用した最終重み
+
+**計算順序:**
+1. 基本重み
+2. World修正
+3. Angler修正  
+4. Spot修正
+5. Rod修正
+
+**使用例:**
+```kotlin
+val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(
+    angler = angler,
+    rarityId = RarityId("legendary")
+)
+println("修正後重み: $modifiedWeight")
+```
+
+### getModifiedFishWeight
+
+```kotlin
+fun getModifiedFishWeight(angler: Angler, fishId: FishId): Double
+```
+
+アングラーのコンテキストで修正後の魚重みを取得します。
+
+## 修正値のクリア
+
+### clearAnglerModifiers
+
+```kotlin
+fun clearAnglerModifiers(anglerId: AnglerId)
+```
+
+特定プレイヤーに適用された全修正値をクリアします。
+
+**使用例:**
+```kotlin
+// プレイヤーログアウト時にクリア
+@EventHandler
+fun onPlayerQuit(event: PlayerQuitEvent) {
+    fishProbabilityManager.clearAnglerModifiers(AnglerId(event.player.uniqueId))
+}
+```
+
+### cleanupExpiredModifiers
+
+```kotlin
+fun cleanupExpiredModifiers()
+```
+
+期限切れの修正値を手動でクリーンアップします。通常は自動実行されますが、パフォーマンス調整時に使用します。
+
+## 実装パターン
+
+### イベント管理パターン
+
+```kotlin
+class EventManager(private val fishProbabilityManager: FishProbabilityManager) {
+    
+    private val activeEvents = mutableMapOf<String, Long>()
+    
+    fun startEvent(eventId: String, config: EventConfig) {
+        val duration = config.durationMinutes * 60 * 1000L
+        
+        config.rarityModifiers.forEach { (rarity, multiplier) ->
+            config.worlds.forEach { worldId ->
+                fishProbabilityManager.applyRarityModifierForWorld(
+                    worldId = worldId,
+                    rarityId = RarityId(rarity),
+                    applyValue = ApplyValue(ApplyType.MULTIPLY, multiplier, eventId),
+                    limit = duration
+                )
+            }
+        }
+        
+        activeEvents[eventId] = System.currentTimeMillis() + duration
+    }
+    
+    fun isEventActive(eventId: String): Boolean {
+        return activeEvents[eventId]?.let { it > System.currentTimeMillis() } ?: false
+    }
+}
+```
+
+### プレイヤーボーナス管理パターン
+
+```kotlin
+class PlayerBonusManager(private val fishProbabilityManager: FishProbabilityManager) {
+    
+    fun applyPermissionBonus(player: Player) {
+        val anglerId = AnglerId(player.uniqueId)
+        
+        when {
+            player.hasPermission("fishing.vip.platinum") -> {
+                applyVipBonus(anglerId, 2.0, "Platinum VIP")
+            }
+            player.hasPermission("fishing.vip.gold") -> {
+                applyVipBonus(anglerId, 1.5, "Gold VIP") 
+            }
+            player.hasPermission("fishing.vip.silver") -> {
+                applyVipBonus(anglerId, 1.2, "Silver VIP")
+            }
+        }
+    }
+    
+    private fun applyVipBonus(anglerId: AnglerId, multiplier: Double, tier: String) {
+        listOf("legendary", "epic", "rare").forEach { rarity ->
+            fishProbabilityManager.applyRarityModifierForAngler(
+                anglerId = anglerId,
+                rarityId = RarityId(rarity),
+                applyValue = ApplyValue(ApplyType.MULTIPLY, multiplier, tier),
+                limit = null // VIP期間中永続
+            )
+        }
+    }
+}
+```
+
+### スポット管理パターン
+
+```kotlin
+class FishingSpotManager(private val fishProbabilityManager: FishProbabilityManager) {
+    
+    data class FishingSpot(
+        val name: String,
+        val location: Location,
+        val radius: Double,
+        val bonuses: Map<String, Double>
+    )
+    
+    fun registerSpot(spot: FishingSpot) {
+        val spotObject = Spot(spot.location, spot.radius)
+        
+        spot.bonuses.forEach { (rarity, multiplier) ->
+            fishProbabilityManager.applyRarityModifierForSpot(
+                spot = spotObject,
+                rarityId = RarityId(rarity),
+                applyValue = ApplyValue(ApplyType.MULTIPLY, multiplier, spot.name),
+                limit = null // 永続的なスポット
+            )
+        }
+    }
+    
+    fun createTemporarySpot(location: Location, durationMinutes: Long) {
+        val spot = Spot(location, 10.0)
+        val duration = durationMinutes * 60 * 1000L
+        
+        fishProbabilityManager.applyRarityModifierForSpot(
+            spot = spot,
+            rarityId = RarityId("mythic"),
+            applyValue = ApplyValue(ApplyType.MULTIPLY, 20.0, "Lucky Spot"),
+            limit = duration
+        )
+    }
+}
+```
+
+### ロッドエンチャント連携パターン
+
+```kotlin
+class RodEnchantmentHandler(private val fishProbabilityManager: FishProbabilityManager) {
+    
+    fun applyEnchantmentBonuses(player: Player, rodItem: ItemStack) {
+        val anglerId = AnglerId(player.uniqueId)
+        val enchantments = rodItem.enchantments
+        
+        // Luck of the Sea
+        enchantments[Enchantment.LUCK]?.let { level ->
+            val multiplier = 1.0 + (level * 0.2) // レベル毎に20%増加
+            fishProbabilityManager.applyRarityModifierForAngler(
+                anglerId = anglerId,
+                rarityId = RarityId("rare"),
+                applyValue = ApplyValue(ApplyType.MULTIPLY, multiplier, "Luck of the Sea $level"),
+                limit = null
+            )
+        }
+        
+        // Lure
+        enchantments[Enchantment.LURE]?.let { level ->
+            val addValue = level * 2.0 // レベル毎に+2.0
+            listOf("common", "rare").forEach { rarity ->
+                fishProbabilityManager.applyRarityModifierForAngler(
+                    anglerId = anglerId,
+                    rarityId = RarityId(rarity),
+                    applyValue = ApplyValue(ApplyType.ADD, addValue, "Lure $level"),
+                    limit = null
+                )
+            }
+        }
+    }
+    
+    fun clearEnchantmentBonuses(player: Player) {
+        fishProbabilityManager.clearAnglerModifiers(AnglerId(player.uniqueId))
+    }
+}
+```
+
+## 🔧 デバッグとモニタリング
+
+### 修正値確認用ユーティリティ
+
+```kotlin
+object ProbabilityDebugger {
+    
+    fun analyzeAngler(angler: Angler, fishProbabilityManager: FishProbabilityManager) {
+        val rarities = listOf("common", "rare", "epic", "legendary", "mythic")
+        
+        println("=== アングラー確率分析 ===")
+        println("プレイヤー: ${angler.getAnglerUniqueId()}")
+        println("ワールド: ${angler.getWorld()?.getId()}")
+        println("位置: ${angler.getLocation()}")
+        println("ロッド: ${angler.getCurrentRodConfiguration()?.rodType}")
+        println()
+        
+        rarities.forEach { rarity ->
+            val rarityId = RarityId(rarity)
+            val baseWeight = fishProbabilityManager.getBaseRarityWeight(rarityId)
+            val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, rarityId)
+            val ratio = if (baseWeight > 0) modifiedWeight / baseWeight else 0.0
+            
+            println("$rarity: $baseWeight → $modifiedWeight (${String.format("%.2f", ratio)}倍)")
+        }
+    }
+    
+    fun simulateProbability(
+        angler: Angler, 
+        fishProbabilityManager: FishProbabilityManager,
+        trials: Int = 10000
+    ) {
+        val rarities = listOf("common", "rare", "epic", "legendary", "mythic")
+        val weights = rarities.map { rarity ->
+            RarityId(rarity) to fishProbabilityManager.getModifiedRarityWeight(angler, RarityId(rarity))
+        }
+        
+        val totalWeight = weights.sumOf { it.second }
+        
+        println("=== 確率シミュレーション ($trials 回試行) ===")
+        weights.forEach { (rarityId, weight) ->
+            val probability = (weight / totalWeight) * 100
+            println("${rarityId.value}: ${String.format("%.2f", probability)}%")
+        }
+    }
+}
+```
+
+このAPIリファレンスを使用して、柔軟で強力な確率修正システムを実装できます。

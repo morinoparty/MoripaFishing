@@ -7,8 +7,16 @@ permissions:
   pull-requests: write
   contents: write
 
+
 jobs:
   build:
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      AWS_REGION: auto
+      S3_UPLOAD_BUCKET: ${{ secrets.S3_UPLOAD_BUCKET }}
+      S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
     runs-on: ubuntu-latest
 
     steps:
@@ -36,34 +44,61 @@ jobs:
           sed -i 's/VersionPlaceholder/$after/' ./gradle.properties
 
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build
 
-      - name: Move build artifacts
-        run: |
-          mkdir -p ./dist
-          mv ./bukkit/build/libs/bukkit-*-all.jar ./dist/${{ github.event.repository.name }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
-          mv ./api/build/libs/api-*.jar ./dist/${{ github.event.repository.name }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
+      - name: Detekt
+        run: ./gradlew detekt
 
       - name: Upload build artifacts
         id: upload-artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        run: .github/upload-artifacts.sh
+
+      - name: Publish test results
+        id: publish-test-results
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
+        if: success() || failure()
         with:
-          name: build-artifacts
-          path: dist/**
+          report_paths: './**/build/test-results/test/TEST-*.xml'
 
       - name: Create comment file
         id: create-comment-file
         env:
-          ARTIFACT_URL: ${{ steps.upload-artifacts.outputs.artifact-url }}
+          ARTIFACT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/jars/MoripaFishing-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar"
+          ARTIFACT_URL_API: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar"
+          JUNIT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
+          DETEKT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/detekt/index.html"
         run: |
           cat  << EOF > comment.md
           ## 🚀 Preview jars of ${{ github.event.repository.name }}
           <table>
             <tr>
-              <th scope="row">Preview Jars(Zip) URL</th>
+              <th scope="row">Preview Jars Bukkit</th>
               <td><a href="$ARTIFACT_URL">$ARTIFACT_URL</a></td>
+              <th scope="row">Preview Jars API</th>
+              <td><a href="$ARTIFACT_URL_API">$ARTIFACT_URL_API</a></td>
+              <th scope="row">JUnit Report</th>
+              <td><a href="$JUNIT_REPORT_URL">$JUNIT_REPORT_URL</a></td>
+              <th scope="row">Detekt Report</th>
+              <td><a href="$DETEKT_REPORT_URL">$DETEKT_REPORT_URL</a></td>
             </tr>
           </table>
+          ## Test summary
+          <table>
+              <tr>
+              <th>
+                <th>Tests 💯</th>
+                <th>Passed ✅</th>
+                <th>Skipped ⏭️</th>
+                <th>Failed ❌</th>
+              </tr>
+              <tr>
+                <td>JUnit Test Report</td>
+                <td>${{ steps.publish-test-results.outputs.total }} ran</td>
+                <td>${{ steps.publish-test-results.outputs.passed }} passed</td>
+                <td>${{ steps.publish-test-results.outputs.skipped }} skipped</td>
+                <td>${{ steps.publish-test-results.outputs.failed }} failed</td>
+              </tr>
+            </table>
           EOF
       - name: Create PR comment
         if: ${{ job.status == 'success' && (github.event.action == 'opened' || github.event.action == 'synchronize') }}

@@ -38,7 +38,7 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
                 }
                 val angler = angerManager.getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
                 val anglerWorld = angler.getWorld() ?: return
-                val fish = randomizerManager.getFishRandomizer().selectRandomFish(anglerWorld.getId())
+                val fish = randomizerManager.getFishRandomizer().selectRandomFish(angler, anglerWorld.getId())
                 val caughtFish = CaughtFish.Companion.fromFish(fish, angler, anglerWorld)
                 val fishCaughtEvent =
                     AnglerFishCaughtEvent(

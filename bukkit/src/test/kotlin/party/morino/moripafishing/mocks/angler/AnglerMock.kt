@@ -3,6 +3,7 @@ package party.morino.moripafishing.mocks.angler
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.mocks.world.FishingWorldMock
@@ -20,6 +21,7 @@ class AnglerMock(
     // テスト用の状態管理
     private var testWorld: FishingWorld? = null
     private var testLocation: Location? = null
+    private var testRodConfiguration: RodConfiguration? = null
 
     override fun getAnglerUniqueId(): AnglerId {
         return anglerId
@@ -39,6 +41,10 @@ class AnglerMock(
 
     override fun getLocation(): Location? {
         return testLocation
+    }
+
+    override fun getCurrentRodConfiguration(): RodConfiguration? {
+        return testRodConfiguration
     }
 
     /**
@@ -86,10 +92,19 @@ class AnglerMock(
     }
 
     /**
+     * テスト用: ロッド設定を設定する
+     * @param rodConfiguration ロッド設定、nullの場合はロッドなし状態
+     */
+    fun setTestRodConfiguration(rodConfiguration: RodConfiguration?) {
+        testRodConfiguration = rodConfiguration
+    }
+
+    /**
      * テスト用: オフライン状態をシミュレート（ワールドも位置もnull）
      */
     fun setOffline() {
         testWorld = null
         testLocation = null
+        testRodConfiguration = null
     }
 }

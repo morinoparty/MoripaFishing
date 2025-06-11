@@ -57,7 +57,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * ベース待機時間のテスト - 何も適用されていない状態での基本動作
      */
     @Test
-    @DisplayName("基本的な待機時間を取得できる")
+    @DisplayName("WaitTimeManager No.1: 基本的な待機時間を取得できる")
     fun getBaseWaitTime() {
         // 何も適用値が設定されていない状態でのテスト
         val waitTime = waitTimeManager.getWaitTime(testAngler)
@@ -71,7 +71,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * Angler単位での適用値テスト - ADD効果
      */
     @Test
-    @DisplayName("Angler単位でADD効果を適用できる")
+    @DisplayName("WaitTimeManager No.2: Angler単位でADD効果を適用できる")
     fun applyForAnglerAddEffect() {
         // 5秒減少する効果を適用
         val addEffect = ApplyValue(ApplyType.ADD, -5.0, "seconds")
@@ -88,7 +88,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * Angler単位での適用値テスト - MULTIPLY効果
      */
     @Test
-    @DisplayName("Angler単位でMULTIPLY効果を適用できる")
+    @DisplayName("WaitTimeManager No.3: Angler単位でMULTIPLY効果を適用できる")
     fun applyForAnglerMultiplyEffect() {
         // 0.5倍にする効果を適用
         val multiplyEffect = ApplyValue(ApplyType.MULTIPLY, 0.5, "seconds")
@@ -105,7 +105,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * Angler単位での適用値テスト - CONSTANT効果
      */
     @Test
-    @DisplayName("Angler単位でCONSTANT効果を適用できる")
+    @DisplayName("WaitTimeManager No.4: Angler単位でCONSTANT効果を適用できる")
     fun applyForAnglerConstantEffect() {
         // 固定3秒にする効果を適用
         val constantEffect = ApplyValue(ApplyType.CONSTANT, 3.0, "seconds")
@@ -122,7 +122,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * World単位での適用値テスト
      */
     @Test
-    @DisplayName("World単位で適用値を設定できる")
+    @DisplayName("WaitTimeManager No.5: World単位で適用値を設定できる")
     fun applyForWorld() {
         // ワールド全体に2倍効果を適用
         val worldEffect = ApplyValue(ApplyType.MULTIPLY, 2.0, "seconds")
@@ -142,7 +142,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * Spot単位での適用値テスト
      */
     @Test
-    @DisplayName("Spot単位で適用値を設定できる")
+    @DisplayName("WaitTimeManager No.6: Spot単位で適用値を設定できる")
     fun applyForSpot() {
         // スポットに-10秒効果を適用
         val spotEffect = ApplyValue(ApplyType.ADD, -10.0, "seconds")
@@ -162,7 +162,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * 複数の適用値の組み合わせテスト
      */
     @Test
-    @DisplayName("複数の適用値を組み合わせて適用できる")
+    @DisplayName("WaitTimeManager No.7: 複数の適用値を組み合わせて適用できる")
     fun applyForMultiple() {
         // World: 2倍
         val worldEffect = ApplyValue(ApplyType.MULTIPLY, 2.0, "seconds")
@@ -195,7 +195,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * 期限切れテスト
      */
     @Test
-    @DisplayName("期限切れの適用値は自動的に削除される")
+    @DisplayName("WaitTimeManager No.8: 期限切れの適用値は自動的に削除される")
     fun applyForLongLived() {
         // 即座に期限切れになる適用値を設定（1ミリ秒後）
         val shortLivedEffect = ApplyValue(ApplyType.ADD, -10.0, "seconds")
@@ -215,7 +215,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * 期限ありの適用値テスト（まだ有効）
      */
     @Test
-    @DisplayName("期限内の適用値は正常に適用される")
+    @DisplayName("WaitTimeManager No.9: 期限内の適用値は正常に適用される")
     fun applyForShortLived() {
         // 1時間後に期限切れになる適用値を設定
         val longLivedEffect = ApplyValue(ApplyType.ADD, -3.0, "seconds")
@@ -232,7 +232,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * 絶対制限値のテスト
      */
     @Test
-    @DisplayName("絶対制限値が正しく適用される")
+    @DisplayName("WaitTimeManager No.10: 絶対制限値が正しく適用される")
     fun applyForAbsoluteMin() {
         // 大幅に減少させる効果を適用（絶対最小値を下回る）
         val extremeEffect = ApplyValue(ApplyType.ADD, -100.0, "seconds")
@@ -250,7 +250,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * 大きな値での絶対最大制限テスト
      */
     @Test
-    @DisplayName("絶対最大値が正しく適用される")
+    @DisplayName("WaitTimeManager No.11: 絶対最大値が正しく適用される")
     fun applyForAbsoluteMax() {
         // 大幅に増加させる効果を適用（絶対最大値を上回る）
         val extremeEffect = ApplyValue(ApplyType.MULTIPLY, 100.0, "seconds")
@@ -268,7 +268,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * clearAnglerEffectsのテスト
      */
     @Test
-    @DisplayName("clearAnglerEffectsでアングラー効果がクリアされる")
+    @DisplayName("WaitTimeManager No.12: clearAnglerEffectsでアングラー効果がクリアされる")
     fun clearAnglerEffects() {
         val manager = waitTimeManager as WaitTimeManagerImpl
 
@@ -294,7 +294,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * 複数のアングラーでの独立性テスト
      */
     @Test
-    @DisplayName("複数のアングラーの効果が独立している")
+    @DisplayName("WaitTimeManager No.13: 複数のアングラーの効果が独立している")
     fun applyForMultipleAnglers() {
         val anotherId = AnglerId(UUID.randomUUID())
         val anotherAngler = AnglerMock(anotherId)
@@ -322,7 +322,7 @@ class WaitTimeManagerImplTest : KoinTest {
      * Spotの範囲テスト（同じLocationなら同じSpotとして扱われる）
      */
     @Test
-    @DisplayName("同じLocationのSpotは同じ効果が適用される")
+    @DisplayName("WaitTimeManager No.14: 同じLocationのSpotは同じ効果が適用される")
     fun applyForSameLocation() {
         // 異なる半径のSpotを作成（距離判定を使用するので問題なし）
         val spot1 = Spot(testSpot.location, 10.0)
