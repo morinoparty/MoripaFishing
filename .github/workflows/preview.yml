@@ -52,7 +52,7 @@ jobs:
           mkdir -p ./upload
           mkdir -p ./upload/jars
           mv ./bukkit/build/libs/bukkit-*-all.jar ./upload/jars/MoripaFishing-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
-          mv ./api/build/libs/api-*-all.jar ./upload/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./api/build/libs/api-*.jar ./upload/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar
           mkdir -p ./upload/junit
           cp -r ./bukkit/build/reports/tests/test/* ./upload/junit/
           mkdir -p ./upload/detekt
