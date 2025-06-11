@@ -3,6 +3,8 @@
 set -e
 # 基本的なディレクトリ設定
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+
+ls PROJECT_ROOT
 UPLOAD_DIR="${PROJECT_ROOT}/upload"
 
 # アップロード用ディレクトリを作成

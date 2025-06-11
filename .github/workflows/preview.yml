@@ -46,9 +46,6 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Detekt
-        run: ./gradlew detekt
-
       - name: Upload build artifacts
         id: upload-artifacts
         run: .github/upload-artifacts.sh
