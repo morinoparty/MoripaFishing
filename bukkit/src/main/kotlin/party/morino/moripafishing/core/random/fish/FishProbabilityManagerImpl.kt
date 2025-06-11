@@ -1,9 +1,13 @@
 package party.morino.moripafishing.core.random.fish
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.angler.Angler
+import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
 import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
+import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
@@ -19,11 +23,36 @@ import kotlin.math.sqrt
 /**
  * 魚やレアリティの確率を動的に管理する実装クラス
  * WaitTimeManagerの仕組みを参考に、確率修正値を管理する
+ * 初期化時に全ての魚とレアリティの基本重みを読み込む
  */
-class FishProbabilityManagerImpl : FishProbabilityManager {
+class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
     // 基本重みを保持するマップ
     private val baseRarityWeights: MutableMap<RarityId, Double> = mutableMapOf()
     private val baseFishWeights: MutableMap<FishId, Double> = mutableMapOf()
+
+    // 魚とレアリティマネージャーを注入
+    private val fishManager: FishManager by inject()
+    private val rarityManager: RarityManager by inject()
+
+    init {
+        // 初期化時に全ての基本重みを読み込み
+        loadAllBaseWeights()
+    }
+
+    /**
+     * 全ての魚とレアリティの基本重みを読み込む
+     */
+    private fun loadAllBaseWeights() {
+        // レアリティの基本重みを読み込み
+        rarityManager.getRarities().forEach { rarity ->
+            baseRarityWeights[rarity.id] = rarity.weight
+        }
+
+        // 魚の基本重みを読み込み
+        fishManager.getFish().forEach { fish ->
+            baseFishWeights[fish.id] = fish.weight
+        }
+    }
 
     // レアリティ修正値を保持するマップ
     private val spotRarityModifiers: MutableList<RarityModifier> = mutableListOf()
