@@ -69,6 +69,7 @@
 
 エディターの仕様上`Unresolved reference: UUIDkotlin(UNRESOLVED_REFERENCE)`などが出ることがあるが無視してください。
 Serializeのために、jsonを利用する場合、Utils.jsonを利用してください。
+また、実装に関してAnglerという単語がありますが、コメントに記載する際は釣り人という意味で利用してください。
 
 # ドキュメント
 

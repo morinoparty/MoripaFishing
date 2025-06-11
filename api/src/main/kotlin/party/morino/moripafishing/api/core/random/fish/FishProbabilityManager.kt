@@ -31,7 +31,7 @@ interface FishProbabilityManager {
     /**
      * レアリティの確率にAngler単位で修正値を適用する
      *
-     * @param anglerId 対象のアングラーID
+     * @param anglerId 対象の釣り人ID
      * @param rarityId 対象のレアリティ
      * @param applyValue 適用値
      * @param limit 有効期限（ミリ秒）、nullの場合は無期限
@@ -91,7 +91,7 @@ interface FishProbabilityManager {
     /**
      * 魚の確率にAngler単位で修正値を適用する
      *
-     * @param anglerId 対象のアングラーID
+     * @param anglerId 対象の釣り人ID
      * @param fishId 対象の魚ID
      * @param applyValue 適用値
      * @param limit 有効期限（ミリ秒）、nullの場合は無期限
@@ -172,9 +172,9 @@ interface FishProbabilityManager {
     fun getBaseFishWeight(fishId: FishId): Double
 
     /**
-     * 指定されたアングラーとコンテキストに対するレアリティの修正後確率を取得する
+     * 指定された釣り人とコンテキストに対するレアリティの修正後確率を取得する
      *
-     * @param angler 対象のアングラー
+     * @param angler 対象の釣り人
      * @param rarityId 対象のレアリティ
      * @return 修正後の重み
      */
@@ -184,9 +184,9 @@ interface FishProbabilityManager {
     ): Double
 
     /**
-     * 指定されたアングラーとコンテキストに対する魚の修正後確率を取得する
+     * 指定された釣り人とコンテキストに対する魚の修正後確率を取得する
      *
-     * @param angler 対象のアングラー
+     * @param angler 対象の釣り人
      * @param fishId 対象の魚ID
      * @return 修正後の重み
      */
@@ -196,9 +196,9 @@ interface FishProbabilityManager {
     ): Double
 
     /**
-     * 特定のアングラーに適用されている修正値をクリアする
+     * 特定の釣り人に適用されている修正値をクリアする
      *
-     * @param anglerId 対象のアングラーID
+     * @param anglerId 対象の釣り人ID
      */
     fun clearAnglerModifiers(anglerId: AnglerId)
 

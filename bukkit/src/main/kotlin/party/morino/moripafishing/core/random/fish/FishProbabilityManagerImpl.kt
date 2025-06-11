@@ -204,7 +204,7 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
             }
         }
 
-        // Angler レベルの修正値を適用
+        // 釣り人レベルの修正値を適用
         val anglerEffects = getAnglerRarityEffects(angler.getAnglerUniqueId(), rarityId)
         for (effect in anglerEffects) {
             modifiedWeight = applyWeightEffect(modifiedWeight, effect)
@@ -246,7 +246,7 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
             }
         }
 
-        // Angler レベルの修正値を適用
+        // 釣り人レベルの修正値を適用
         val anglerEffects = getAnglerFishEffects(angler.getAnglerUniqueId(), fishId)
         for (effect in anglerEffects) {
             modifiedWeight = applyWeightEffect(modifiedWeight, effect)

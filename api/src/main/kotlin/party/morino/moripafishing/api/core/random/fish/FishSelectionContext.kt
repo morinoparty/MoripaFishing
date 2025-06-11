@@ -11,7 +11,7 @@ import java.time.ZonedDateTime
  * 魚の抽選ロジックで使用できる各種情報を提供する
  */
 data class FishSelectionContext(
-    /** 釣りを行うアングラー */
+    /** 釣りを行う釣り人 */
     val angler: Angler,
     /** 釣りを行う世界 */
     val fishingWorld: FishingWorld,

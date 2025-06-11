@@ -123,11 +123,11 @@ fun applyRarityModifierForAngler(
 )
 ```
 
-プレイヤー単位でレアリティ確率を修正します。
+釣り人単位でレアリティ確率を修正します。
 
 **使用例:**
 ```kotlin
-// VIPプレイヤーにレア魚1.5倍ボーナス（永続）
+// VIP釣り人にレア魚1.5倍ボーナス（永続）
 fishProbabilityManager.applyRarityModifierForAngler(
     anglerId = AnglerId(player.uniqueId),
     rarityId = RarityId("rare"),
@@ -225,7 +225,7 @@ fun applyFishModifierForAngler(
 )
 ```
 
-プレイヤー単位で特定魚種の確率を修正します。
+釣り人単位で特定魚種の確率を修正します。
 
 ### applyFishModifierForSpot
 
@@ -261,14 +261,14 @@ fun applyFishModifierForRod(
 fun getModifiedRarityWeight(angler: Angler, rarityId: RarityId): Double
 ```
 
-アングラーのコンテキストで修正後のレアリティ重みを取得します。
+釣り人のコンテキストで修正後のレアリティ重みを取得します。
 
 **戻り値:** 全修正値を適用した最終重み
 
 **計算順序:**
 1. 基本重み
 2. World修正
-3. Angler修正  
+3. 釣り人修正  
 4. Spot修正
 5. Rod修正
 
@@ -287,7 +287,7 @@ println("修正後重み: $modifiedWeight")
 fun getModifiedFishWeight(angler: Angler, fishId: FishId): Double
 ```
 
-アングラーのコンテキストで修正後の魚重みを取得します。
+釣り人のコンテキストで修正後の魚重みを取得します。
 
 ## 修正値のクリア
 
@@ -297,11 +297,11 @@ fun getModifiedFishWeight(angler: Angler, fishId: FishId): Double
 fun clearAnglerModifiers(anglerId: AnglerId)
 ```
 
-特定プレイヤーに適用された全修正値をクリアします。
+特定釣り人に適用された全修正値をクリアします。
 
 **使用例:**
 ```kotlin
-// プレイヤーログアウト時にクリア
+// 釣り人ログアウト時にクリア
 @EventHandler
 fun onPlayerQuit(event: PlayerQuitEvent) {
     fishProbabilityManager.clearAnglerModifiers(AnglerId(event.player.uniqueId))
@@ -348,10 +348,10 @@ class EventManager(private val fishProbabilityManager: FishProbabilityManager) {
 }
 ```
 
-### プレイヤーボーナス管理パターン
+### 釣り人ボーナス管理パターン
 
 ```kotlin
-class PlayerBonusManager(private val fishProbabilityManager: FishProbabilityManager) {
+class AnglerBonusManager(private val fishProbabilityManager: FishProbabilityManager) {
     
     fun applyPermissionBonus(player: Player) {
         val anglerId = AnglerId(player.uniqueId)
@@ -471,8 +471,8 @@ object ProbabilityDebugger {
     fun analyzeAngler(angler: Angler, fishProbabilityManager: FishProbabilityManager) {
         val rarities = listOf("common", "rare", "epic", "legendary", "mythic")
         
-        println("=== アングラー確率分析 ===")
-        println("プレイヤー: ${angler.getAnglerUniqueId()}")
+        println("=== 釣り人確率分析 ===")
+        println("釣り人: ${angler.getAnglerUniqueId()}")
         println("ワールド: ${angler.getWorld()?.getId()}")
         println("位置: ${angler.getLocation()}")
         println("ロッド: ${angler.getCurrentRodConfiguration()?.rodType}")

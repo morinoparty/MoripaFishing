@@ -42,7 +42,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
      *
      * @param rarity 抽選対象のレアリティ
      * @param fishingWorldId 釣り場のID
-     * @param angler 対象のアングラー（nullの場合は確率修正なし）
+     * @param angler 対象の釣り人（nullの場合は確率修正なし）
      * @return 抽選された魚データ
      */
     private fun drawRandomFishDataByRarity(
@@ -58,7 +58,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
                 !it.isDisabled && (it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId)) && (it.conditions.weather.isEmpty() || it.conditions.weather.contains(weatherType))
             }
 
-        // アングラーがある場合は確率修正値を適用
+        // 釣り人がある場合は確率修正値を適用
         if (angler != null) {
             // 各魚の修正後重みを計算
             val modifiedFishes =
@@ -138,13 +138,13 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
      * レアリティを抽選する
      * 各レアリティの出現確率に従って抽選を行う
      *
-     * @param angler 対象のアングラー（nullの場合は確率修正なし）
+     * @param angler 対象の釣り人（nullの場合は確率修正なし）
      * @return 抽選されたレアリティ
      */
     override fun drawRandomRarity(angler: Angler?): RarityId {
         val rarities = rarityManager.getRarities()
 
-        // アングラーがある場合は確率修正値を適用
+        // 釣り人がある場合は確率修正値を適用
         if (angler != null) {
             // 各レアリティの修正後重みを計算
             val modifiedRarities =
@@ -184,10 +184,10 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
     }
 
     /**
-     * アングラーのコンテキストを考慮して魚を抽選する
+     * 釣り人のコンテキストを考慮して魚を抽選する
      * 確率修正値を適用して抽選を行う
      *
-     * @param angler 対象のアングラー
+     * @param angler 対象の釣り人
      * @param fishingWorldId 釣り場のID
      * @return 抽選された魚
      */
@@ -205,7 +205,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
         rarity: RarityId,
         fishingWorldId: FishingWorldId,
     ): Fish {
-        // アングラーのコンテキストを考慮して指定レアリティの魚を抽選
+        // 釣り人のコンテキストを考慮して指定レアリティの魚を抽選
         return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId, angler))
     }
 }

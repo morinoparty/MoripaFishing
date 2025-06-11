@@ -197,7 +197,7 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
     }
 
     /**
-     * 特定のアングラーの適用値をクリア（釣り終了時に使用）
+     * 特定の釣り人の適用値をクリア（釣り終了時に使用）
      */
     fun clearAnglerEffects(anglerId: AnglerId) {
         anglerValues.removeAll { it.first == anglerId }
