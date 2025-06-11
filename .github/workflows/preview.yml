@@ -48,7 +48,16 @@ jobs:
 
       - name: Upload build artifacts
         id: upload-artifacts
-        run: .github/upload-artifacts.sh
+        run: |
+          mkdir -p ./upload
+          mkdir -p ./upload/jars
+          mv ./bukkit/build/libs/bukkit-*-all.jar ./upload/jars/MoripaFishing-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./api/build/libs/api-*-all.jar ./upload/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mkdir -p ./upload/junit
+          cp -r ./bukkit/build/reports/tests/test/* ./upload/junit/
+          mkdir -p ./upload/detekt
+          cp -r ./build/reports/detekt/* ./upload/detekt/
+          aws s3 cp ./upload s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }} --recursive
 
       - name: Publish test results
         id: publish-test-results
