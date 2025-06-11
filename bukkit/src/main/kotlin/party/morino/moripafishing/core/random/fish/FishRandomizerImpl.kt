@@ -68,7 +68,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
                 }
 
             val total = modifiedFishes.sumOf { it.second }
-            
+
             if (total <= 0.0) {
                 // すべての重みが0以下の場合はデフォルトロジック（確率修正なし）を使用
                 return drawRandomFishDataByRarity(rarity, fishingWorldId, null)
@@ -208,5 +208,4 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
         // アングラーのコンテキストを考慮して指定レアリティの魚を抽選
         return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId, angler))
     }
-
 }
