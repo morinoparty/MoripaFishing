@@ -39,13 +39,7 @@ class MoripaFishingTest : BeforeAllCallback, AfterAllCallback {
     lateinit var plugin: MoripaFishing
 
     companion object {
-        @JvmStatic
         lateinit var server: ServerMock
-
-        @JvmStatic
-        fun getMockServer(): ServerMock {
-            return server
-        }
     }
 
     /**
