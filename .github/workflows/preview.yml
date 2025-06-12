@@ -67,6 +67,9 @@ jobs:
         working-directory: docs
         run: pnpm install
 
+      - name: Generate Dokka API documentation
+        run: ./gradlew generateDokka
+
       - name: Build Docusaurus
         working-directory: docs
         run: pnpm run build
@@ -104,7 +107,8 @@ jobs:
           ARTIFACT_URL_API: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar"
           JUNIT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
           DETEKT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
-          DOCS_PREVIEW_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/docs/"
+          DOCS_PREVIEW_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}//index.html"
+          DOKKA_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/docs/dokka/index.html"
         run: |
           cat  << EOF > comment.md
           ## 🚀 Preview of ${{ github.event.repository.name }}
