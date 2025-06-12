@@ -10,6 +10,7 @@ import org.mockbukkit.mockbukkit.MockBukkit
 import org.mockbukkit.mockbukkit.ServerMock
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
+import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
@@ -19,6 +20,7 @@ import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
+import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.fishing.FishingManagerImpl
 import party.morino.moripafishing.core.fishing.rod.RodPresetManagerImpl
@@ -34,14 +36,15 @@ import party.morino.moripafishing.mocks.world.WorldManagerMock
  * KoinとMockBukkitのセットアップを統合する
  */
 class MoripaFishingTest : BeforeAllCallback, AfterAllCallback {
+    lateinit var plugin: MoripaFishing
+
     companion object {
         @JvmStatic
-        var server: ServerMock? = null
-            private set
+        lateinit var server: ServerMock
 
         @JvmStatic
         fun getMockServer(): ServerMock {
-            return server ?: throw IllegalStateException("MockBukkit server is not initialized")
+            return server
         }
     }
 
@@ -52,10 +55,9 @@ class MoripaFishingTest : BeforeAllCallback, AfterAllCallback {
      */
     override fun beforeAll(context: ExtensionContext) {
         // MockBukkitの初期化
-        if (server == null) {
-            server = MockBukkit.mock()
-        }
-        // Koinの初期化
+        server = MockBukkit.mock()
+
+        // Koinの初期化（プラグインロード前に実行）
         val appModule =
             module {
                 single<ConfigManager> { ConfigManagerImpl() }
@@ -68,11 +70,20 @@ class MoripaFishingTest : BeforeAllCallback, AfterAllCallback {
                 single<RodPresetManager> { RodPresetManagerImpl() }
                 single<FishingManager> { FishingManagerImpl() }
                 single<FishProbabilityManager> { FishProbabilityManagerImpl() }
-                single<ServerMock> { server!! } // MockBukkitサーバーをKoinに登録
+                single<AnglerManager> { AnglerManagerImpl() }
+                single<ServerMock> { server } // MockBukkitサーバーをKoinに登録
             }
+
+        // まずKoinを初期化
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
         }
+
+        // プラグインをロード（Koinは既に初期化済み）
+        plugin = MockBukkit.load(MoripaFishing::class.java)
+
+        // プラグインインスタンスをKoinに追加登録
+        GlobalContext.get().declare(plugin)
     }
 
     /**
@@ -82,9 +93,7 @@ class MoripaFishingTest : BeforeAllCallback, AfterAllCallback {
      */
     override fun afterAll(context: ExtensionContext) {
         // MockBukkitのクリーンアップ
-        server?.let {
-            MockBukkit.unmock()
-            server = null
-        }
+        MockBukkit.unmock()
+        plugin.onDisable()
     }
 }

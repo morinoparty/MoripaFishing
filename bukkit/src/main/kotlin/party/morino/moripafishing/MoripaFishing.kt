@@ -40,7 +40,7 @@ import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
 import party.morino.moripafishing.listener.moripafishing.PlayerFishingAnnounceListener
 import party.morino.moripafishing.utils.coroutines.async
 
-class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
+open class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     // 各マネージャーのインスタンスをKoinから遅延初期化
     private val _configManager: ConfigManager by lazy { GlobalContext.get().get() }
     private val _randomizeManager: RandomizeManager by lazy { GlobalContext.get().get() }
@@ -54,6 +54,8 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     private val _logManager: LogManager by lazy { GlobalContext.get().get() }
     private val _fishSelectionManager: FishSelectionManager by lazy { GlobalContext.get().get() }
     private val _fishProbabilityManager: FishProbabilityManager by lazy { GlobalContext.get().get() }
+
+    private var disable = false
 
     /**
      * プラグインの有効化時に呼び出されるメソッド
@@ -75,6 +77,7 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     }
 
     override fun onDisable() {
+        disable = true
         _worldManager.getWorldIdList().forEach {
             _worldManager.getWorld(it).effectFinish()
         }
@@ -82,6 +85,11 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
     }
 
     private fun setupKoin() {
+        // テスト環境では既にKoinが初期化されている場合があるのでチェック
+        if (getOrNull() != null) {
+            return
+        }
+
         val appModule =
             module {
                 single<MoripaFishing> { this@MoripaFishing }
@@ -111,11 +119,15 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
                 runBlocking {
                     withContext(Dispatchers.async) {
                         val interval = _configManager.getConfig().world.refreshInterval * 1000L
-                        while (true) {
+                        // whileループにラベルを付けて、ラムダ内からreturn@runWhileで抜ける
+                        runWhile@ while (!disable) {
                             _worldManager.getWorldIdList().forEach {
                                 _worldManager.getWorld(it).updateState()
                             }
-                            delay(interval)
+                            repeat(10) {
+                                if (disable) return@repeat // whileループごと抜ける
+                                delay(interval / 10)
+                            }
                         }
                     }
                 }

@@ -95,6 +95,16 @@ sourceSets.main {
                 server("Vault", PaperPluginYaml.Load.BEFORE)
             }
         }
+        bukkitPluginYaml {
+            name = rootProject.name
+            version = project.version.toString()
+            website = "https://fishing.plugin.morino.party"
+            main = "$group.moripafishing.MoripaFishing"
+            apiVersion = "1.20"
+            dependencies {
+                "Vault"
+            }
+        }
     }
 }
 
