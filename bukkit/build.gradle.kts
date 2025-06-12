@@ -46,6 +46,7 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
+    testImplementation(libs.mock.bukkit)
 
     testImplementation(platform("org.junit:junit-bom:5.13.1"))
     testImplementation(libs.bundles.junit.jupiter)

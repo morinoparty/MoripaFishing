@@ -42,6 +42,13 @@ interface Angler {
     fun getLocation(): Location?
 
     /**
+     * 釣り人の釣り針（浮き）の現在位置を取得する
+     * 釣りの待機時間やSpot効果の計算には、プレイヤーの位置ではなく釣り針の位置を使用する
+     * @return 釣り針の現在位置、釣りをしていない場合や取得できない場合はnull
+     */
+    fun getFishingHookLocation(): Location?
+
+    /**
      * 釣り人が現在使用しているロッドの設定を取得する
      * @return ロッドの設定情報、ロッドが特定できない場合はnull
      */

@@ -21,6 +21,7 @@ class AnglerMock(
     // テスト用の状態管理
     private var testWorld: FishingWorld? = null
     private var testLocation: Location? = null
+    private var testFishingHookLocation: Location? = null
     private var testRodConfiguration: RodConfiguration? = null
 
     override fun getAnglerUniqueId(): AnglerId {
@@ -41,6 +42,10 @@ class AnglerMock(
 
     override fun getLocation(): Location? {
         return testLocation
+    }
+
+    override fun getFishingHookLocation(): Location? {
+        return testFishingHookLocation
     }
 
     override fun getCurrentRodConfiguration(): RodConfiguration? {
@@ -92,6 +97,34 @@ class AnglerMock(
     }
 
     /**
+     * テスト用: 釣り針の位置を設定する
+     * @param location 釣り針の位置、nullの場合は釣り針なし状態
+     */
+    fun setTestFishingHookLocation(location: Location?) {
+        testFishingHookLocation = location
+    }
+
+    /**
+     * テスト用: 座標を指定して釣り針の位置を設定する
+     * @param worldId ワールドID
+     * @param x X座標
+     * @param y Y座標
+     * @param z Z座標
+     * @param yaw ヨー角（デフォルト0.0）
+     * @param pitch ピッチ角（デフォルト0.0）
+     */
+    fun setTestFishingHookLocation(
+        worldId: FishingWorldId,
+        x: Double,
+        y: Double,
+        z: Double,
+        yaw: Double = 0.0,
+        pitch: Double = 0.0,
+    ) {
+        testFishingHookLocation = Location(worldId, x, y, z, yaw, pitch)
+    }
+
+    /**
      * テスト用: ロッド設定を設定する
      * @param rodConfiguration ロッド設定、nullの場合はロッドなし状態
      */
@@ -105,6 +138,7 @@ class AnglerMock(
     fun setOffline() {
         testWorld = null
         testLocation = null
+        testFishingHookLocation = null
         testRodConfiguration = null
     }
 }

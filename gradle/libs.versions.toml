@@ -14,7 +14,7 @@ postgresql = "42.7.6"
 jnoise = "4.1.0"
 mockk = "1.14.2"
 junit = "5.12.1"
-mockBukkit = "3.93.2"
+mockBukkit = "4.50.0"
 adventure = "4.21.0"
 ktlint = "12.3.0"
 
@@ -54,6 +54,7 @@ vault-api = { group = "com.github.MilkBowl", name = "vaultAPI", version = "1.7.1
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }
 
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+mock-bukkit = { group = "org.mockbukkit.mockbukkit", name = "mockbukkit-v1.21", version.ref = "mockBukkit" }
 
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher"}

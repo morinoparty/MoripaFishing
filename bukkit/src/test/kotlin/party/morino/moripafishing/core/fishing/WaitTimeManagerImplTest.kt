@@ -150,6 +150,8 @@ class WaitTimeManagerImplTest : KoinTest {
 
         // テスト用Anglerがそのスポットにいるように設定
         testAngler.setTestLocation(testSpot.location)
+        // 釣り針も同じ位置に設定
+        testAngler.setTestFishingHookLocation(testSpot.location)
 
         val waitTime = waitTimeManager.getWaitTime(testAngler)
 
@@ -179,6 +181,8 @@ class WaitTimeManagerImplTest : KoinTest {
         // Anglerがワールドとスポットにいるように設定
         testAngler.setTestWorld(testWorldId)
         testAngler.setTestLocation(testSpot.location)
+        // 釣り針も同じ位置に設定
+        testAngler.setTestFishingHookLocation(testSpot.location)
 
         val waitTime = waitTimeManager.getWaitTime(testAngler)
 
@@ -333,6 +337,8 @@ class WaitTimeManagerImplTest : KoinTest {
 
         // 同じLocationにいるAnglerは効果を受ける
         testAngler.setTestLocation(testSpot.location)
+        // 釣り針も同じ位置に設定
+        testAngler.setTestFishingHookLocation(testSpot.location)
         val waitTime = waitTimeManager.getWaitTime(testAngler)
 
         assertEquals(2.0, waitTime.first) // 5 - 3 = 2

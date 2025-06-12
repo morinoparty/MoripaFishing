@@ -210,8 +210,8 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
             modifiedWeight = applyWeightEffect(modifiedWeight, effect)
         }
 
-        // Spot レベルの修正値を適用
-        angler.getLocation()?.let { location ->
+        // Spot レベルの修正値を適用（釣り針の位置を使用）
+        angler.getFishingHookLocation()?.let { location ->
             val spotEffects = getSpotRarityEffectsForLocation(location, rarityId)
             for (effect in spotEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
@@ -252,8 +252,8 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
             modifiedWeight = applyWeightEffect(modifiedWeight, effect)
         }
 
-        // Spot レベルの修正値を適用
-        angler.getLocation()?.let { location ->
+        // Spot レベルの修正値を適用（釣り針の位置を使用）
+        angler.getFishingHookLocation()?.let { location ->
             val spotEffects = getSpotFishEffectsForLocation(location, fishId)
             for (effect in spotEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)

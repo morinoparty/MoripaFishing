@@ -13,6 +13,9 @@ import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.fish.CaughtFish
+import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.Location
+import party.morino.moripafishing.core.angler.AnglerImpl
 import party.morino.moripafishing.core.fishing.WaitTimeManagerImpl
 import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
 import party.morino.moripafishing.utils.rod.RodAnalyzer
@@ -59,6 +62,19 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
                 val fishingHook = event.hook
                 val angler = angerManager.getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
 
+                // 釣り針の位置をAnglerに設定
+                val hookBukkitLocation = fishingHook.location
+                val hookLocation =
+                    Location(
+                        worldId = FishingWorldId(hookBukkitLocation.world.name),
+                        x = hookBukkitLocation.x,
+                        y = hookBukkitLocation.y,
+                        z = hookBukkitLocation.z,
+                        yaw = hookBukkitLocation.yaw.toDouble(),
+                        pitch = hookBukkitLocation.pitch.toDouble(),
+                    )
+                (angler as? AnglerImpl)?.setFishingHookLocation(hookLocation)
+
                 // 釣竿の解析と効果適用
                 analyzeAndApplyRodEffects(player, angler)
 
@@ -78,6 +94,9 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
                 val angler = angerManager.getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
                 val waitTimeManager = fishingManager.getWaitTimeManager() as? WaitTimeManagerImpl
                 waitTimeManager?.clearAnglerEffects(angler.getAnglerUniqueId())
+
+                // 釣り針の位置情報をクリア
+                (angler as? AnglerImpl)?.setFishingHookLocation(null)
             }
 
             else -> {

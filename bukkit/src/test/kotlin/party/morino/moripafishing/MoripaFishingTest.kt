@@ -1,10 +1,13 @@
 package party.morino.moripafishing
 
+import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.getOrNull
 import org.koin.dsl.module
+import org.mockbukkit.mockbukkit.MockBukkit
+import org.mockbukkit.mockbukkit.ServerMock
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.fish.FishManager
@@ -28,13 +31,31 @@ import party.morino.moripafishing.mocks.world.WorldManagerMock
 
 /**
  * MoripaFishingのテスト用拡張機能
+ * KoinとMockBukkitのセットアップを統合する
  */
-class MoripaFishingTest : BeforeAllCallback {
+class MoripaFishingTest : BeforeAllCallback, AfterAllCallback {
+    companion object {
+        @JvmStatic
+        var server: ServerMock? = null
+            private set
+
+        @JvmStatic
+        fun getMockServer(): ServerMock {
+            return server ?: throw IllegalStateException("MockBukkit server is not initialized")
+        }
+    }
+
     /**
      * テスト開始前に呼び出されるメソッド
+     * KoinとMockBukkitの初期化を行う
      * @param context 拡張機能のコンテキスト
      */
     override fun beforeAll(context: ExtensionContext) {
+        // MockBukkitの初期化
+        if (server == null) {
+            server = MockBukkit.mock()
+        }
+        // Koinの初期化
         val appModule =
             module {
                 single<ConfigManager> { ConfigManagerImpl() }
@@ -47,9 +68,23 @@ class MoripaFishingTest : BeforeAllCallback {
                 single<RodPresetManager> { RodPresetManagerImpl() }
                 single<FishingManager> { FishingManagerImpl() }
                 single<FishProbabilityManager> { FishProbabilityManagerImpl() }
+                single<ServerMock> { server!! } // MockBukkitサーバーをKoinに登録
             }
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
+        }
+    }
+
+    /**
+     * テスト終了後に呼び出されるメソッド
+     * MockBukkitのクリーンアップを行う
+     * @param context 拡張機能のコンテキスト
+     */
+    override fun afterAll(context: ExtensionContext) {
+        // MockBukkitのクリーンアップ
+        server?.let {
+            MockBukkit.unmock()
+            server = null
         }
     }
 }

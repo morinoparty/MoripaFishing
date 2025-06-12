@@ -24,6 +24,9 @@ class AnglerImpl(
     val worldManager: WorldManager by inject()
     val rodPresetManager: RodPresetManager by inject()
 
+    // 釣り針の位置を一時的に保存するための変数
+    private var currentFishingHookLocation: Location? = null
+
     /**
      * 釣り人のIDを取得する
      * @return 釣り人のID
@@ -64,6 +67,19 @@ class AnglerImpl(
                 player.location.pitch.toDouble(),
             )
         return location
+    }
+
+    override fun getFishingHookLocation(): Location? {
+        // 保存されている釣り針の位置を返す
+        return currentFishingHookLocation
+    }
+
+    /**
+     * 釣り針の位置を設定する（PlayerFishingListenerから呼び出される）
+     * @param location 釣り針の位置
+     */
+    fun setFishingHookLocation(location: Location?) {
+        this.currentFishingHookLocation = location
     }
 
     override fun getCurrentRodConfiguration(): RodConfiguration? {

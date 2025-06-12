@@ -112,6 +112,8 @@ class FishProbabilityManagerFunctionalTest : KoinTest {
         val location = Location(testWorldId, 10.0, 0.0, 10.0, 0.0, 0.0)
         val spot = Spot(location, 20.0) // 半径20の範囲
         angler.setTestLocation(Location(testWorldId, 15.0, 0.0, 15.0, 0.0, 0.0)) // 範囲内
+        // 釣り針も同じ位置に設定
+        angler.setTestFishingHookLocation(Location(testWorldId, 15.0, 0.0, 15.0, 0.0, 0.0))
 
         val applyValue = ApplyValue(ApplyType.MULTIPLY, 3.0, "")
 
