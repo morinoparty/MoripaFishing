@@ -68,7 +68,7 @@ jobs:
         run: pnpm install
 
       - name: Generate Dokka API documentation
-        run: ./gradlew generateDokka
+        run: ./gradlew dokkaGenerate
 
       - name: Build Docusaurus
         working-directory: docs
