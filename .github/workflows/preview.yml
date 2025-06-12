@@ -30,13 +30,19 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'docs/pnpm-lock.yaml'
+
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
       - name: Set short git commit SHA
         id: vars
         run: |
-          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          calculatedSha=$(git rev-parse --short HEAD)
           echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
 
       - name: change plugin.yml version
@@ -44,6 +50,25 @@ jobs:
           before="$GITHUB_ENV"
           after="${before//v/}"
           sed -i 's/VersionPlaceholder/$after/' ./gradle.properties
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: 9
+
+      - name: Configure Docusaurus for preview
+        run: |
+          cd docs
+          # baseUrlを一時的に変更
+          sed -i 's#baseUrl: "/"#baseUrl: "/${{ env.COMMIT_SHORT_SHA }}/docs/"#g' docusaurus.config.ts
+          # urlを一時的に変更
+          sed -i 's#url: "https://fishing.plugin.morino.party"#url: "https://mf-ci.nikomaru.dev"#g' docusaurus.config.ts
+
+      - name: Build Docusaurus
+        run: |
+          cd docs
+          pnpm install --frozen-lockfile
+          pnpm build
 
       - name: Build with Gradle
         run: ./gradlew build
@@ -59,6 +84,8 @@ jobs:
           cp -r ./bukkit/build/reports/tests/test/* ./upload/junit/
           mkdir -p ./upload/detekt
           cp -r ./build/reports/detekt/* ./upload/detekt/
+          mkdir -p ./upload/docs
+          cp -r ./docs/build/* ./upload/docs/
           # CRC32チェックサムアルゴリズムを使用してS3互換エンドポイントとの互換性を確保
           aws s3 cp ./upload --endpoint-url ${S3_ENDPOINT} s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }} --recursive --checksum-algorithm=CRC32 || echo "S3 upload completed with warnings"
 
@@ -76,24 +103,29 @@ jobs:
           ARTIFACT_URL_API: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar"
           JUNIT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
           DETEKT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
+          DOCS_PREVIEW_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/docs/"
         run: |
           cat  << EOF > comment.md
-          ## 🚀 Preview jars of ${{ github.event.repository.name }}
+          ## 🚀 Preview of ${{ github.event.repository.name }}
           <table>
             <tr>
-              <th scope="row">Preview Jars Bukkit</th>
+              <th scope="row">📖 Documentation Preview</th>
+              <td><a href="$DOCS_PREVIEW_URL">$DOCS_PREVIEW_URL</a></td>
+            </tr>
+            <tr>
+              <th scope="row">📦 Preview Jars Bukkit</th>
               <td><a href="$ARTIFACT_URL">$ARTIFACT_URL</a></td>
             </tr>
             <tr>
-              <th scope="row">Preview Jars API</th>
+              <th scope="row">🔌 Preview Jars API</th>
               <td><a href="$ARTIFACT_URL_API">$ARTIFACT_URL_API</a></td>
             </tr>
             <tr>
-              <th scope="row">JUnit Report</th>
+              <th scope="row">🧪 JUnit Report</th>
               <td><a href="$JUNIT_REPORT_URL">$JUNIT_REPORT_URL</a></td>
             </tr>
             <tr>
-              <th scope="row">Detekt Report</th>
+              <th scope="row">🔍 Detekt Report</th>
               <td><a href="$DETEKT_REPORT_URL">$DETEKT_REPORT_URL</a></td>
             </tr>
           </table>
