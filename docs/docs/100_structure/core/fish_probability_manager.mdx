@@ -231,7 +231,9 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
 
 ### Rod修正システム
 
-v2.0で追加された新機能により、ロッドタイプに応じた確率修正が可能になりました。
+
+
+ロッドタイプに応じた確率修正が可能です。
 
 ```kotlin
 // ロッドタイプごとの確率修正
@@ -272,31 +274,6 @@ val baseWeight = fishProbabilityManager.getBaseRarityWeight(RarityId("rare"))
 
 // 修正後重みの取得（baseWeightパラメータ不要）
 val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, rarityId)
-```
-
-### 実際の確率変化データ
-
-実際のテスト結果に基づく確率変化の例：
-
-#### 段階的確率変化（テスト結果）
-```
-1. ベースライン: 20.18%
-2. World修正(x2): 38.86%  
-3. + 釣り人修正(+5): 90.82%
-4. + Spot修正(x1.5): 100.00%
-5. + Rod修正(=20): 100.00%
-```
-
-#### 3倍修正の効果検証
-```
-修正前: 19.43% → 修正後: 60.18% (約3.1倍)
-試行回数: 10,000回での実測値
-```
-
-#### 時間制限機能の動作
-```
-即座: 10.0 (修正値適用)
-100ms後: 2.0 (修正値期限切れ・自動削除)
 ```
 
 ### 高度なイベント実装例
@@ -370,7 +347,5 @@ Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, ProbabilityMaintenanceT
 
 ## 🔗 関連システム
 
-- [**Fish Selection Provider**](./fish_selection_provider): より高度なカスタマイズ
 - [**Wait Time Manager**](../fishing_manager/wait_time_manager): 同様の修正値システム
 - [**Fishing Manager**](../fishing_manager): 釣りシステム全体の管理
-- [**Rod Configuration**](../../002_commands/rod): ロッド設定システム
