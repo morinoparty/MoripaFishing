@@ -107,7 +107,7 @@ jobs:
           ARTIFACT_URL_API: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/jars/MoripaFishing-api-${{ env.COMMIT_SHORT_SHA }}.jar"
           JUNIT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
           DETEKT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
-          DOCS_PREVIEW_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}//index.html"
+          DOCS_PREVIEW_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/docs/index.html"
           DOKKA_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/docs/dokka/index.html"
         run: |
           cat  << EOF > comment.md
@@ -124,6 +124,10 @@ jobs:
             <tr>
               <th scope="row">🔌 Preview Jars API</th>
               <td><a href="$ARTIFACT_URL_API">$ARTIFACT_URL_API</a></td>
+            </tr>
+            <tr>
+              <th scope="row">📖 Dokka API Documentation</th>
+              <td><a href="$DOKKA_URL">$DOKKA_URL</a></td>
             </tr>
             <tr>
               <th scope="row">🧪 JUnit Report</th>
