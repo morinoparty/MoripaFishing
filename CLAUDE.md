@@ -41,12 +41,14 @@
 
 3. 実装の確認ん
     - テストを実行して、実装が正しいか確認 `taks check`を実行
+    - 
 ## プラクティス
 
 - 小さく始めて段階的に拡張
 - 過度な抽象化を避ける
 - コードよりも型を重視
 - 複雑さに応じてアプローチを調整
+- テストを行う 
 
 
 
@@ -61,11 +63,13 @@
 - クラスごとにファイルを分けてください。
 - 適切にpackageを作成してください。
 - 色などをつける際は、KyoriのMiniMessageを利用してください。
+- テストについては、(@@DisplayName("{Type} No. {num}: {title}"DisplayName("{Type} No. {num}: {title}")を使ってわかりやすく。ex) FishRandomizer No.1 天気のランダム
 
 ## 補足
 
 エディターの仕様上`Unresolved reference: UUIDkotlin(UNRESOLVED_REFERENCE)`などが出ることがあるが無視してください。
 Serializeのために、jsonを利用する場合、Utils.jsonを利用してください。
+また、実装に関してAnglerという単語がありますが、コメントに記載する際は釣り人という意味で利用してください。
 
 # ドキュメント
 
