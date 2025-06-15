@@ -11,6 +11,8 @@ import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.model.rod.Hook
+import party.morino.moripafishing.api.model.rod.Rod
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
@@ -24,8 +26,8 @@ class AnglerImpl(
     val worldManager: WorldManager by inject()
     val rodPresetManager: RodPresetManager by inject()
 
-    // 釣り針の位置を一時的に保存するための変数
-    private var currentFishingHookLocation: Location? = null
+    // 現在のロッドの状態を保存するための変数
+    private var currentRod: Rod? = null
 
     /**
      * 釣り人のIDを取得する
@@ -69,20 +71,7 @@ class AnglerImpl(
         return location
     }
 
-    override fun getFishingHookLocation(): Location? {
-        // 保存されている釣り針の位置を返す
-        return currentFishingHookLocation
-    }
-
-    /**
-     * 釣り針の位置を設定する（PlayerFishingListenerから呼び出される）
-     * @param location 釣り針の位置
-     */
-    fun setFishingHookLocation(location: Location?) {
-        this.currentFishingHookLocation = location
-    }
-
-    override fun getCurrentRodConfiguration(): RodConfiguration? {
+    override fun getCurrentRod(): Rod? {
         // プレイヤーがオンラインかチェック
         val player = Bukkit.getPlayer(uniqueId) ?: return null
 
@@ -97,7 +86,8 @@ class AnglerImpl(
                 else -> return null
             }
 
-        return runBlocking {
+        // ロッドの設定を取得
+        val configuration = runBlocking {
             // RodAnalyzerを使用してロッドの設定を分析・取得
             val rodAnalyzer = RodAnalyzer(plugin)
             // 最初にカスタムロッドの設定があるかチェック
@@ -114,6 +104,23 @@ class AnglerImpl(
                     rodPresetManager.getPreset("beginner") // デフォルトのビギナー用ロッド
                 }
             }
+        } ?: return null
+
+        // 既存のロッドがある場合はHook情報を維持、ない場合は新しいRodを作成
+        return currentRod?.copy(configuration = configuration) ?: Rod(configuration)
+    }
+
+    /**
+     * ロッドの釣り針の位置を更新する（PlayerFishingListenerから呼び出される）
+     * @param location 釣り針の位置
+     * @param isInWater 釣り針が水中にあるかどうか
+     * @param castTime 投げられてからの経過時間
+     */
+    fun updateRodHook(location: Location?, isInWater: Boolean = false, castTime: Long = 0L) {
+        val rod = getCurrentRod()
+        if (rod != null) {
+            currentRod = rod.updateHook(location, isInWater, castTime)
         }
     }
+
 }

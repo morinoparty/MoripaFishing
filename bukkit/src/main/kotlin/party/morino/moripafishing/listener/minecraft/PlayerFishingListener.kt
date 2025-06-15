@@ -73,7 +73,11 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
                         yaw = hookBukkitLocation.yaw.toDouble(),
                         pitch = hookBukkitLocation.pitch.toDouble(),
                     )
-                (angler as? AnglerImpl)?.setFishingHookLocation(hookLocation)
+                (angler as? AnglerImpl)?.updateRodHook(
+                    hookLocation,
+                    isInWater = true,
+                    castTime = System.currentTimeMillis(),
+                )
 
                 // 釣竿の解析と効果適用
                 analyzeAndApplyRodEffects(player, angler)
@@ -96,7 +100,7 @@ class PlayerFishingListener(private val plugin: Plugin) : Listener, KoinComponen
                 waitTimeManager?.clearAnglerEffects(angler.getAnglerUniqueId())
 
                 // 釣り針の位置情報をクリア
-                (angler as? AnglerImpl)?.setFishingHookLocation(null)
+                (angler as? AnglerImpl)?.updateRodHook(null)
             }
 
             else -> {

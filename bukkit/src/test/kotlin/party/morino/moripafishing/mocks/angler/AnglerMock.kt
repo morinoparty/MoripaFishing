@@ -3,6 +3,8 @@ package party.morino.moripafishing.mocks.angler
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.model.rod.Hook
+import party.morino.moripafishing.api.model.rod.Rod
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
@@ -21,8 +23,7 @@ class AnglerMock(
     // テスト用の状態管理
     private var testWorld: FishingWorld? = null
     private var testLocation: Location? = null
-    private var testFishingHookLocation: Location? = null
-    private var testRodConfiguration: RodConfiguration? = null
+    private var testRod: Rod? = null
 
     override fun getAnglerUniqueId(): AnglerId {
         return anglerId
@@ -44,12 +45,8 @@ class AnglerMock(
         return testLocation
     }
 
-    override fun getFishingHookLocation(): Location? {
-        return testFishingHookLocation
-    }
-
-    override fun getCurrentRodConfiguration(): RodConfiguration? {
-        return testRodConfiguration
+    override fun getCurrentRod(): Rod? {
+        return testRod
     }
 
     /**
@@ -97,11 +94,38 @@ class AnglerMock(
     }
 
     /**
+     * テスト用: ロッドを設定する
+     * @param rod ロッド、nullの場合はロッドなし状態
+     */
+    fun setTestRod(rod: Rod?) {
+        testRod = rod
+    }
+
+    /**
+     * テスト用: ロッド設定を設定する（Hook情報なしのロッドを作成）
+     * @param rodConfiguration ロッド設定、nullの場合はロッドなし状態
+     */
+    fun setTestRodConfiguration(rodConfiguration: RodConfiguration?) {
+        testRod = rodConfiguration?.let { Rod(it) }
+    }
+
+    /**
      * テスト用: 釣り針の位置を設定する
      * @param location 釣り針の位置、nullの場合は釣り針なし状態
      */
     fun setTestFishingHookLocation(location: Location?) {
-        testFishingHookLocation = location
+        val currentRod = testRod
+        testRod = if (currentRod != null) {
+            currentRod.updateHook(location)
+        } else {
+            // ロッドが存在しない場合はダミーのロッド設定を作成
+            location?.let {
+                Rod(
+                    RodConfiguration("test"),
+                    Hook(it),
+                )
+            }
+        }
     }
 
     /**
@@ -121,15 +145,8 @@ class AnglerMock(
         yaw: Double = 0.0,
         pitch: Double = 0.0,
     ) {
-        testFishingHookLocation = Location(worldId, x, y, z, yaw, pitch)
-    }
-
-    /**
-     * テスト用: ロッド設定を設定する
-     * @param rodConfiguration ロッド設定、nullの場合はロッドなし状態
-     */
-    fun setTestRodConfiguration(rodConfiguration: RodConfiguration?) {
-        testRodConfiguration = rodConfiguration
+        val location = Location(worldId, x, y, z, yaw, pitch)
+        setTestFishingHookLocation(location)
     }
 
     /**
@@ -138,7 +155,6 @@ class AnglerMock(
     fun setOffline() {
         testWorld = null
         testLocation = null
-        testFishingHookLocation = null
-        testRodConfiguration = null
+        testRod = null
     }
 }
