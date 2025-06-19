@@ -2,6 +2,7 @@ package party.morino.moripafishing.api.core.angler
 
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.model.rod.Rod
 import party.morino.moripafishing.api.model.world.Location
 import java.util.UUID
 
@@ -39,4 +40,11 @@ interface Angler {
      *  @return 釣り人の現在の位置(オフラインプレイヤーの場合はnull)
      */
     fun getLocation(): Location?
+
+    /**
+     * 釣り人が現在使用しているロッドを取得する
+     * ロッドには設定情報と釣り針の状態が含まれます
+     * @return 現在のロッド、ロッドが特定できない場合はnull
+     */
+    fun getCurrentRod(): Rod?
 }

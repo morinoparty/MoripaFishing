@@ -1,33 +1,34 @@
 package party.morino.moripafishing.api.core.fishing.rod
 
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 
 /**
  * ロッドプリセットの管理を行うインターフェース
  */
 interface RodPresetManager {
     /**
-     * 指定された名前のプリセットを取得する
+     * 指定されたIDのプリセットを取得する
      *
-     * @param presetName プリセット名
+     * @param presetId プリセットID
      * @return プリセットのロッド設定、見つからない場合はnull
      */
-    suspend fun getPreset(presetName: String): RodConfiguration?
+    suspend fun getPreset(presetId: RodPresetId): RodConfiguration?
 
     /**
-     * 利用可能なプリセット名の一覧を取得する
+     * 利用可能なプリセットIDの一覧を取得する
      *
-     * @return プリセット名のリスト
+     * @return プリセットIDのリスト
      */
-    suspend fun getAllPresetNames(): List<String>
+    suspend fun getAllPresetIds(): List<RodPresetId>
 
     /**
      * プリセットが存在するかチェックする
      *
-     * @param presetName プリセット名
+     * @param presetId プリセットID
      * @return 存在する場合true
      */
-    suspend fun hasPreset(presetName: String): Boolean
+    suspend fun hasPreset(presetId: RodPresetId): Boolean
 
     /**
      * プリセットを再読み込みする
@@ -38,12 +39,12 @@ interface RodPresetManager {
     /**
      * 新しいプリセットを追加する
      *
-     * @param presetName プリセット名
+     * @param presetId プリセットID
      * @param configuration ロッド設定
      * @return 追加に成功した場合true
      */
     suspend fun addPreset(
-        presetName: String,
+        presetId: RodPresetId,
         configuration: RodConfiguration,
     ): Boolean
 }
