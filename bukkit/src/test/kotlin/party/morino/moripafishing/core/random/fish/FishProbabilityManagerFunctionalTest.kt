@@ -17,6 +17,7 @@ import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.Spot
@@ -214,7 +215,7 @@ class FishProbabilityManagerFunctionalTest : KoinTest {
         fishProbabilityManager.applyRarityModifierForRod(rodType, testRarityId, applyValue)
 
         // テスト用のロッド設定を設定
-        val rodConfig = RodConfiguration(rodType = rodType)
+        val rodConfig = RodConfiguration(rodType = RodPresetId(rodType))
         angler.setTestRodConfiguration(rodConfig)
 
         // 実行
@@ -235,7 +236,7 @@ class FishProbabilityManagerFunctionalTest : KoinTest {
         fishProbabilityManager.applyFishModifierForRod(rodType, testFishId, applyValue)
 
         // テスト用のロッド設定を設定
-        val rodConfig = RodConfiguration(rodType = rodType)
+        val rodConfig = RodConfiguration(rodType = RodPresetId(rodType))
         angler.setTestRodConfiguration(rodConfig)
 
         // 実行

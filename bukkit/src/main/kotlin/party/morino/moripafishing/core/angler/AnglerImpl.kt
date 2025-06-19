@@ -11,9 +11,8 @@ import party.morino.moripafishing.api.core.fishing.rod.RodPresetManager
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
-import party.morino.moripafishing.api.model.rod.Hook
 import party.morino.moripafishing.api.model.rod.Rod
-import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.utils.rod.RodAnalyzer
@@ -87,24 +86,21 @@ class AnglerImpl(
             }
 
         // ロッドの設定を取得
-        val configuration = runBlocking {
-            // RodAnalyzerを使用してロッドの設定を分析・取得
-            val rodAnalyzer = RodAnalyzer(plugin)
-            // 最初にカスタムロッドの設定があるかチェック
-            val customConfig = rodAnalyzer.analyzeRod(rodItem)
-            if (customConfig != null) {
-                customConfig
-            } else {
-                // カスタム設定がない場合、バニララッドのエンチャント効果を確認
-                val vanillaConfig = rodAnalyzer.analyzeVanillaRod(rodItem)
-                if (vanillaConfig != null) {
-                    vanillaConfig
+        val configuration =
+            runBlocking {
+                // RodAnalyzerを使用してロッドの設定を分析・取得
+                val rodAnalyzer = RodAnalyzer(plugin)
+                // 最初にカスタムロッドの設定があるかチェック
+                val customConfig = rodAnalyzer.analyzeRod(rodItem)
+                if (customConfig != null) {
+                    customConfig
                 } else {
-                    // どちらもない場合はプリセットから基本の釣り竿を取得
-                    rodPresetManager.getPreset("beginner") // デフォルトのビギナー用ロッド
+                    // カスタム設定がない場合、バニララッドのエンチャント効果を確認
+                    val vanillaConfig = rodAnalyzer.analyzeVanillaRod(rodItem)
+                    vanillaConfig ?: // どちらもない場合はプリセットから基本の釣り竿を取得
+                        rodPresetManager.getPreset(RodPresetId("beginner")) // デフォルトのビギナー用ロッド
                 }
-            }
-        } ?: return null
+            } ?: return null
 
         // 既存のロッドがある場合はHook情報を維持、ない場合は新しいRodを作成
         return currentRod?.copy(configuration = configuration) ?: Rod(configuration)
@@ -116,11 +112,14 @@ class AnglerImpl(
      * @param isInWater 釣り針が水中にあるかどうか
      * @param castTime 投げられてからの経過時間
      */
-    fun updateRodHook(location: Location?, isInWater: Boolean = false, castTime: Long = 0L) {
+    fun updateRodHook(
+        location: Location?,
+        isInWater: Boolean = false,
+        castTime: Long = 0L,
+    ) {
         val rod = getCurrentRod()
         if (rod != null) {
             currentRod = rod.updateHook(location, isInWater, castTime)
         }
     }
-
 }

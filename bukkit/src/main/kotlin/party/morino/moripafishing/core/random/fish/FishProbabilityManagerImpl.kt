@@ -211,7 +211,7 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
         }
 
         // Spot レベルの修正値を適用（釣り針の位置を使用）
-        angler.getFishingHookLocation()?.let { location ->
+        angler.getCurrentRod()?.getHookLocation()?.let { location ->
             val spotEffects = getSpotRarityEffectsForLocation(location, rarityId)
             for (effect in spotEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
@@ -219,8 +219,8 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
         }
 
         // Rod レベルの修正値を適用
-        angler.getCurrentRodConfiguration()?.let { rodConfig ->
-            val rodEffects = getRodRarityEffects(rodConfig.rodType, rarityId)
+        angler.getCurrentRod()?.configuration?.let { rodConfig ->
+            val rodEffects = getRodRarityEffects(rodConfig.rodType.value, rarityId)
             for (effect in rodEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
             }
@@ -253,7 +253,7 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
         }
 
         // Spot レベルの修正値を適用（釣り針の位置を使用）
-        angler.getFishingHookLocation()?.let { location ->
+        angler.getCurrentRod()?.getHookLocation()?.let { location ->
             val spotEffects = getSpotFishEffectsForLocation(location, fishId)
             for (effect in spotEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
@@ -261,8 +261,8 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
         }
 
         // Rod レベルの修正値を適用
-        angler.getCurrentRodConfiguration()?.let { rodConfig ->
-            val rodEffects = getRodFishEffects(rodConfig.rodType, fishId)
+        angler.getCurrentRod()?.configuration?.let { rodConfig ->
+            val rodEffects = getRodFishEffects(rodConfig.rodType.value, fishId)
             for (effect in rodEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
             }

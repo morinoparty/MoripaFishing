@@ -5,7 +5,7 @@ import party.morino.moripafishing.api.core.fishing.ApplyValue
 
 @Serializable
 data class RodConfiguration(
-    val rodType: String,
+    val rodType: RodPresetId,
     val waitTimeMultiplier: Double = 1.0,
     val bonusEffects: List<ApplyValue> = emptyList(),
     val weatherImmunity: Boolean = false,

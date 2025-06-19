@@ -6,6 +6,7 @@ import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.rod.Hook
 import party.morino.moripafishing.api.model.rod.Rod
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.mocks.world.FishingWorldMock
@@ -115,17 +116,18 @@ class AnglerMock(
      */
     fun setTestFishingHookLocation(location: Location?) {
         val currentRod = testRod
-        testRod = if (currentRod != null) {
-            currentRod.updateHook(location)
-        } else {
-            // ロッドが存在しない場合はダミーのロッド設定を作成
-            location?.let {
-                Rod(
-                    RodConfiguration("test"),
-                    Hook(it),
-                )
+        testRod =
+            if (currentRod != null) {
+                currentRod.updateHook(location)
+            } else {
+                // ロッドが存在しない場合はダミーのロッド設定を作成
+                location?.let {
+                    Rod(
+                        RodConfiguration(RodPresetId("test")),
+                        Hook(it),
+                    )
+                }
             }
-        }
     }
 
     /**

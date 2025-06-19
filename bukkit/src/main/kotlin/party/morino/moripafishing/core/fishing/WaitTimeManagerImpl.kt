@@ -103,7 +103,7 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
         }
 
         // Spot レベルの適用値を取得・適用（釣り針の位置がSpotの範囲内にあるかを判定）
-        angler.getFishingHookLocation()?.let { location ->
+        angler.getCurrentRod()?.getHookLocation()?.let { location ->
             val spotEffects = getSpotEffectsForLocation(location)
             for (effect in spotEffects) {
                 val result = applyEffect(baseMinTime, baseMaxTime, effect)

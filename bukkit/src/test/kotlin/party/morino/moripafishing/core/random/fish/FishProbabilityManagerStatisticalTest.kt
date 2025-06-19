@@ -19,6 +19,7 @@ import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.Spot
@@ -176,7 +177,7 @@ class FishProbabilityManagerStatisticalTest : KoinTest {
         val spotModifiedRate = spotModifiedStats.rarityCount.getOrDefault(testRarityId, 0).toDouble() / totalTrials
 
         // ステップ5: Rod修正値追加（固定20）
-        val rodConfig = RodConfiguration(rodType = "legendary")
+        val rodConfig = RodConfiguration(rodType = RodPresetId("legendary"))
         angler.setTestRodConfiguration(rodConfig)
         fishProbabilityManager.applyRarityModifierForRod("legendary", testRarityId, ApplyValue(ApplyType.CONSTANT, 20.0, "Rod修正"))
         println("5. Rod修正(=20)後測定中...")

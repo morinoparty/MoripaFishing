@@ -298,7 +298,7 @@ class FishingRodMockBukkitTest : KoinTest {
         angler.setTestFishingHookLocation(hookTestLocation)
 
         // 設定確認
-        val setHookLocation = angler.getFishingHookLocation()
+        val setHookLocation = angler.getCurrentRod()?.getHookLocation()
         assertNotNull(setHookLocation)
         assertEquals(15.0, setHookLocation!!.x, 0.001)
         assertEquals(63.0, setHookLocation.y, 0.001)
