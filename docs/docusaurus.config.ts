@@ -8,7 +8,7 @@ const config: Config = {
     title: "MoripaFishing Documentation",
     // favicon: "img/favicon.svg",
     staticDirectories: ["static"],
-    trailingSlash: false,
+    trailingSlash: true,
 
     url: "https://fishing.plugin.morino.party",
     baseUrl: "/",
