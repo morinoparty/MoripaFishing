@@ -15,7 +15,7 @@ jnoise = "4.1.0"
 mockk = "1.14.2"
 junit = "5.12.1"
 mockBukkit = "3.93.2"
-adventure = "4.21.0"
+adventure = "4.23.0"
 ktlint = "12.3.0"
 
 [libraries]
