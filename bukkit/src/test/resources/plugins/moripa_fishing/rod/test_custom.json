@@ -1,1 +1,14 @@
-{"rodType":"test_custom","waitTimeMultiplier":0.5,"weatherImmunity":true,"fishingWorldBonuses":{"default":1.5},"displayNameKey":"rod.test_custom.name","loreKeys":["rod.test_custom.lore.1","rod.test_custom.lore.2"]}
+{
+    "rodType": "test_custom",
+    "waitTimeMultiplier": 0.5,
+    "bonusEffects": [],
+    "weatherImmunity": true,
+    "fishingWorldBonuses": {
+        "default": 1.5
+    },
+    "displayNameKey": "rod.test_custom.name",
+    "loreKeys": [
+        "rod.test_custom.lore.1",
+        "rod.test_custom.lore.2"
+    ]
+}

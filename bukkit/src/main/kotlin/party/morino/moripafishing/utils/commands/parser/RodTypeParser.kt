@@ -42,9 +42,9 @@ class RodTypeParser<C> : ArgumentParser<C, String>, BlockingSuggestionProvider.S
     ): Iterable<String> {
         // 既存のプリセットからrodTypeを取得
         return runBlocking {
-            rodPresetManager.getAllPresetNames()
-                .mapNotNull { presetName ->
-                    rodPresetManager.getPreset(presetName)?.rodType
+            rodPresetManager.getAllPresetIds()
+                .mapNotNull { presetId ->
+                    rodPresetManager.getPreset(presetId)?.rodType?.value
                 }
                 .distinct() // 重複を除去
                 .sorted() // アルファベット順にソート

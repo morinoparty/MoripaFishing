@@ -12,6 +12,7 @@ import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
 import party.morino.moripafishing.api.core.fishing.EnchantmentEffects
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 import party.morino.moripafishing.utils.Utils
 import java.util.Locale
 
@@ -57,7 +58,7 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
 
         return if (bonusEffects.isNotEmpty()) {
             RodConfiguration(
-                rodType = "vanilla_enchanted",
+                rodType = RodPresetId("vanilla_enchanted"),
                 waitTimeMultiplier = 1.0,
                 bonusEffects = bonusEffects,
             )

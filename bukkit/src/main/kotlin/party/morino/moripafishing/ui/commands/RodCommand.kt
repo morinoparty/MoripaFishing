@@ -17,6 +17,7 @@ import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 import party.morino.moripafishing.utils.rod.RodAnalyzer
 import java.util.Locale
 
@@ -56,7 +57,7 @@ class RodCommand : KoinComponent {
 
         val rodConfig =
             RodConfiguration(
-                rodType = rodType,
+                rodType = RodPresetId(rodType),
                 bonusEffects = bonusEffects,
                 displayNameKey = "${rodType.uppercase()} ROD",
                 loreKeys =
@@ -143,11 +144,11 @@ class RodCommand : KoinComponent {
     @Command("list")
     @Permission("moripa_fishing.command.rod.list")
     suspend fun listPresets(sender: CommandSender) {
-        val presets = rodPresetManager.getAllPresetNames()
+        val presets = rodPresetManager.getAllPresetIds()
 
         sender.sendRichMessage("<green>Available Rod Presets:")
-        presets.forEach { presetName ->
-            val config = rodPresetManager.getPreset(presetName)
+        presets.forEach { presetId ->
+            val config = rodPresetManager.getPreset(presetId)
             if (config != null) {
                 val translatedName =
                     if (config.displayNameKey.isNotEmpty()) {
@@ -156,9 +157,9 @@ class RodCommand : KoinComponent {
                             Locale.getDefault(),
                         )
                     } else {
-                        Component.text(presetName)
+                        Component.text(presetId.value)
                     }
-                sender.sendRichMessage("<yellow>$presetName <gray>- ${MiniMessage.miniMessage().serialize(translatedName)}")
+                sender.sendRichMessage("<yellow>${presetId.value} <gray>- ${MiniMessage.miniMessage().serialize(translatedName)}")
             }
         }
         sender.sendRichMessage("")

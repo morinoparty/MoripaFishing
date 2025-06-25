@@ -12,6 +12,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
+import party.morino.moripafishing.api.model.rod.RodPresetId
 
 /**
  * ロッドプリセットのコマンド引数パーサー
@@ -33,7 +34,7 @@ class RodPresetParser<C> :
         commandInput: CommandInput,
     ): ArgumentParseResult<RodConfiguration> {
         val presetName = commandInput.readString()
-        val rodConfig = runBlocking { rodPresetManager.getPreset(presetName) }
+        val rodConfig = runBlocking { rodPresetManager.getPreset(RodPresetId(presetName)) }
 
         return if (rodConfig != null) {
             ArgumentParseResult.success(rodConfig)
@@ -49,7 +50,7 @@ class RodPresetParser<C> :
         commandContext: CommandContext<CommandSender?>,
         input: CommandInput,
     ): Iterable<String> {
-        return runBlocking { rodPresetManager.getAllPresetNames() }
+        return runBlocking { rodPresetManager.getAllPresetIds().map { it.value } }
     }
 
     companion object {

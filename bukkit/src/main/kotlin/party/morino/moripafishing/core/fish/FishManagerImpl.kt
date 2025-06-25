@@ -100,7 +100,6 @@ class FishManagerImpl : FishManager, KoinComponent {
         json: Json,
     ) {
         directory.listFiles { file -> file.extension == "json" }?.forEach { file ->
-            // println("Processing fish file: ${file.name}")
             val fish = json.decodeFromString<FishData>(file.readText())
             registerFish(fish)
 

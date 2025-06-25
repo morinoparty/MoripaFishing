@@ -19,6 +19,7 @@ tasks:
   check:
     cmds:
       - ./gradlew clean ktlintFormat
+      - ./gradlew clean detekt
       - ./gradlew clean test
     silent: true
   build:
