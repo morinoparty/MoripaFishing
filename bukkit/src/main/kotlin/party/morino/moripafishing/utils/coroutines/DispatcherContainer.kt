@@ -1,10 +1,12 @@
 package party.morino.moripafishing.utils.coroutines
 
-import org.bukkit.plugin.java.JavaPlugin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
 import kotlin.coroutines.CoroutineContext
 
-object DispatcherContainer {
+object DispatcherContainer : KoinComponent {
+    private val plugin: MoripaFishing by inject()
     private var asyncCoroutine: CoroutineContext? = null
     private var syncCoroutine: CoroutineContext? = null
 
@@ -14,7 +16,7 @@ object DispatcherContainer {
     val async: CoroutineContext
         get() {
             if (asyncCoroutine == null) {
-                asyncCoroutine = AsyncCoroutineDispatcher(JavaPlugin.getPlugin(MoripaFishing::class.java))
+                asyncCoroutine = AsyncCoroutineDispatcher(plugin)
             }
 
             return asyncCoroutine!!
@@ -26,7 +28,7 @@ object DispatcherContainer {
     val sync: CoroutineContext
         get() {
             if (syncCoroutine == null) {
-                syncCoroutine = MinecraftCoroutineDispatcher(JavaPlugin.getPlugin(MoripaFishing::class.java))
+                syncCoroutine = MinecraftCoroutineDispatcher(plugin)
             }
 
             return syncCoroutine!!

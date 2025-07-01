@@ -2,17 +2,22 @@ package party.morino.moripafishing.core.random.fish
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fish.Fish
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
 import party.morino.moripafishing.api.core.random.fish.FishRandomizer
+import party.morino.moripafishing.api.core.random.rarity.RarityProbabilityManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.fish.FishData
+import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.core.fish.FishBuilderImpl
 import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
+import party.morino.moripafishing.api.core.random.ProbabilityManager
 
 /**
  * 釣りシステムにおける魚の抽選を実装するクラス
@@ -31,40 +36,75 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
     // ワールドの管理を行うインスタンス
     private val worldManager: WorldManager by inject()
 
+    private val probabilityManager : ProbabilityManager by inject()
+
+    // 確率修正値を管理するインスタンス
+    private val fishProbabilityManager: FishProbabilityManager by lazy { probabilityManager.getFishProbabilityManager() }
+
+    // レアリティの確率修正値を管理するインスタンス
+    private val rarityProbabilityManager: RarityProbabilityManager by lazy { probabilityManager.getRarityProbabilityManager() }
+
     /**
      * 指定されたレアリティと釣り場に基づいて魚データを抽選する
-     * 魚の出現条件（天気、ワールド）を考慮して抽選を行う
+     * 魚の出現条件（天気、ワールド）と確率修正値を考慮して抽選を行う
      *
      * @param rarity 抽選対象のレアリティ
      * @param fishingWorldId 釣り場のID
+     * @param angler 対象の釣り人（nullの場合は確率修正なし）
      * @return 抽選された魚データ
      */
     private fun drawRandomFishDataByRarity(
         rarity: RarityId,
         fishingWorldId: FishingWorldId,
+        angler: Angler? = null,
     ): FishData {
         // 現在の天気を取得
         val weatherType = worldManager.getWorld(fishingWorldId).getCurrentWeather()
         // 条件に合致する魚データをフィルタリング
         val fishesData =
             fishManager.getFishesWithRarity(rarity).filter {
-                it.isDisabled == false &&
-                    (it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId)) &&
-                    (it.conditions.weather.isEmpty() || it.conditions.weather.contains(weatherType))
+                !it.isDisabled && (it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId)) && (it.conditions.weather.isEmpty() || it.conditions.weather.contains(weatherType))
             }
-        // 重み付け抽選のための合計値を計算
-        val total = fishesData.sumOf { it.weight }
-        // 乱数を生成
-        val randomValue = random.nextDouble() * total
-        var sum = 0.0
-        // 重み付け抽選を実行
-        for (fish in fishesData) {
-            sum += fish.weight
-            if (randomValue <= sum) {
-                return fish
+
+        // 釣り人がある場合は確率修正値を適用
+        if (angler != null) {
+            // 各魚の修正後重みを計算
+            val modifiedFishes =
+                fishesData.map { fishData ->
+                    val modifiedWeight = fishProbabilityManager.getModifiedFishWeight(angler, fishData.id)
+                    fishData to modifiedWeight
+                }
+
+            val total = modifiedFishes.sumOf { it.second }
+
+            if (total <= 0.0) {
+                // すべての重みが0以下の場合はデフォルトロジック（確率修正なし）を使用
+                return drawRandomFishDataByRarity(rarity, fishingWorldId, null)
             }
+
+            // 重み付け抽選を実行
+            val randomValue = random.nextDouble() * total
+            var sum = 0.0
+            for ((fishData, weight) in modifiedFishes) {
+                sum += weight
+                if (randomValue <= sum) {
+                    return fishData
+                }
+            }
+            return modifiedFishes.last().first
+        } else {
+            // 確率修正なしの場合：従来ロジック
+            val total = fishesData.sumOf { it.weight }
+            val randomValue = random.nextDouble() * total
+            var sum = 0.0
+            for (fish in fishesData) {
+                sum += fish.weight
+                if (randomValue <= sum) {
+                    return fish
+                }
+            }
+            return fishesData.last()
         }
-        return fishesData.last()
     }
 
     /**
@@ -78,7 +118,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
         rarity: RarityId,
         fishingWorldId: FishingWorldId,
     ): Fish {
-        return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId))
+        return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId, null))
     }
 
     /**
@@ -106,19 +146,74 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
      * レアリティを抽選する
      * 各レアリティの出現確率に従って抽選を行う
      *
+     * @param angler 対象の釣り人（nullの場合は確率修正なし）
      * @return 抽選されたレアリティ
      */
-    override fun drawRandomRarity(): RarityId {
+    override fun drawRandomRarity(angler: Angler?): RarityId {
         val rarities = rarityManager.getRarities()
-        val total = rarities.sumOf { it.weight }
-        val randomValue = random.nextDouble() * total
-        var sum = 0.0
-        for (rarity in rarities) {
-            sum += rarity.weight
-            if (randomValue <= sum) {
-                return rarity.id
+
+        // 釣り人がある場合は確率修正値を適用
+        if (angler != null) {
+            // 各レアリティの修正後重みを計算
+            val modifiedRarities: List<Pair<RarityData, Double>> =
+                rarities.map { rarity ->
+                    val modifiedWeight = rarityProbabilityManager.getModifiedRarityWeight(angler, rarity.id)
+                    rarity to modifiedWeight
+                }
+
+            val total = modifiedRarities.sumOf { it.second }
+            if (total <= 0.0) {
+                // すべての重みが0以下の場合はデフォルトロジック（確率修正なし）を使用
+                return drawRandomRarity(null)
             }
+
+            val randomValue = random.nextDouble() * total
+            var sum = 0.0
+            for ((rarity, weight) in modifiedRarities) {
+                sum += weight
+                if (randomValue <= sum) {
+                    return rarity.id
+                }
+            }
+            return modifiedRarities.lastOrNull()?.first?.id ?: rarities.first().id
+        } else {
+            // 確率修正なしの場合：従来ロジック
+            val total = rarities.sumOf { it.weight }
+            val randomValue = random.nextDouble() * total
+            var sum = 0.0
+            for (rarity in rarities) {
+                sum += rarity.weight
+                if (randomValue <= sum) {
+                    return rarity.id
+                }
+            }
+            return rarities.last().id
         }
-        return rarities.last().id
+    }
+
+    /**
+     * 釣り人のコンテキストを考慮して魚を抽選する
+     * 確率修正値を適用して抽選を行う
+     *
+     * @param angler 対象の釣り人
+     * @param fishingWorldId 釣り場のID
+     * @return 抽選された魚
+     */
+    override fun selectRandomFish(
+        angler: Angler,
+        fishingWorldId: FishingWorldId,
+    ): Fish {
+        // 修正されたレアリティ抽選を使用
+        val rarity = drawRandomRarity(angler)
+        return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId, angler))
+    }
+
+    override fun selectRandomFishByRarity(
+        angler: Angler,
+        rarity: RarityId,
+        fishingWorldId: FishingWorldId,
+    ): Fish {
+        // 釣り人のコンテキストを考慮して指定レアリティの魚を抽選
+        return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId, angler))
     }
 }

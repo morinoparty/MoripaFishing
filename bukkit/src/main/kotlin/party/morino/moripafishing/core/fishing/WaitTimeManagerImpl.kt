@@ -102,8 +102,8 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
             baseMaxTime = result.second
         }
 
-        // Spot レベルの適用値を取得・適用（プレイヤーの位置がSpotの範囲内にあるかを判定）
-        angler.getLocation()?.let { location ->
+        // Spot レベルの適用値を取得・適用（釣り針の位置がSpotの範囲内にあるかを判定）
+        angler.getCurrentRod()?.getHookLocation()?.let { location ->
             val spotEffects = getSpotEffectsForLocation(location)
             for (effect in spotEffects) {
                 val result = applyEffect(baseMinTime, baseMaxTime, effect)
@@ -197,7 +197,7 @@ class WaitTimeManagerImpl : WaitTimeManager, KoinComponent {
     }
 
     /**
-     * 特定のアングラーの適用値をクリア（釣り終了時に使用）
+     * 特定の釣り人の適用値をクリア（釣り終了時に使用）
      */
     fun clearAnglerEffects(anglerId: AnglerId) {
         anglerValues.removeAll { it.first == anglerId }

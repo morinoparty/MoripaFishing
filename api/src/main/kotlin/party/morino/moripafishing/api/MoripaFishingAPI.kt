@@ -7,6 +7,8 @@ import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
+import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
+import party.morino.moripafishing.api.core.random.fish.FishSelectionManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
@@ -74,4 +76,16 @@ interface MoripaFishingAPI {
      * @return ログマネージャー
      */
     fun getLogManager(): LogManager
+
+    /**
+     * 魚選択マネージャーを取得する
+     * @return 魚選択マネージャー
+     */
+    fun getFishSelectionManager(): FishSelectionManager
+
+    /**
+     * 魚確率マネージャーを取得する
+     * @return 魚確率マネージャー
+     */
+    fun getFishProbabilityManager(): FishProbabilityManager
 }
