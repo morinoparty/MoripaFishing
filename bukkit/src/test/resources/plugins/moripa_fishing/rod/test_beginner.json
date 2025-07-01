@@ -1,10 +1,17 @@
 {
-  "rodType": "test_beginner",
-  "waitTimeMultiplier": 1.2,
-  "bonusEffects": [],
-  "weatherImmunity": false,
-  "fishingWorldBonuses": {
-    "default": 0.9
+  "bonusEffects": {
+    ".*": [
+      {
+        "type": "MULTIPLY",
+        "value": 1.2,
+        "unit": "wait_time"
+      },
+      {
+        "type": "MULTIPLY",
+        "value": 0.9,
+        "unit": "world:default"
+      }
+    ]
   },
   "displayNameKey": "rod.test_beginner.name",
   "loreKeys": [

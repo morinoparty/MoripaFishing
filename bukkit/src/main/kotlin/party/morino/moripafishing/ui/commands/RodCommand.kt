@@ -15,9 +15,13 @@ import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
+import party.morino.moripafishing.api.core.fishing.EffectUnits
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
-import party.morino.moripafishing.api.model.rod.RodPresetId
+import party.morino.moripafishing.api.model.rod.getAllEffects
+import party.morino.moripafishing.api.model.rod.getFishingWorldBonuses
+import party.morino.moripafishing.api.model.rod.getWaitTimeMultiplier
+import party.morino.moripafishing.api.model.rod.hasWeatherImmunity
 import party.morino.moripafishing.utils.rod.RodAnalyzer
 import java.util.Locale
 
@@ -45,20 +49,22 @@ class RodCommand : KoinComponent {
 
         val bonusEffects = mutableListOf<ApplyValue>()
 
-        // 倍率効果を追加
+        // 待機時間の倍率効果を追加
         if (multiplier != 1.0) {
-            bonusEffects.add(ApplyValue(ApplyType.MULTIPLY, multiplier, "seconds"))
+            bonusEffects.add(ApplyValue(ApplyType.MULTIPLY, multiplier, EffectUnits.WAIT_TIME))
         }
 
-        // 加算効果を追加
+        // 待機時間への加算効果を追加
         if (addSeconds != 0.0) {
-            bonusEffects.add(ApplyValue(ApplyType.ADD, addSeconds, "seconds"))
+            bonusEffects.add(ApplyValue(ApplyType.ADD, addSeconds, EffectUnits.SECONDS))
         }
+
+        // デフォルトのレジェックス（全ワールドにマッチ）でMapを作成
+        val effectsMap = mapOf(".*".toRegex() to bonusEffects)
 
         val rodConfig =
             RodConfiguration(
-                rodType = RodPresetId(rodType),
-                bonusEffects = bonusEffects,
+                bonusEffects = effectsMap,
                 displayNameKey = "${rodType.uppercase()} ROD",
                 loreKeys =
                     listOf(
@@ -115,13 +121,14 @@ class RodCommand : KoinComponent {
         when {
             customRodConfig != null -> {
                 player.sendRichMessage("<green>Custom Rod Information:")
-                player.sendRichMessage("<yellow>Type: <white>${customRodConfig.rodType}")
-                player.sendRichMessage("<yellow>Wait Time Multiplier: <white>${customRodConfig.waitTimeMultiplier}")
-                player.sendRichMessage("<yellow>Bonus Effects: <white>${customRodConfig.bonusEffects.size}")
-                player.sendRichMessage("<yellow>Weather Immunity: <white>${customRodConfig.weatherImmunity}")
-                if (customRodConfig.fishingWorldBonuses.isNotEmpty()) {
+                player.sendRichMessage("<yellow>Display Name: <white>${customRodConfig.displayNameKey}")
+                player.sendRichMessage("<yellow>Wait Time Multiplier: <white>${customRodConfig.getWaitTimeMultiplier()}")
+                player.sendRichMessage("<yellow>Bonus Effects: <white>${customRodConfig.getAllEffects().size}")
+                player.sendRichMessage("<yellow>Weather Immunity: <white>${customRodConfig.hasWeatherImmunity()}")
+                val worldBonuses = customRodConfig.getFishingWorldBonuses()
+                if (worldBonuses.isNotEmpty()) {
                     player.sendRichMessage("<yellow>Fishing World Bonuses:")
-                    customRodConfig.fishingWorldBonuses.forEach { (worldId, bonus) ->
+                    worldBonuses.forEach { (worldId, bonus) ->
                         player.sendRichMessage("  <gray>$worldId: <white>${bonus}x")
                     }
                 }
@@ -129,8 +136,9 @@ class RodCommand : KoinComponent {
 
             vanillaRodConfig != null -> {
                 player.sendRichMessage("<green>Enchanted Vanilla Rod:")
-                player.sendRichMessage("<yellow>Bonus Effects: <white>${vanillaRodConfig.bonusEffects.size}")
-                vanillaRodConfig.bonusEffects.forEach { effect ->
+                val allEffects = vanillaRodConfig.getAllEffects()
+                player.sendRichMessage("<yellow>Bonus Effects: <white>${allEffects.size}")
+                allEffects.forEach { effect ->
                     player.sendRichMessage("  <gray>${effect.type}: <white>${effect.value} ${effect.unit}")
                 }
             }

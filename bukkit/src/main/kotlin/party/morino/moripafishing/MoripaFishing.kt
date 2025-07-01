@@ -16,6 +16,7 @@ import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.core.log.LogManager
+import party.morino.moripafishing.api.core.random.ProbabilityManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
 import party.morino.moripafishing.api.core.random.fish.FishSelectionManager
@@ -29,8 +30,8 @@ import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.fishing.FishingManagerImpl
 import party.morino.moripafishing.core.internationalization.TranslateManager
 import party.morino.moripafishing.core.log.LogManagerImpl
+import party.morino.moripafishing.core.random.ProbabilityManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
-import party.morino.moripafishing.core.random.fish.FishProbabilityManagerImpl
 import party.morino.moripafishing.core.random.fish.FishSelectionManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.GeneratorManagerImpl
@@ -103,7 +104,7 @@ open class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
                 single<GeneratorManager> { GeneratorManagerImpl() }
                 single<FishingManager> { FishingManagerImpl() }
                 single<LogManager> { LogManagerImpl() }
-                single<FishProbabilityManager> { FishProbabilityManagerImpl() }
+                single<ProbabilityManager> { ProbabilityManagerImpl() }
                 single<FishSelectionManager> { FishSelectionManagerImpl() }
             }
 

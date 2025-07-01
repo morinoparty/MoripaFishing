@@ -8,6 +8,7 @@ import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.model.fish.FishData
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
+import party.morino.moripafishing.api.serialization.RegexSerializer
 import java.io.File
 
 /**
@@ -76,6 +77,11 @@ class FishManagerImpl : FishManager, KoinComponent {
                 prettyPrint = true
                 encodeDefaults = true
                 isLenient = true
+                allowStructuredMapKeys = true // Regexキーを持つMapのシリアライゼーションを有効化
+                serializersModule =
+                    kotlinx.serialization.modules.SerializersModule {
+                        contextual(Regex::class, RegexSerializer) // Regexシリアライザーを登録
+                    }
             }
         // ルートディレクトリのファイルを処理
         processFishFiles(fishDir, json)

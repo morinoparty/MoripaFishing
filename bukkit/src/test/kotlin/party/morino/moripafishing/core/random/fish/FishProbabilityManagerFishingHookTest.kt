@@ -11,6 +11,7 @@ import party.morino.moripafishing.MoripaFishingTest
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
+import party.morino.moripafishing.api.core.random.ProbabilityManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
@@ -35,6 +36,8 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
     // 実際のマネージャーを注入
     private val fishManager: FishManager by inject()
     private val rarityManager: RarityManager by inject()
+    private val probabilityManager: ProbabilityManager by inject()
+    private val rarityProbabilityManager by lazy { probabilityManager.getRarityProbabilityManager() }
     private val worldManager: WorldManager by inject()
 
     // 実際のデータを使用
@@ -57,7 +60,7 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
 
         // 基本重みは初期化時に自動読み込みされる
         // 実際のデータから基本重みを取得
-        actualRarityWeight = fishProbabilityManager.getBaseRarityWeight(testRarityId)
+        actualRarityWeight = rarityProbabilityManager.getBaseRarityWeight(testRarityId)
         actualFishWeight = fishProbabilityManager.getBaseFishWeight(testFishId)
 
         // アングラーを設定
@@ -82,10 +85,10 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
 
         // Spot効果（3倍）を適用
         val applyValue = ApplyValue(ApplyType.MULTIPLY, 3.0, "")
-        fishProbabilityManager.applyRarityModifierForSpot(spot, testRarityId, applyValue)
+        rarityProbabilityManager.applyRarityModifierForSpot(spot, testRarityId, applyValue)
 
         // 確率計算を実行
-        val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
+        val modifiedWeight = rarityProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
 
         // 検証：釣り針がSpot範囲内にあるので、効果が適用される
         assertEquals(actualRarityWeight * 3.0, modifiedWeight, 0.001)
@@ -106,10 +109,10 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
 
         // Spot効果（3倍）を適用
         val applyValue = ApplyValue(ApplyType.MULTIPLY, 3.0, "")
-        fishProbabilityManager.applyRarityModifierForSpot(spot, testRarityId, applyValue)
+        rarityProbabilityManager.applyRarityModifierForSpot(spot, testRarityId, applyValue)
 
         // 確率計算を実行
-        val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
+        val modifiedWeight = rarityProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
 
         // 検証：釣り針がSpot範囲外にあるので、効果が適用されない
         assertEquals(actualRarityWeight, modifiedWeight, 0.001)
@@ -135,11 +138,11 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
         val applyValue1 = ApplyValue(ApplyType.MULTIPLY, 2.0, "")
         val applyValue2 = ApplyValue(ApplyType.MULTIPLY, 4.0, "")
 
-        fishProbabilityManager.applyRarityModifierForSpot(spot1, testRarityId, applyValue1)
-        fishProbabilityManager.applyRarityModifierForSpot(spot2, testRarityId, applyValue2)
+        rarityProbabilityManager.applyRarityModifierForSpot(spot1, testRarityId, applyValue1)
+        rarityProbabilityManager.applyRarityModifierForSpot(spot2, testRarityId, applyValue2)
 
         // 確率計算を実行
-        val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
+        val modifiedWeight = rarityProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
 
         // 検証：釣り針がSpot2の範囲内にあるので、Spot2の効果（4倍）が適用される
         assertEquals(actualRarityWeight * 4.0, modifiedWeight, 0.001)
@@ -160,10 +163,10 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
 
         // Spot効果（5倍）を適用
         val applyValue = ApplyValue(ApplyType.MULTIPLY, 5.0, "")
-        fishProbabilityManager.applyRarityModifierForSpot(spot, testRarityId, applyValue)
+        rarityProbabilityManager.applyRarityModifierForSpot(spot, testRarityId, applyValue)
 
         // 確率計算を実行
-        val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
+        val modifiedWeight = rarityProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
 
         // 検証：釣り針位置がnullなので、Spot効果は適用されない
         assertEquals(actualRarityWeight, modifiedWeight, 0.001)
@@ -190,11 +193,11 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
         val playerApplyValue = ApplyValue(ApplyType.MULTIPLY, 2.0, "")
         val hookApplyValue = ApplyValue(ApplyType.MULTIPLY, 6.0, "")
 
-        fishProbabilityManager.applyRarityModifierForSpot(playerSpot, testRarityId, playerApplyValue)
-        fishProbabilityManager.applyRarityModifierForSpot(hookSpot, testRarityId, hookApplyValue)
+        rarityProbabilityManager.applyRarityModifierForSpot(playerSpot, testRarityId, playerApplyValue)
+        rarityProbabilityManager.applyRarityModifierForSpot(hookSpot, testRarityId, hookApplyValue)
 
         // 確率計算を実行
-        val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
+        val modifiedWeight = rarityProbabilityManager.getModifiedRarityWeight(angler, testRarityId)
 
         // 検証：釣り針の位置が優先されるので、6倍効果が適用される
         assertEquals(actualRarityWeight * 6.0, modifiedWeight, 0.001)

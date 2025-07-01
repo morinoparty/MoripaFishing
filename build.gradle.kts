@@ -101,6 +101,7 @@ detekt {
     // Defaults to `files("src/main/java", "src/test/java", "src/main/kotlin", "src/test/kotlin")`.
     source.setFrom("api/src/main/java", "api/src/main/kotlin", "bukkit/src/main/java", "bukkit/src/main/kotlin")
 
+    config.setFrom("detekt.yml")
     // Builds the AST in parallel. Rules are always executed in parallel.
     // Can lead to speedups in larger projects. `false` by default.
     parallel = true

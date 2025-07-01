@@ -7,14 +7,17 @@ import party.morino.moripafishing.api.core.fish.Fish
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
 import party.morino.moripafishing.api.core.random.fish.FishRandomizer
+import party.morino.moripafishing.api.core.random.rarity.RarityProbabilityManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.fish.FishData
+import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.core.fish.FishBuilderImpl
 import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
+import party.morino.moripafishing.api.core.random.ProbabilityManager
 
 /**
  * 釣りシステムにおける魚の抽選を実装するクラス
@@ -33,8 +36,13 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
     // ワールドの管理を行うインスタンス
     private val worldManager: WorldManager by inject()
 
+    private val probabilityManager : ProbabilityManager by inject()
+
     // 確率修正値を管理するインスタンス
-    private val fishProbabilityManager: FishProbabilityManager by inject()
+    private val fishProbabilityManager: FishProbabilityManager by lazy { probabilityManager.getFishProbabilityManager() }
+
+    // レアリティの確率修正値を管理するインスタンス
+    private val rarityProbabilityManager: RarityProbabilityManager by lazy { probabilityManager.getRarityProbabilityManager() }
 
     /**
      * 指定されたレアリティと釣り場に基づいて魚データを抽選する
@@ -147,9 +155,9 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
         // 釣り人がある場合は確率修正値を適用
         if (angler != null) {
             // 各レアリティの修正後重みを計算
-            val modifiedRarities =
+            val modifiedRarities: List<Pair<RarityData, Double>> =
                 rarities.map { rarity ->
-                    val modifiedWeight = fishProbabilityManager.getModifiedRarityWeight(angler, rarity.id)
+                    val modifiedWeight = rarityProbabilityManager.getModifiedRarityWeight(angler, rarity.id)
                     rarity to modifiedWeight
                 }
 
@@ -167,7 +175,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
                     return rarity.id
                 }
             }
-            return modifiedRarities.last().first.id
+            return modifiedRarities.lastOrNull()?.first?.id ?: rarities.first().id
         } else {
             // 確率修正なしの場合：従来ロジック
             val total = rarities.sumOf { it.weight }

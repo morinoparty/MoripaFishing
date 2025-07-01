@@ -9,7 +9,3 @@
 - Koin (依存性注入)
 - PaparMC (MinecraftプラグインAPI)
 - Vault (EconomyAPI)
-
-
-
-

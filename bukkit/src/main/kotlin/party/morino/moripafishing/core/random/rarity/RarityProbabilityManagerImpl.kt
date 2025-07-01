@@ -1,14 +1,14 @@
-package party.morino.moripafishing.core.random.fish
+package party.morino.moripafishing.core.random.rarity
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.angler.Angler
-import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
-import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
+import party.morino.moripafishing.api.core.random.rarity.RarityProbabilityManager
+import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.model.angler.AnglerId
-import party.morino.moripafishing.api.model.fish.FishId
+import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.rod.getEffectsForWorld
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
@@ -20,16 +20,16 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 /**
- * 魚の確率を動的に管理する実装クラス
+ * レアリティの確率を動的に管理する実装クラス
  * WaitTimeManagerの仕組みを参考に、確率修正値を管理する
- * 初期化時に全ての魚の基本重みを読み込む
+ * 初期化時に全てのレアリティの基本重みを読み込む
  */
-class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
+class RarityProbabilityManagerImpl : RarityProbabilityManager, KoinComponent {
     // 基本重みを保持するマップ
-    private val baseFishWeights: MutableMap<FishId, Double> = mutableMapOf()
+    private val baseRarityWeights: MutableMap<RarityId, Double> = mutableMapOf()
 
-    // 魚マネージャーを注入
-    private val fishManager: FishManager by inject()
+    // レアリティマネージャーを注入
+    private val rarityManager: RarityManager by inject()
 
     init {
         // 初期化時に全ての基本重みを読み込み
@@ -37,96 +37,96 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
     }
 
     /**
-     * 全ての魚の基本重みを読み込む
+     * 全てのレアリティの基本重みを読み込む
      */
     private fun loadAllBaseWeights() {
-        // 魚の基本重みを読み込み
-        fishManager.getFish().forEach { fish ->
-            baseFishWeights[fish.id] = fish.weight
+        // レアリティの基本重みを読み込み
+        rarityManager.getRarities().forEach { rarity ->
+            baseRarityWeights[rarity.id] = rarity.weight
         }
     }
 
-    // 魚修正値を保持するマップ
-    private val spotFishModifiers: MutableList<FishModifier> = mutableListOf()
-    private val anglerFishModifiers: MutableList<FishModifier> = mutableListOf()
-    private val worldFishModifiers: MutableList<FishModifier> = mutableListOf()
+    // レアリティ修正値を保持するマップ
+    private val spotRarityModifiers: MutableList<RarityModifier> = mutableListOf()
+    private val anglerRarityModifiers: MutableList<RarityModifier> = mutableListOf()
+    private val worldRarityModifiers: MutableList<RarityModifier> = mutableListOf()
 
     /**
-     * 魚修正値のデータクラス
+     * レアリティ修正値のデータクラス
      */
-    private data class FishModifier(
+    private data class RarityModifier(
         val target: Any, // Spot, AnglerId, FishingWorldId
-        val fishId: FishId,
+        val rarityId: RarityId,
         val applyValue: ApplyValue,
         val expirationTime: ZonedDateTime?,
     )
 
-    override fun applyFishModifierForSpot(
+    override fun applyRarityModifierForSpot(
         spot: Spot,
-        fishId: FishId,
+        rarityId: RarityId,
         applyValue: ApplyValue,
         limit: Long?,
     ) {
         val expirationTime = limit?.let { ZonedDateTime.now().plus(Duration.ofMillis(it)) }
-        spotFishModifiers.add(FishModifier(spot, fishId, applyValue, expirationTime))
+        spotRarityModifiers.add(RarityModifier(spot, rarityId, applyValue, expirationTime))
     }
 
-    override fun applyFishModifierForAngler(
+    override fun applyRarityModifierForAngler(
         anglerId: AnglerId,
-        fishId: FishId,
+        rarityId: RarityId,
         applyValue: ApplyValue,
         limit: Long?,
     ) {
         val expirationTime = limit?.let { ZonedDateTime.now().plus(Duration.ofMillis(it)) }
-        anglerFishModifiers.add(FishModifier(anglerId, fishId, applyValue, expirationTime))
+        anglerRarityModifiers.add(RarityModifier(anglerId, rarityId, applyValue, expirationTime))
     }
 
-    override fun applyFishModifierForWorld(
+    override fun applyRarityModifierForWorld(
         worldId: FishingWorldId,
-        fishId: FishId,
+        rarityId: RarityId,
         applyValue: ApplyValue,
         limit: Long?,
     ) {
         val expirationTime = limit?.let { ZonedDateTime.now().plus(Duration.ofMillis(it)) }
-        worldFishModifiers.add(FishModifier(worldId, fishId, applyValue, expirationTime))
+        worldRarityModifiers.add(RarityModifier(worldId, rarityId, applyValue, expirationTime))
     }
 
-    override fun setBaseFishWeight(
-        fishId: FishId,
+    override fun setBaseRarityWeight(
+        rarityId: RarityId,
         baseWeight: Double,
     ) {
-        baseFishWeights[fishId] = baseWeight
+        baseRarityWeights[rarityId] = baseWeight
     }
 
-    override fun getBaseFishWeight(fishId: FishId): Double {
-        return baseFishWeights[fishId] ?: 1.0
+    override fun getBaseRarityWeight(rarityId: RarityId): Double {
+        return baseRarityWeights[rarityId] ?: 1.0
     }
 
-    override fun getModifiedFishWeight(
+    override fun getModifiedRarityWeight(
         angler: Angler,
-        fishId: FishId,
+        rarityId: RarityId,
     ): Double {
-        cleanupExpiredFishModifiers()
+        cleanupExpiredRarityModifiers()
 
-        var modifiedWeight = getBaseFishWeight(fishId)
+        var modifiedWeight = getBaseRarityWeight(rarityId)
 
         // World レベルの修正値を適用
         angler.getWorld()?.let { world ->
-            val worldEffects = getWorldFishEffects(world.getId(), fishId)
+            val worldEffects = getWorldRarityEffects(world.getId(), rarityId)
             for (effect in worldEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
             }
         }
 
         // 釣り人レベルの修正値を適用
-        val anglerEffects = getAnglerFishEffects(angler.getAnglerUniqueId(), fishId)
+        val anglerEffects = getAnglerRarityEffects(angler.getAnglerUniqueId(), rarityId)
         for (effect in anglerEffects) {
             modifiedWeight = applyWeightEffect(modifiedWeight, effect)
         }
 
         // Spot レベルの修正値を適用（釣り針の位置を使用）
         angler.getCurrentRod()?.getHookLocation()?.let { location ->
-            val spotEffects = getSpotFishEffectsForLocation(location, fishId)
+            val spotEffects = getSpotRarityEffectsForLocation(location, rarityId)
             for (effect in spotEffects) {
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
             }
@@ -140,16 +140,16 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
             // ワールドに適合するロッド効果を取得
             val rodEffects = rodConfig.getEffectsForWorld(worldName)
 
-            // 魚関連の効果をフィルタリングして適用
-            val fishEffects =
+            // レアリティ関連の効果をフィルタリングして適用
+            val rarityEffects =
                 rodEffects.filter { effect ->
-                    // 魚IDでフィルタリングするロジックを実装
-                    // 例: effect.target?.contains(fish.id.value) == true
+                    // レアリティIDでフィルタリングするロジックを実装
+                    // 例: effect.target?.contains(rarity.id.value) == true
                     // 現在は全ての効果を適用
                     true
                 }
 
-            fishEffects.forEach { effect ->
+            rarityEffects.forEach { effect ->
                 modifiedWeight = applyWeightEffect(modifiedWeight, effect)
             }
         }
@@ -158,49 +158,49 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
         return max(0.0, modifiedWeight)
     }
 
-    override fun clearAnglerFishModifiers(anglerId: AnglerId) {
-        anglerFishModifiers.removeAll { it.target == anglerId }
+    override fun clearAnglerRarityModifiers(anglerId: AnglerId) {
+        anglerRarityModifiers.removeAll { it.target == anglerId }
     }
 
-    override fun cleanupExpiredFishModifiers() {
+    override fun cleanupExpiredRarityModifiers() {
         val now = ZonedDateTime.now()
 
-        // 魚修正値のクリーンアップ
-        spotFishModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
-        anglerFishModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
-        worldFishModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
+        // レアリティ修正値のクリーンアップ
+        spotRarityModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
+        anglerRarityModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
+        worldRarityModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
     }
 
     // プライベートヘルパーメソッド
 
-    private fun getWorldFishEffects(
+    private fun getWorldRarityEffects(
         worldId: FishingWorldId,
-        fishId: FishId,
+        rarityId: RarityId,
     ): List<ApplyValue> {
-        return worldFishModifiers
-            .filter { it.target == worldId && it.fishId == fishId }
+        return worldRarityModifiers
+            .filter { it.target == worldId && it.rarityId == rarityId }
             .filter { it.expirationTime?.isAfter(ZonedDateTime.now()) != false }
             .map { it.applyValue }
     }
 
-    private fun getAnglerFishEffects(
+    private fun getAnglerRarityEffects(
         anglerId: AnglerId,
-        fishId: FishId,
+        rarityId: RarityId,
     ): List<ApplyValue> {
-        return anglerFishModifiers
-            .filter { it.target == anglerId && it.fishId == fishId }
+        return anglerRarityModifiers
+            .filter { it.target == anglerId && it.rarityId == rarityId }
             .filter { it.expirationTime?.isAfter(ZonedDateTime.now()) != false }
             .map { it.applyValue }
     }
 
-    private fun getSpotFishEffectsForLocation(
+    private fun getSpotRarityEffectsForLocation(
         location: Location,
-        fishId: FishId,
+        rarityId: RarityId,
     ): List<ApplyValue> {
-        return spotFishModifiers
+        return spotRarityModifiers
             .filter { modifier ->
                 val spot = modifier.target as? Spot ?: return@filter false
-                modifier.fishId == fishId &&
+                modifier.rarityId == rarityId &&
                     modifier.expirationTime?.isAfter(ZonedDateTime.now()) != false &&
                     isLocationInSpot(location, spot)
             }

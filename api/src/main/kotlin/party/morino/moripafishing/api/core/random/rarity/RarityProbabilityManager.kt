@@ -1,102 +1,102 @@
-package party.morino.moripafishing.api.core.random.fish
+package party.morino.moripafishing.api.core.random.rarity
 
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fishing.ApplyValue
 import party.morino.moripafishing.api.model.angler.AnglerId
-import party.morino.moripafishing.api.model.fish.FishId
+import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Spot
 
 /**
- * 魚の確率を動的に管理するマネージャーインターフェース
+ * レアリティの確率を動的に管理するマネージャーインターフェース
  * 設定値に加えて、動的に確率を調整できる機能を提供する
  */
-interface FishProbabilityManager {
+interface RarityProbabilityManager {
     /**
-     * 魚の確率にSpot単位で修正値を適用する
+     * レアリティの確率にSpot単位で修正値を適用する
      *
      * @param spot 対象のスポット
-     * @param fishId 対象の魚ID
+     * @param rarityId 対象のレアリティ
      * @param applyValue 適用値（ADD: 加算, MULTIPLY: 乗算, CONSTANT: 固定値）
      * @param limit 有効期限（ミリ秒）、nullの場合は無期限
      */
-    fun applyFishModifierForSpot(
+    fun applyRarityModifierForSpot(
         spot: Spot,
-        fishId: FishId,
+        rarityId: RarityId,
         applyValue: ApplyValue,
         limit: Long? = null,
     )
 
     /**
-     * 魚の確率にAngler単位で修正値を適用する
+     * レアリティの確率にAngler単位で修正値を適用する
      *
      * @param anglerId 対象の釣り人ID
-     * @param fishId 対象の魚ID
+     * @param rarityId 対象のレアリティ
      * @param applyValue 適用値
      * @param limit 有効期限（ミリ秒）、nullの場合は無期限
      */
-    fun applyFishModifierForAngler(
+    fun applyRarityModifierForAngler(
         anglerId: AnglerId,
-        fishId: FishId,
+        rarityId: RarityId,
         applyValue: ApplyValue,
         limit: Long? = null,
     )
 
     /**
-     * 魚の確率にWorld単位で修正値を適用する
+     * レアリティの確率にWorld単位で修正値を適用する
      *
      * @param worldId 対象のワールドID
-     * @param fishId 対象の魚ID
+     * @param rarityId 対象のレアリティ
      * @param applyValue 適用値
      * @param limit 有効期限（ミリ秒）、nullの場合は無期限
      */
-    fun applyFishModifierForWorld(
+    fun applyRarityModifierForWorld(
         worldId: FishingWorldId,
-        fishId: FishId,
+        rarityId: RarityId,
         applyValue: ApplyValue,
         limit: Long? = null,
     )
 
     /**
-     * 魚の基本重みを設定する
+     * レアリティの基本重みを設定する
      *
-     * @param fishId 対象の魚ID
+     * @param rarityId 対象のレアリティ
      * @param baseWeight 基本重み
      */
-    fun setBaseFishWeight(
-        fishId: FishId,
+    fun setBaseRarityWeight(
+        rarityId: RarityId,
         baseWeight: Double,
     )
 
     /**
-     * 魚の基本重みを取得する
+     * レアリティの基本重みを取得する
      *
-     * @param fishId 対象の魚ID
+     * @param rarityId 対象のレアリティ
      * @return 基本重み（設定されていない場合は1.0）
      */
-    fun getBaseFishWeight(fishId: FishId): Double
+    fun getBaseRarityWeight(rarityId: RarityId): Double
 
     /**
-     * 指定された釣り人とコンテキストに対する魚の修正後確率を取得する
+     * 指定された釣り人とコンテキストに対するレアリティの修正後確率を取得する
      *
      * @param angler 対象の釣り人
-     * @param fishId 対象の魚ID
+     * @param rarityId 対象のレアリティ
      * @return 修正後の重み
      */
-    fun getModifiedFishWeight(
+    fun getModifiedRarityWeight(
         angler: Angler,
-        fishId: FishId,
+        rarityId: RarityId,
     ): Double
 
     /**
-     * 特定の釣り人に適用されている魚修正値をクリアする
+     * 特定の釣り人に適用されているレアリティ修正値をクリアする
      *
      * @param anglerId 対象の釣り人ID
      */
-    fun clearAnglerFishModifiers(anglerId: AnglerId)
+    fun clearAnglerRarityModifiers(anglerId: AnglerId)
 
     /**
-     * 期限切れの魚修正値をクリーンアップする
+     * 期限切れのレアリティ修正値をクリーンアップする
      */
-    fun cleanupExpiredFishModifiers()
+    fun cleanupExpiredRarityModifiers()
 }

@@ -8,11 +8,10 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.Plugin
 import org.koin.core.component.KoinComponent
-import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
 import party.morino.moripafishing.api.core.fishing.EnchantmentEffects
 import party.morino.moripafishing.api.model.rod.RodConfiguration
-import party.morino.moripafishing.api.model.rod.RodPresetId
+import party.morino.moripafishing.api.model.rod.getAllEffects
 import party.morino.moripafishing.utils.Utils
 import java.util.Locale
 
@@ -57,10 +56,10 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
         }
 
         return if (bonusEffects.isNotEmpty()) {
+            // デフォルトのレジェックス（全ワールドにマッチ）でMapを作成
+            val effectsMap = mapOf(".*".toRegex() to bonusEffects)
             RodConfiguration(
-                rodType = RodPresetId("vanilla_enchanted"),
-                waitTimeMultiplier = 1.0,
-                bonusEffects = bonusEffects,
+                bonusEffects = effectsMap,
             )
         } else {
             null
@@ -105,16 +104,7 @@ class RodAnalyzer(private val plugin: Plugin) : KoinComponent {
     }
 
     fun getAllEffects(rodConfig: RodConfiguration): List<ApplyValue> {
-        val effects = mutableListOf<ApplyValue>()
-
-        // 基本倍率効果
-        if (rodConfig.waitTimeMultiplier != 1.0) {
-            effects.add(ApplyValue(ApplyType.MULTIPLY, rodConfig.waitTimeMultiplier, "seconds"))
-        }
-
-        // 追加効果
-        effects.addAll(rodConfig.bonusEffects)
-
-        return effects
+        // 新しい設計では、全ての効果がbonusEffectsに統合されているため、それをそのまま返す
+        return rodConfig.getAllEffects()
     }
 }

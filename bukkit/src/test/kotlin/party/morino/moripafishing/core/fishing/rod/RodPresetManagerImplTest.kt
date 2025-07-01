@@ -11,6 +11,12 @@ import party.morino.moripafishing.MoripaFishingTest
 import party.morino.moripafishing.api.core.fishing.FishingManager
 import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.rod.RodPresetId
+import party.morino.moripafishing.api.model.rod.getFishingWorldBonuses
+import party.morino.moripafishing.api.model.rod.getWaitTimeMultiplier
+import party.morino.moripafishing.api.model.rod.hasWeatherImmunity
+import party.morino.moripafishing.api.model.rod.withFishingWorldBonuses
+import party.morino.moripafishing.api.model.rod.withWaitTimeMultiplier
+import party.morino.moripafishing.api.model.rod.withWeatherImmunity
 
 /**
  * RodPresetManagerImplのテストクラス
@@ -55,10 +61,9 @@ class RodPresetManagerImplTest : KoinTest {
             assertNotNull(beginnerPreset, "test_beginnerプリセットが取得できない")
 
             beginnerPreset?.let { preset ->
-                assertEquals(RodPresetId("test_beginner"), preset.rodType, "rodTypeが一致しない")
-                assertEquals(1.2, preset.waitTimeMultiplier, 0.01, "waitTimeMultiplierが一致しない")
-                assertEquals(false, preset.weatherImmunity, "weatherImmunityが一致しない")
-                assertEquals(0.9, preset.fishingWorldBonuses["default"] ?: 0.0, 0.01, "defaultボーナスが一致しない")
+                assertEquals(1.2, preset.getWaitTimeMultiplier(), 0.01, "waitTimeMultiplierが一致しない")
+                assertEquals(false, preset.hasWeatherImmunity(), "weatherImmunityが一致しない")
+                assertEquals(0.9, preset.getFishingWorldBonuses()["default"] ?: 0.0, 0.01, "defaultボーナスが一致しない")
             }
 
             // test_masterプリセットを取得
@@ -66,10 +71,9 @@ class RodPresetManagerImplTest : KoinTest {
             assertNotNull(masterPreset, "test_masterプリセットが取得できない")
 
             masterPreset?.let { preset ->
-                assertEquals(RodPresetId("test_master"), preset.rodType, "rodTypeが一致しない")
-                assertEquals(0.8, preset.waitTimeMultiplier, 0.01, "waitTimeMultiplierが一致しない")
-                assertEquals(true, preset.weatherImmunity, "weatherImmunityが一致しない")
-                assertEquals(1.1, preset.fishingWorldBonuses["default"] ?: 0.0, 0.01, "defaultボーナスが一致しない")
+                assertEquals(0.8, preset.getWaitTimeMultiplier(), 0.01, "waitTimeMultiplierが一致しない")
+                assertEquals(true, preset.hasWeatherImmunity(), "weatherImmunityが一致しない")
+                assertEquals(1.1, preset.getFishingWorldBonuses()["default"] ?: 0.0, 0.01, "defaultボーナスが一致しない")
             }
 
             println("test_beginner設定: $beginnerPreset")
@@ -106,14 +110,13 @@ class RodPresetManagerImplTest : KoinTest {
             // 新しいプリセット設定を作成
             val newPresetConfig =
                 RodConfiguration(
-                    rodType = RodPresetId("test_custom"),
-                    waitTimeMultiplier = 0.5,
-                    bonusEffects = emptyList(),
-                    weatherImmunity = true,
-                    fishingWorldBonuses = mapOf("default" to 1.5),
+                    bonusEffects = emptyMap(), // 初期は空のMap
                     displayNameKey = "rod.test_custom.name",
                     loreKeys = listOf("rod.test_custom.lore.1", "rod.test_custom.lore.2"),
                 )
+                    .withWaitTimeMultiplier(0.5)
+                    .withWeatherImmunity(true)
+                    .withFishingWorldBonuses(mapOf("default" to 1.5))
 
             // プリセットを追加
             val addResult = rodPresetManager.addPreset(RodPresetId("test_custom"), newPresetConfig)
@@ -127,10 +130,9 @@ class RodPresetManagerImplTest : KoinTest {
             assertNotNull(addedPreset, "追加したプリセットが取得できない")
 
             addedPreset?.let { preset ->
-                assertEquals(RodPresetId("test_custom"), preset.rodType, "追加したプリセットのrodTypeが一致しない")
-                assertEquals(0.5, preset.waitTimeMultiplier, 0.01, "追加したプリセットのwaitTimeMultiplierが一致しない")
-                assertEquals(true, preset.weatherImmunity, "追加したプリセットのweatherImmunityが一致しない")
-                assertEquals(1.5, preset.fishingWorldBonuses["default"] ?: 0.0, 0.01, "追加したプリセットのdefaultボーナスが一致しない")
+                assertEquals(0.5, preset.getWaitTimeMultiplier(), 0.01, "追加したプリセットのwaitTimeMultiplierが一致しない")
+                assertEquals(true, preset.hasWeatherImmunity(), "追加したプリセットのweatherImmunityが一致しない")
+                assertEquals(1.5, preset.getFishingWorldBonuses()["default"] ?: 0.0, 0.01, "追加したプリセットのdefaultボーナスが一致しない")
             }
 
             // プリセット一覧に追加されているか確認
