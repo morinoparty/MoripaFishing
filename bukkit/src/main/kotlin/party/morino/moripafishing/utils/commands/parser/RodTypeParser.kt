@@ -14,7 +14,7 @@ import party.morino.moripafishing.api.core.fishing.FishingManager
 
 /**
  * ロッドタイプのコマンド引数パーサー
- * 既存のプリセットのrodTypeを基にサジェストを提供しつつ、任意の文字列も受け入れる
+ * 既存のプリセットIDを基にサジェストを提供しつつ、任意の文字列も受け入れる
  */
 class RodTypeParser<C> : ArgumentParser<C, String>, BlockingSuggestionProvider.Strings<CommandSender>, KoinComponent {
     // FishingManagerを通じてRodPresetManagerにアクセス
@@ -34,18 +34,16 @@ class RodTypeParser<C> : ArgumentParser<C, String>, BlockingSuggestionProvider.S
     }
 
     /**
-     * 既存のプリセットのrodTypeを基にサジェストを提供
+     * 既存のプリセットIDを基にサジェストを提供
      */
     override fun stringSuggestions(
         commandContext: CommandContext<CommandSender?>,
         input: CommandInput,
     ): Iterable<String> {
-        // 既存のプリセットからrodTypeを取得
+        // 既存のプリセットIDを取得
         return runBlocking {
-            rodPresetManager.getAllPresetNames()
-                .mapNotNull { presetName ->
-                    rodPresetManager.getPreset(presetName)?.rodType
-                }
+            rodPresetManager.getAllPresetIds()
+                .map { presetId -> presetId.value }
                 .distinct() // 重複を除去
                 .sorted() // アルファベット順にソート
         }

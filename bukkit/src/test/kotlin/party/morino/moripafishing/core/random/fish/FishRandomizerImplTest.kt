@@ -28,6 +28,7 @@ class FishRandomizerImplTest : KoinTest {
     }
 
     @Test
+    @DisplayName("FishRandomizer No.1: 魚データに基づいてランダムな魚を生成する")
     fun getRandomFishWithFishData() {
         val list: ArrayList<Pair<Double, Double>> = arrayListOf()
         repeat(100) {
@@ -42,7 +43,7 @@ class FishRandomizerImplTest : KoinTest {
     }
 
     @Test
-    @DisplayName("ランダムな魚を10000匹生成し、サイズでソートして表示する")
+    @DisplayName("FishRandomizer No.2: ランダムな魚を10000匹生成し、サイズでソートして表示する")
     fun getRandomFishWithRarity() {
         val list = arrayListOf<Fish>()
         repeat(10000) {
@@ -63,7 +64,7 @@ class FishRandomizerImplTest : KoinTest {
     // 　acanthogobius_flavimanusにRAINYが設定されているので、天気による制限がある魚を10000匹生成し、表示する
     // ./gradlew test --tests "party.morino.moripafishing.core.random.fish.FishRandomizerImplTest.getRestrictFishWithWeather"
     @Test
-    @DisplayName("天気による制限がある魚を10000匹生成し、表示する")
+    @DisplayName("FishRandomizer No.3: 天気による制限がある魚を10000匹生成し、表示する")
     fun getRestrictFishWithWeather() {
         val set = mutableSetOf<FishId>()
         repeat(10000) {
@@ -74,6 +75,7 @@ class FishRandomizerImplTest : KoinTest {
     }
 
     @Test
+    @DisplayName("FishRandomizer No.4: ワールドに基づいてランダムな魚を生成する")
     fun getRandomFishWithWorld() {
         val list = arrayListOf<Fish>()
         repeat(10000) {
@@ -95,6 +97,7 @@ class FishRandomizerImplTest : KoinTest {
     }
 
     @Test
+    @DisplayName("FishRandomizer No.5: ランダムレアリティの抽選確率を検証する")
     fun getRandomRarity() {
         val count: MutableMap<RarityId, Int> = mutableMapOf()
         val r = 100000

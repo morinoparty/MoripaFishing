@@ -1,20 +1,20 @@
 [versions]
-paper = "1.21.6-R0.1-SNAPSHOT"
+paper = "1.21.7-R0.1-SNAPSHOT"
 mccoroutine = "2.22.0"
 cloud = "2.1.0-SNAPSHOT"
 cloudPaper = "2.0.0-SNAPSHOT"
 koinVersion = "4.1.0"
 coroutine = "1.10.2"
-serialization = "1.8.1"
+serialization = "1.9.0"
 exposed = "0.61.0"
 arrow = "2.1.2"
-kaml = "0.82.0"
-sqlite = "3.50.1.0"
+kaml = "0.83.0"
+sqlite = "3.50.2.0"
 postgresql = "42.7.7"
 jnoise = "4.1.0"
 mockk = "1.14.4"
 junit = "5.12.1"
-mockBukkit = "3.93.2"
+mockBukkit = "4.50.0"
 adventure = "4.23.0"
 ktlint = "12.3.0"
 
@@ -54,6 +54,7 @@ vault-api = { group = "com.github.MilkBowl", name = "vaultAPI", version = "1.7.1
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }
 
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+mock-bukkit = { group = "org.mockbukkit.mockbukkit", name = "mockbukkit-v1.21", version.ref = "mockBukkit" }
 
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher"}
