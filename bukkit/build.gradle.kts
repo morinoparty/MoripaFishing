@@ -48,7 +48,7 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.mock.bukkit)
 
-    testImplementation(platform("org.junit:junit-bom:5.13.1"))
+    testImplementation(platform("org.junit:junit-bom:5.13.2"))
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
     testImplementation(libs.junit.platform.launcher)
