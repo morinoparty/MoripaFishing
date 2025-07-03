@@ -116,17 +116,14 @@ class AnglerMock(
     fun setTestFishingHookLocation(location: Location?) {
         val currentRod = testRod
         testRod =
-            if (currentRod != null) {
-                currentRod.updateHook(location)
-            } else {
-                // ロッドが存在しない場合はダミーのロッド設定を作成
-                location?.let {
-                    Rod(
-                        RodConfiguration(bonusEffects = emptyMap()),
-                        Hook(it),
-                    )
-                }
-            }
+            currentRod?.updateHook(location)
+                ?: // ロッドが存在しない場合はダミーのロッド設定を作成
+                        location?.let {
+                            Rod(
+                                RodConfiguration(bonusEffects = emptyMap()),
+                                Hook(it),
+                            )
+                        }
     }
 
     /**
