@@ -113,6 +113,8 @@ jobs:
         run: |
           cat  << EOF > comment.md
           ## 🚀 Preview of ${{ github.event.repository.name }}
+          <details>
+          <summary>Click to open preview files and sites</summary>
           <table>
             <tr>
               <th scope="row">📖 Documentation Preview</th>
@@ -139,6 +141,7 @@ jobs:
               <td><a href="$DETEKT_REPORT_URL">$DETEKT_REPORT_URL</a></td>
             </tr>
           </table>
+          </details>
 
           ## Test summary
 
