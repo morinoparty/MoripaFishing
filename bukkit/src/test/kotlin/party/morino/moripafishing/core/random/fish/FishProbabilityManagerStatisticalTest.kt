@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import party.morino.moripafishing.MoripaFishingTest
+import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
@@ -69,13 +70,13 @@ class FishProbabilityManagerStatisticalTest : KoinTest {
 
         // Step 1: ベースライン測定
         println("1. ベースライン測定中...")
-        val baselineStats = getFishStats(totalTrials)
+        val baselineStats = getFishStats(totalTrials, angler)
         val baselineTargetRate = baselineStats.getOrDefault(testFishId, 0).toDouble() / totalTrials
 
         // Step 2: 魚修正値適用（3倍）
         fishProbabilityManager.applyFishModifierForAngler(anglerId, testFishId, ApplyValue(ApplyType.MULTIPLY, 3.0, "テスト修正"))
         println("2. 魚修正(x3)後測定中...")
-        val modifiedStats = getFishStats(totalTrials)
+        val modifiedStats = getFishStats(totalTrials, angler)
         val modifiedTargetRate = modifiedStats.getOrDefault(testFishId, 0).toDouble() / totalTrials
 
         // 結果分析
@@ -98,7 +99,7 @@ class FishProbabilityManagerStatisticalTest : KoinTest {
         println("=== 単純重み付き魚抽選システム検証 (試行回数: $totalTrials) ===")
 
         // 魚の重み付き抽選を実行
-        val fishStats = getFishStats(totalTrials)
+        val fishStats = getFishStats(totalTrials, angler)
 
         // 結果出力
         println("\n=== 魚抽選結果 ===")
@@ -115,7 +116,7 @@ class FishProbabilityManagerStatisticalTest : KoinTest {
     /**
      * 魚統計情報を取得するヘルパーメソッド
      */
-    private fun getFishStats(trials: Int): Map<FishId, Int> {
+    private fun getFishStats(trials: Int, angler : Angler): Map<FishId, Int> {
         val fishCount = mutableMapOf<FishId, Int>()
 
         repeat(trials) {

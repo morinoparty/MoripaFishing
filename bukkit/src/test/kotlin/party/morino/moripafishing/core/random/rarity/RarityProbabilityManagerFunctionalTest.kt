@@ -16,6 +16,9 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.rarity.RarityId
+import party.morino.moripafishing.api.model.rod.Hook
+import party.morino.moripafishing.api.model.rod.Rod
+import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.Spot
@@ -60,6 +63,13 @@ class RarityProbabilityManagerFunctionalTest : KoinTest {
         fishingWorld = FishingWorldMock(testWorldId)
         angler.setTestWorld(fishingWorld)
         angler.setTestLocation(Location(testWorldId, 0.0, 0.0, 0.0, 0.0, 0.0))
+
+        // hookをlocation内に配置
+        val hook = Hook(Location(testWorldId, 5.0, 5.0, 5.0, 0.0, 0.0))
+        val rod = Rod(configuration = RodConfiguration(), hook)
+        angler.setTestRod(rod)
+
+        rarityProbabilityManager.cleanupAllRarityModifiers()
     }
 
     @Test
@@ -86,9 +96,6 @@ class RarityProbabilityManagerFunctionalTest : KoinTest {
         // Spotを作成 (位置: 5, 5, 5, 半径: 10)
         val spotLocation = Location(testWorldId, 5.0, 5.0, 5.0, 0.0, 0.0)
         val spot = Spot(spotLocation, 10.0)
-
-        // プレイヤーをSpot範囲内に配置 (距離約8.66)
-        angler.setTestLocation(Location(testWorldId, 10.0, 10.0, 10.0, 0.0, 0.0))
 
         val applyValue = ApplyValue(ApplyType.MULTIPLY, 3.0, "")
 

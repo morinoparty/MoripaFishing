@@ -17,6 +17,9 @@ import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
+import party.morino.moripafishing.api.model.rod.Hook
+import party.morino.moripafishing.api.model.rod.Rod
+import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.Spot
@@ -29,7 +32,6 @@ import party.morino.moripafishing.mocks.world.FishingWorldMock
  */
 @ExtendWith(MoripaFishingTest::class)
 class FishProbabilityManagerFishingHookTest : KoinTest {
-    private lateinit var fishProbabilityManager: FishProbabilityManagerImpl
     private lateinit var angler: AnglerMock
     private lateinit var fishingWorld: FishingWorldMock
 
@@ -38,6 +40,7 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
     private val rarityManager: RarityManager by inject()
     private val probabilityManager: ProbabilityManager by inject()
     private val rarityProbabilityManager by lazy { probabilityManager.getRarityProbabilityManager() }
+    private val fishProbabilityManager by lazy { probabilityManager.getFishProbabilityManager() }
     private val worldManager: WorldManager by inject()
 
     // 実際のデータを使用
@@ -51,8 +54,8 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
 
     @BeforeEach
     fun setUp() {
-        fishProbabilityManager = FishProbabilityManagerImpl()
-
+        rarityProbabilityManager.cleanupAllRarityModifiers()
+        fishProbabilityManager.cleanupAllFishModifiers()
         // 実際のデータを取得
         testRarityId = rarityManager.getRarities().firstOrNull()?.id ?: RarityId("common")
         testFishId = fishManager.getFish().firstOrNull()?.id ?: FishId("sillago_japonica")
@@ -68,6 +71,11 @@ class FishProbabilityManagerFishingHookTest : KoinTest {
         angler = AnglerMock(anglerId)
         fishingWorld = FishingWorldMock(testWorldId)
         angler.setTestWorld(fishingWorld)
+
+        // hookをlocation内に配置
+        val hook = Hook(Location(testWorldId, 5.0, 5.0, 5.0, 0.0, 0.0))
+        val rod = Rod(configuration = RodConfiguration(), hook)
+        angler.setTestRod(rod)
     }
 
     @Test
