@@ -171,6 +171,12 @@ class RarityProbabilityManagerImpl : RarityProbabilityManager, KoinComponent {
         worldRarityModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
     }
 
+    override fun cleanupAllRarityModifiers() {
+        spotRarityModifiers.clear()
+        anglerRarityModifiers.clear()
+        worldRarityModifiers.clear()
+    }
+
     // プライベートヘルパーメソッド
 
     private fun getWorldRarityEffects(

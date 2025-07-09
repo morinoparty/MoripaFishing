@@ -16,6 +16,9 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.rarity.RarityId
+import party.morino.moripafishing.api.model.rod.Hook
+import party.morino.moripafishing.api.model.rod.Rod
+import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.api.model.world.Spot
@@ -54,6 +57,13 @@ class RarityProbabilityManagerStatisticalTest : KoinTest {
         angler = AnglerMock(anglerId)
         fishingWorld = FishingWorldMock(testWorldId)
         angler.setTestWorld(fishingWorld)
+
+        // hookをlocation内に配置
+        val hook = Hook(Location(testWorldId, 5.0, 5.0, 5.0, 0.0, 0.0))
+        val rod = Rod(configuration = RodConfiguration(), hook)
+        angler.setTestRod(rod)
+
+        rarityProbabilityManager.cleanupAllRarityModifiers()
     }
 
     @Test

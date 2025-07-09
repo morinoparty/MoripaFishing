@@ -171,6 +171,12 @@ class FishProbabilityManagerImpl : FishProbabilityManager, KoinComponent {
         worldFishModifiers.removeAll { it.expirationTime?.isBefore(now) == true }
     }
 
+    override fun cleanupAllFishModifiers() {
+        spotFishModifiers.clear()
+        anglerFishModifiers.clear()
+        worldFishModifiers.clear()
+    }
+
     // プライベートヘルパーメソッド
 
     private fun getWorldFishEffects(
