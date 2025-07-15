@@ -14,9 +14,9 @@ postgresql = "42.7.7"
 jnoise = "4.1.0"
 mockk = "1.14.4"
 junit = "5.12.1"
-mockBukkit = "4.50.0"
+mockBukkit = "4.68.0"
 adventure = "4.23.0"
-ktlint = "12.3.0"
+ktlint = "13.0.0"
 
 [libraries]
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
