@@ -1,0 +1,11 @@
+{
+    "position": 1,
+    "label": "🎯 コアシステム",
+    "link": {
+        "type": "generated-index",
+        "title": "コアシステム"
+    },
+    "customProps": {
+        "description": "FishManager、FishingManagerなど主要なコアシステムの解説。"
+    }
+}

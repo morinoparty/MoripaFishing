@@ -1,5 +1,6 @@
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.translation.Argument
+import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
@@ -11,6 +12,7 @@ import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.model.fish.CaughtFish
+import java.util.Locale
 
 /**
  * BukkitのItemStackを利用した魚アイテムの実装クラス
@@ -29,7 +31,10 @@ class BukkitFishItem : KoinComponent {
          * @param fish 魚
          * @return ItemStack
          */
-        fun create(caughtFish: CaughtFish): ItemStack {
+        fun create(
+            caughtFish: CaughtFish,
+            locale: Locale = Locale.getDefault(),
+        ): ItemStack {
             // Koinから依存関係を取得
             val fishManager = getKoin().get<FishManager>()
             val configManager = getKoin().get<ConfigManager>()
@@ -69,24 +74,40 @@ class BukkitFishItem : KoinComponent {
                     Argument.component("timestamp", Component.text(caughtFish.timestamp.toString())),
                 )
 
-            // 翻訳可能なコンポーネントを準備
+            // 魚の説明文（lore）を翻訳してリスト化
             val translatableComponents: List<Component> =
-                arrayListOf(
-                    Component.translatable("moripa_fishing.fish.lore.default.rarity", translateTags),
-                    Component.translatable("moripa_fishing.fish.lore.default.size", translateTags),
-                    Component.translatable("moripa_fishing.fish.lore.default.angler", translateTags),
-                ) +
-                    fishData.lore[configManager.getConfig().defaultLocale]!!.mapIndexed { index, _ ->
-                        Component.translatable("moripa_fishing.fish.lore.${caughtFish.fish.value}.additional.$index", translateTags)
-                    }.toList()
+                buildList {
+                    // デフォルトのlore（レアリティ・サイズ・釣り人）を追加
+                    add(GlobalTranslator.render(Component.translatable("moripa_fishing.fish.lore.default.rarity", translateTags), locale))
+                    add(GlobalTranslator.render(Component.translatable("moripa_fishing.fish.lore.default.size", translateTags), locale))
+                    add(GlobalTranslator.render(Component.translatable("moripa_fishing.fish.lore.default.angler", translateTags), locale))
+                    // 追加のlore（魚ごとの追加説明）を追加
+                    fishData.lore[configManager.getConfig().defaultLocale]?.forEachIndexed { index, _ ->
+                        add(
+                            GlobalTranslator.render(
+                                Component.translatable(
+                                    "moripa_fishing.fish.lore.${caughtFish.fish.value}.additional.$index",
+                                    translateTags,
+                                ),
+                                locale,
+                            ),
+                        )
+                    }
+                }
 
             // カスタムモデルデータを設定
             customModelDataComponent.floats = fishData.itemStack.itemMeta.customModelData
 
+            val displayName =
+                GlobalTranslator.render(
+                    Component.translatable("moripa_fishing.fish.${fishData.id.value}.name", translateTags),
+                    locale,
+                )
+
             // ItemMetaを更新
             item.itemMeta =
                 item.itemMeta.apply {
-                    displayName(Component.text("moripa_fishing.fish.${fishData.id.value}.name"))
+                    displayName(displayName)
                     lore(translatableComponents)
                     // 永続化データコンテナに魚のデータを保存
                     persistentDataContainer.set(key, PersistentDataType.STRING, caughtFish.uniqueId.toString())

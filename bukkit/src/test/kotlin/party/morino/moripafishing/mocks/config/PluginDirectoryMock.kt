@@ -2,6 +2,7 @@ package party.morino.moripafishing.mocks.config
 
 import party.morino.moripafishing.api.config.PluginDirectory
 import java.io.File
+import java.io.InputStream
 
 /**
  * プラグインのディレクトリを管理するモッククラス
@@ -12,6 +13,7 @@ class PluginDirectoryMock : PluginDirectory {
     private val fishDirectory: File = File(rootDirectory, "fish")
     private val worldDirectory: File = File(rootDirectory, "world")
     private val generatorDirectory: File = File(rootDirectory, "generator")
+    private val rodDirectory: File = File(rootDirectory, "rod")
     /**
      * プラグインのルートディレクトリを取得する
      * @return プラグインのルートディレクトリ
@@ -61,5 +63,22 @@ class PluginDirectoryMock : PluginDirectory {
             generatorDirectory.mkdirs()
         }
         return generatorDirectory
+    }
+
+    override fun getRodDirectory(): File {
+        if (!rodDirectory.exists()) {
+            rodDirectory.mkdirs()
+        }
+        return rodDirectory
+    }
+
+    override fun getResource(filename: String): InputStream? {
+        // リソースディレクトリからファイルを読み込む
+        val resourceFile = File("bukkit/src/main/resources/$filename")
+        return if (resourceFile.exists()) {
+            resourceFile.inputStream()
+        } else {
+            null
+        }
     }
 }

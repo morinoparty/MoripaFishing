@@ -69,7 +69,10 @@ class WorldManagerMock : WorldManager, KoinComponent {
         return true
     }
 
-    override fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean {
+    override fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generatorData: GeneratorData,
+    ): Boolean {
         worldIdList.plus(fishingWorldId)
         return true
     }

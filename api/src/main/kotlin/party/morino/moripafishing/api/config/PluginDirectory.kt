@@ -35,4 +35,17 @@ interface PluginDirectory {
      * @return ジェネレータの設定ファイルが格納されているディレクトリ
      */
     fun getGeneratorDirectory(): File
+
+    /**
+     * ロッドの設定ファイルが格納されているディレクトリを取得する
+     * @return ロッドの設定ファイルが格納されているディレクトリ
+     */
+    fun getRodDirectory(): File
+
+    /**
+     * リソースファイルを読み込む
+     * @param filename リソースファイル名
+     * @return InputStreamまたはnull
+     */
+    fun getResource(filename: String): java.io.InputStream?
 }

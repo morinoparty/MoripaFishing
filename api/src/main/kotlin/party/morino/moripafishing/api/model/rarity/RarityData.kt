@@ -12,6 +12,7 @@ import java.util.Locale
  * @param color レアリティの色 Hex
  * @param displayName レアリティの表示名
  * @param weight レアリティの重み
+ * @param worthExpression 価値計算式
  */
 @Serializable
 data class RarityData(

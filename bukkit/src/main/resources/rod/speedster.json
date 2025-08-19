@@ -1,0 +1,21 @@
+{
+  "rodType": "speedster",
+  "waitTimeMultiplier": 0.3,
+  "bonusEffects": [
+    {
+      "type": "ADD",
+      "value": -5.0,
+      "unit": "seconds"
+    }
+  ],
+  "weatherImmunity": false,
+  "fishingWorldBonuses": {
+    "default": 0.7,
+    "ocean": 0.6
+  },
+  "displayNameKey": "rod.speedster.name",
+  "loreKeys": [
+    "rod.speedster.lore.1",
+    "rod.speedster.lore.2"
+  ]
+}

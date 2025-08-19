@@ -2,7 +2,7 @@ package party.morino.moripafishing.api.config
 
 import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.config.database.DatabaseConfig
-import party.morino.moripafishing.api.config.fish.FishingConfig
+import party.morino.moripafishing.api.config.fishing.FishingConfig
 import party.morino.moripafishing.api.config.world.SpawnConfig
 import party.morino.moripafishing.api.config.world.WorldConfig
 import java.util.Locale

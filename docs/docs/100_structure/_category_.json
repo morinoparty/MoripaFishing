@@ -1,11 +1,11 @@
 {
     "position": 100,
-    "label": "🚧 構造(For Developer)",
+    "label": "🏗️ アーキテクチャ",
     "link": {
         "type": "generated-index",
-        "title": "🚧 構造の補足"
+        "title": "システムアーキテクチャ"
     },
     "customProps": {
-        "description": "構造についての補足説明です。"
+        "description": "MoripaFishingプラグインのアーキテクチャと内部構造について説明します。"
     }
 }

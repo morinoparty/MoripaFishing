@@ -1,11 +1,11 @@
 {
-    "position": 1,
-    "label": "データモデル 🚀",
+    "position": 2,
+    "label": "📦 データモデル",
     "link": {
         "type": "generated-index",
         "title": "データモデル"
     },
     "customProps": {
-        "description": "データモデルについての説明です。"
+        "description": "CaughtFish、FishData、RarityDataなどの主要なデータ構造とモデル定義。"
     }
 }

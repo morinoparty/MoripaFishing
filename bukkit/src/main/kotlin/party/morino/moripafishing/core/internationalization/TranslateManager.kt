@@ -25,6 +25,7 @@ object TranslateManager : KoinComponent {
         loadFishData()
         loadWorldData()
         loadMessageData()
+        loadRodData()
         GlobalTranslator.translator().addSource(myStore)
     }
 
@@ -77,5 +78,46 @@ object TranslateManager : KoinComponent {
             Locale.ENGLISH,
             "🎣 <yellow>Angler: <angler> </yellow>has caught <size>cm <fish_name> in <world>.",
         )
+    }
+
+    /**
+     * ロッドデータを読み込む
+     */
+    fun loadRodData() {
+        // Beginner Rod
+        myStore.register("rod.beginner.name", Locale.JAPAN, "初心者の釣竿")
+        myStore.register("rod.beginner.name", Locale.ENGLISH, "Beginner's Rod")
+        myStore.register("rod.beginner.lore.1", Locale.JAPAN, "新人釣り師にぴったり！")
+        myStore.register("rod.beginner.lore.1", Locale.ENGLISH, "Perfect for new anglers!")
+        myStore.register("rod.beginner.lore.2", Locale.JAPAN, "少し釣りが遅くなります")
+        myStore.register("rod.beginner.lore.2", Locale.ENGLISH, "Slightly slower fishing")
+
+        // Master Rod
+        myStore.register("rod.master.name", Locale.JAPAN, "マスター釣り師の竿")
+        myStore.register("rod.master.name", Locale.ENGLISH, "Master Angler's Rod")
+        myStore.register("rod.master.lore.1", Locale.JAPAN, "熟練釣り師のために")
+        myStore.register("rod.master.lore.1", Locale.ENGLISH, "For experienced fishermen")
+        myStore.register("rod.master.lore.2", Locale.JAPAN, "天候無効")
+        myStore.register("rod.master.lore.2", Locale.ENGLISH, "Weather immunity")
+        myStore.register("rod.master.lore.3", Locale.JAPAN, "高速釣り")
+        myStore.register("rod.master.lore.3", Locale.ENGLISH, "Fast fishing speed")
+
+        // Legendary Rod
+        myStore.register("rod.legendary.name", Locale.JAPAN, "伝説の釣竿")
+        myStore.register("rod.legendary.name", Locale.ENGLISH, "Legendary Fishing Rod")
+        myStore.register("rod.legendary.lore.1", Locale.JAPAN, "伝説の力！")
+        myStore.register("rod.legendary.lore.1", Locale.ENGLISH, "Legendary power!")
+        myStore.register("rod.legendary.lore.2", Locale.JAPAN, "固定2秒釣り時間")
+        myStore.register("rod.legendary.lore.2", Locale.ENGLISH, "Fixed 2s fishing time")
+        myStore.register("rod.legendary.lore.3", Locale.JAPAN, "究極の釣り体験")
+        myStore.register("rod.legendary.lore.3", Locale.ENGLISH, "Ultimate fishing experience")
+
+        // Speedster Rod
+        myStore.register("rod.speedster.name", Locale.JAPAN, "スピードスター竿")
+        myStore.register("rod.speedster.name", Locale.ENGLISH, "Speedster Rod")
+        myStore.register("rod.speedster.lore.1", Locale.JAPAN, "超高速釣り")
+        myStore.register("rod.speedster.lore.1", Locale.ENGLISH, "Ultra-fast fishing")
+        myStore.register("rod.speedster.lore.2", Locale.JAPAN, "スピード釣りコンペ用")
+        myStore.register("rod.speedster.lore.2", Locale.ENGLISH, "For speed fishing competitions")
     }
 }

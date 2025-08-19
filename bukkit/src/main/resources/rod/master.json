@@ -1,0 +1,23 @@
+{
+  "rodType": "master",
+  "waitTimeMultiplier": 0.6,
+  "bonusEffects": [
+    {
+      "type": "ADD",
+      "value": -3.0,
+      "unit": "seconds"
+    }
+  ],
+  "weatherImmunity": true,
+  "fishingWorldBonuses": {
+    "default": 0.8,
+    "ocean": 0.7,
+    "lake": 0.75
+  },
+  "displayNameKey": "rod.master.name",
+  "loreKeys": [
+    "rod.master.lore.1",
+    "rod.master.lore.2",
+    "rod.master.lore.3"
+  ]
+}
