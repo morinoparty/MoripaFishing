@@ -4,7 +4,9 @@ import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
+import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
 
@@ -53,4 +55,6 @@ interface MoripaFishingAPI {
      * @return ジェネレーター管理マネージャー
      */
     fun getGeneratorManager(): GeneratorManager
+    fun getRarityManager(): RarityManager
+    fun getLogManager(): LogManager
 }

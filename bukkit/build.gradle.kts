@@ -67,12 +67,12 @@ tasks {
     }
     shadowJar
     runServer {
-        minecraftVersion("1.21.4")
+        minecraftVersion("1.21.8")
         val plugins =
             runPaper.downloadPluginsSpec {
                 // Vault
                 url("https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar")
-                modrinth("terra", "6.6.1-BETA-bukkit")
+                modrinth("terra", "6.6.5-BETA-bukkit")
             }
         downloadPlugins {
             downloadPlugins.from(plugins)

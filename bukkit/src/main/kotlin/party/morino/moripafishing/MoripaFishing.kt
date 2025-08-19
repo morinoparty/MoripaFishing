@@ -14,6 +14,8 @@ import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.fishing.FishingManager
+import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.GeneratorManager
@@ -23,6 +25,7 @@ import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.internationalization.TranslateManager
+import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.GeneratorManagerImpl
@@ -33,28 +36,15 @@ import party.morino.moripafishing.listener.moripafishing.PlayerFishingAnnounceLi
 import party.morino.moripafishing.utils.coroutines.async
 
 class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
-    private lateinit var configManager: ConfigManager
-
-    // ランダム化マネージャーのインスタンスを遅延初期化する
-    private lateinit var randomizeManager: RandomizeManager
-
-    // レアリティマネージャーのインスタンスを遅延初期化する
-    private lateinit var rarityManager: RarityManager
-
-    // プラグインディレクトリのインスタンスを遅延初期化する
-    private lateinit var pluginDirectory: PluginDirectory
-
-    // WorldManagerのインスタンスを遅延初期化する
-    private lateinit var worldManager: WorldManager
-
-    // FishManagerのインスタンスを遅延初期化する
-    private lateinit var fishManager: FishManager
-
-    // AnglerManagerのインスタンスを遅延初期化する
-    private lateinit var anglerManager: AnglerManager
-
-    // GeneratorManagerのインスタンスを遅延初期化する
-    private lateinit var generatorManager: GeneratorManager
+    private val _configManager: ConfigManager by lazy { GlobalContext.get().get() }
+    private val _randomizeManager: RandomizeManager by lazy { GlobalContext.get().get() }
+    private val _rarityManager: RarityManager by lazy { GlobalContext.get().get() }
+    private val _pluginDirectory: PluginDirectory by lazy { GlobalContext.get().get() }
+    private val _worldManager: WorldManager by lazy { GlobalContext.get().get() }
+    private val _fishManager: FishManager by lazy { GlobalContext.get().get() }
+    private val _anglerManager: AnglerManager by lazy { GlobalContext.get().get() }
+    private val _generatorManager: GeneratorManager by lazy { GlobalContext.get().get() }
+    private val _logManager: LogManager by lazy { GlobalContext.get().get() }
 
     /**
      * プラグインの有効化時に呼び出されるメソッド
@@ -64,51 +54,37 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
      * 2. 各マネージャーのインスタンス化
      * 3. データベースの初期化
      */
+    private var disable = false
     override fun onEnable() {
-        // Koinの設定
         setupKoin()
-        getInstanceForAPI()
-
-        // データベースの初期化
-        // databaseManager.initialize()
-        worldManager.initializeWorlds()
-
-        // リスナーの登録
+        initializeManagers()
         loadListeners()
-
-        // i18n
         TranslateManager.load()
         logger.info("MoripaFishing enabled")
         updateWorlds()
     }
 
-    private fun getInstanceForAPI() {
-        configManager = GlobalContext.get().get()
-        // PluginDirectoryのインスタンスを取得
-        pluginDirectory = GlobalContext.get().get()
-        // RarityManagerのインスタンスを取得
-        rarityManager = GlobalContext.get().get()
-        // RandomizeManagerのインスタンスを取得
-        randomizeManager = GlobalContext.get().get()
-        // WorldManagerのインスタンスを取得
-        worldManager = GlobalContext.get().get()
-        // FishManagerのインスタンスを取得
-        fishManager = GlobalContext.get().get()
-        // AnglerManagerのインスタンスを取得
-        anglerManager = GlobalContext.get().get()
-        // GeneratorManagerのインスタンスを取得
-        generatorManager = GlobalContext.get().get()
+    /**
+     * マネージャーの初期化
+     */
+    private fun initializeManagers() {
+        _worldManager.initializeWorlds()
     }
 
     override fun onDisable() {
-        // プラグインが無効化された際のログ出力
-        worldManager.getWorldIdList().forEach {
-            worldManager.getWorld(it).effectFinish()
+        disable = true
+        _worldManager.getWorldIdList().forEach {
+            _worldManager.getWorld(it).effectFinish()
         }
         logger.info("MoripaFishing disabled")
     }
 
     private fun setupKoin() {
+        // テスト環境では既にKoinが初期化されている場合があるのでチェック
+        if (getOrNull() != null) {
+            return
+        }
+
         val appModule =
                 module {
                     single<MoripaFishing> { this@MoripaFishing }
@@ -120,6 +96,8 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
                     single<FishManager> { FishManagerImpl() }
                     single<AnglerManager> { AnglerManagerImpl() }
                     single<GeneratorManager> { GeneratorManagerImpl() }
+                    single<LogManager> { LogManagerImpl() }
+
                 }
 
         getOrNull() ?: GlobalContext.startKoin {
@@ -133,12 +111,16 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
                 Runnable {
                     runBlocking {
                         withContext(Dispatchers.async) {
-                            val interval = configManager.getConfig().world.refreshInterval * 1000L
-                            while (true) {
-                                worldManager.getWorldIdList().forEach {
-                                    worldManager.getWorld(it).updateState()
+                            val interval = _configManager.getConfig().world.refreshInterval * 1000L
+                            // whileループにラベルを付けて、ラムダ内からreturn@runWhileで抜ける
+                            runWhile@ while (!disable) {
+                                _worldManager.getWorldIdList().forEach {
+                                    _worldManager.getWorld(it).updateState()
                                 }
-                                delay(interval)
+                                repeat(10) {
+                                    if (disable) return@repeat // whileループごと抜ける
+                                    delay(interval / 10)
+                                }
                             }
                         }
                     }
@@ -158,31 +140,15 @@ class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
         )
     }
 
-    override fun getConfigManager(): ConfigManager {
-        return configManager
-    }
 
-    override fun getRandomizeManager(): RandomizeManager {
-        return randomizeManager
-    }
+    override fun getConfigManager(): ConfigManager = _configManager
+    override fun getRandomizeManager(): RandomizeManager = _randomizeManager
+    override fun getFishManager(): FishManager = _fishManager
+    override fun getRarityManager(): RarityManager = _rarityManager
+    override fun getWorldManager(): WorldManager = _worldManager
+    override fun getPluginDirectory(): PluginDirectory = _pluginDirectory
+    override fun getAnglerManager(): AnglerManager = _anglerManager
+    override fun getGeneratorManager(): GeneratorManager = _generatorManager
+    override fun getLogManager(): LogManager = _logManager
 
-    override fun getFishManager(): FishManager {
-        return fishManager
-    }
-
-    override fun getWorldManager(): WorldManager {
-        return worldManager
-    }
-
-    override fun getPluginDirectory(): PluginDirectory {
-        return pluginDirectory
-    }
-
-    override fun getAnglerManager(): AnglerManager {
-        return anglerManager
-    }
-
-    override fun getGeneratorManager(): GeneratorManager {
-        return generatorManager
-    }
 }

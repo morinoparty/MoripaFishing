@@ -16,24 +16,39 @@ tasks:
       - pnpm install
       - pnpm start
     silent: true
-  format:
+  check:
     cmds:
       - ./gradlew clean ktlintFormat
+      - ./gradlew clean detekt
+      - ./gradlew clean test
     silent: true
+
   build:
     cmds:
       - ./gradlew clean build
     silent: true
+
   run:
     cmds:
       - ./gradlew clean runServer
     silent: true
+
   commit:
     cmds:
       - task format
       - pnpm dlx git-cz
+      -
   dokka:
     cmds:
       - ./gradlew clean dokkaGenerate
     silent: true
 
+  test:
+    cmds:
+      - ./gradlew clean test
+    silent: true
+
+  unlock:
+    cmds:
+      - rm bukkit/run/**/session.lock
+    silent: true
