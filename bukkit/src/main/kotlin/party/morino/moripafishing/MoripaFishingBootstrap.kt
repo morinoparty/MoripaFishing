@@ -11,10 +11,13 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import org.incendo.cloud.paper.PaperCommandManager
 import party.morino.moripafishing.ui.commands.DefaultCommand
+import party.morino.moripafishing.ui.commands.RodCommand
 import party.morino.moripafishing.ui.commands.WorldCommand
 import party.morino.moripafishing.utils.commands.CommandSenderMapper
 import party.morino.moripafishing.utils.commands.parser.FishingWorldParser
 import party.morino.moripafishing.utils.commands.parser.GeneratorParser
+import party.morino.moripafishing.utils.commands.parser.RodPresetParser
+import party.morino.moripafishing.utils.commands.parser.RodTypeParser
 
 /**
  * MoripaFishingプラグインのブートストラップクラス
@@ -29,12 +32,14 @@ class MoripaFishingBootstrap : PluginBootstrap {
     override fun bootstrap(context: BootstrapContext) {
         // コマンドマネージャーのインスタンスを作成
         val commandManager: CommandManager<CommandSender> =
-                PaperCommandManager.builder(CommandSenderMapper())
-                        .executionCoordinator(ExecutionCoordinator.asyncCoordinator()) // 非同期実行コーディネーターを設定
-                        .buildBootstrapped(context) // ブートストラップされたコマンドマネージャーを構築
+            PaperCommandManager.builder(CommandSenderMapper())
+                .executionCoordinator(ExecutionCoordinator.asyncCoordinator()) // 非同期実行コーディネーターを設定
+                .buildBootstrapped(context) // ブートストラップされたコマンドマネージャーを構築
 
         commandManager.parserRegistry().registerParser(FishingWorldParser.fishingIdParser())
         commandManager.parserRegistry().registerParser(GeneratorParser.generatorParser())
+        commandManager.parserRegistry().registerNamedParser("rodPreset", RodPresetParser.rodPresetParser())
+        commandManager.parserRegistry().registerNamedParser("rodType", RodTypeParser.rodTypeParser())
         // アノテーションパーサーのインスタンスを作成
         val annotationParser = AnnotationParser(commandManager, CommandSender::class.java)
         annotationParser.installCoroutineSupport()
@@ -42,9 +47,10 @@ class MoripaFishingBootstrap : PluginBootstrap {
         // アノテーションを解析
         with(annotationParser) {
             parse(
-                    // ここにコマンドのアノテーションを追加する
-                    WorldCommand(),
-                    DefaultCommand(),
+                // ここにコマンドのアノテーションを追加する
+                WorldCommand(),
+                DefaultCommand(),
+                RodCommand(),
             )
         }
         // ゲームイベントのレジストリに関する情報へのリンク

@@ -1,0 +1,82 @@
+---
+title: 🎣 釣竿管理コマンド
+sidebar_position: 3
+---
+
+釣竿の作成、管理を行うコマンドです。
+
+export const commandList = [
+    {
+        command: "/mf rod create <type> [multiplier] [addSeconds]",
+        description: "カスタム釣竿を作成します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.rod.create",
+        status: "newly"
+    },
+    {
+        command: "/mf rod preset <presetName>",
+        description: "事前定義された釣竿を作成します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.rod.preset",
+        status: "newly"
+    },
+    {
+        command: "/mf rod info",
+        description: "手に持っている釣竿の情報を表示します",
+        tags: ["player"],
+        aliases: [],
+        permission: "moripa_fishing.command.rod.info",
+        status: "newly"
+    },
+    {
+        command: "/mf rod list",
+        description: "利用可能な釣竿プリセットの一覧を表示します",
+        tags: ["player"],
+        aliases: [],
+        permission: "moripa_fishing.command.rod.list",
+        status: "newly"
+    }
+];
+import { CommandList } from "@site/src/components/commands/command-list";
+
+# コマンド
+
+<CommandList list={commandList} />
+
+## プリセット一覧
+
+### `beginner`
+- 待ち時間倍率: 1.2倍（20%遅い）
+- 初心者向けの基本釣竿
+
+### `master`
+- 待ち時間倍率: 0.6倍（40%短縮）
+- 追加効果: -3秒
+- 天候無効化
+- 経験豊富な釣り人向け
+
+### `legendary`
+- 待ち時間倍率: 0.4倍（60%短縮）
+- 固定釣り時間: 2秒
+- バイオームボーナス対応
+
+### `speedster`
+- 待ち時間倍率: 0.3倍（70%短縮）
+- 追加効果: -5秒
+- スピード釣り競技用
+
+## エンチャント対応
+
+バニラエンチャントも自動的にサポートされます：
+
+### 入れ食い (Lure)
+- レベル1: 待ち時間15%短縮
+- レベル2: 待ち時間30%短縮  
+- レベル3: 待ち時間45%短縮
+
+### 海運 (Luck of the Sea)
+- レベル1: -0.5秒
+- レベル2: -1.0秒
+- レベル3: -1.5秒

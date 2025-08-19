@@ -42,6 +42,10 @@ tasks:
     cmds:
       - ./gradlew clean dokkaGenerate
     silent: true
+  test:
+    cmds:
+      - ./gradlew clean test
+    silent: true
 
   test:
     cmds:

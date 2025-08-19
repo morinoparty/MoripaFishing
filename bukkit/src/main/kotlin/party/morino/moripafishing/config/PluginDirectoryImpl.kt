@@ -1,6 +1,7 @@
 package party.morino.moripafishing.config
 
 import java.io.File
+import java.io.InputStream
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
@@ -16,6 +17,7 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
     private val fishDirectoryFile: File by lazy { File(rootDirectoryFile, "fish") }
     private val worldDirectoryFile: File by lazy { File(rootDirectoryFile, "world") }
     private val generatorDirectoryFile: File by lazy { File(rootDirectoryFile, "generator") }
+    private val rodDirectoryFile: File by lazy { File(rootDirectoryFile, "rod") }
 
     /**
      * プラグインのルートディレクトリを取得する
@@ -70,5 +72,23 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
             generatorDirectoryFile.mkdirs()
         }
         return generatorDirectoryFile
+    }
+
+    /**
+     * ロッドの設定ファイルが格納されているディレクトリを取得する
+     * @return ロッドの設定ファイルが格納されているディレクトリ
+     */
+    override fun getRodDirectory(): File {
+        if (!rodDirectoryFile.exists()) {
+            rodDirectoryFile.mkdirs()
+        }
+        return rodDirectoryFile
+    }
+
+    /**
+     * リソースファイルを読み込む
+     */
+    override fun getResource(filename: String): InputStream? {
+        return plugin.getResource(filename)
     }
 }

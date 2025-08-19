@@ -1,0 +1,25 @@
+{
+  "bonusEffects": {
+    ".*": [
+      {
+        "type": "MULTIPLY",
+        "value": 0.8,
+        "unit": "wait_time"
+      },
+      {
+        "type": "CONSTANT",
+        "value": 0.0,
+        "unit": "weather_immunity"
+      },
+      {
+        "type": "MULTIPLY",
+        "value": 1.1,
+        "unit": "world:default"
+      }
+    ]
+  },
+  "displayNameKey": "rod.test_master.name",
+  "loreKeys": [
+    "rod.test_master.lore.1"
+  ]
+}

@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    env:
+    env: 
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
     runs-on: ubuntu-latest
@@ -42,9 +42,9 @@ jobs:
         run: ./gradlew publish
 
       - name: Change file name
-        run:
+        run: 
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
-
+          
       - uses: Kir-Antipov/mc-publish@995edadc13559a8b28d0b7e6571229f067ec7659 # v3.3.0
         with:
           modrinth-id: vOFF1aw9
@@ -65,4 +65,5 @@ jobs:
             Vault(required)
           java: |
             21
+
 

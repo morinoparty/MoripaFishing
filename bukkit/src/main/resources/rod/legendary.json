@@ -1,0 +1,24 @@
+{
+  "rodType": "legendary",
+  "waitTimeMultiplier": 0.4,
+  "bonusEffects": [
+    {
+      "type": "CONSTANT",
+      "value": 2.0,
+      "unit": "seconds"
+    }
+  ],
+  "weatherImmunity": false,
+  "fishingWorldBonuses": {
+    "default": 0.6,
+    "ocean": 0.5,
+    "lake": 0.55,
+    "river": 0.4
+  },
+  "displayNameKey": "rod.legendary.name",
+  "loreKeys": [
+    "rod.legendary.lore.1",
+    "rod.legendary.lore.2",
+    "rod.legendary.lore.3"
+  ]
+}

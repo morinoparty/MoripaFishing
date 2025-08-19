@@ -1,7 +1,7 @@
 name: preview.yml
 on:
-  pull_request:
-  workflow_dispatch:
+    pull_request:
+    workflow_dispatch:
 
 permissions:
   pull-requests: write
@@ -101,12 +101,6 @@ jobs:
         with:
           report_paths: './**/build/test-results/test/TEST-*.xml'
 
-      - name: Get limit time
-        id: limit-time
-        run: |
-          limit_time=$(date -d "7 days" +%Y-%m-%d)
-          echo "LIMIT_TIME=$limit_time" >> $GITHUB_ENV
-
       - name: Create comment file
         id: create-comment-file
         env:
@@ -116,11 +110,9 @@ jobs:
           DETEKT_REPORT_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
           DOCS_PREVIEW_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/docs/index.html"
           DOKKA_URL: "https://mf-ci.nikomaru.dev/${{ env.COMMIT_SHORT_SHA }}/docs/dokka/index.html"
-          LIMIT_TIME: ${{ env.LIMIT_TIME }}
         run: |
           cat  << EOF > comment.md
           ## 🚀 Preview of ${{ github.event.repository.name }}
-          This preview file are availalble for 7 days. (until $LIMIT_TIME)
           <table>
             <tr>
               <th scope="row">📖 Documentation Preview</th>

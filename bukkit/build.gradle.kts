@@ -46,8 +46,9 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
+    testImplementation(libs.mock.bukkit)
 
-    testImplementation(platform("org.junit:junit-bom:5.12.2"))
+    testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
     testImplementation(libs.junit.platform.launcher)
@@ -92,6 +93,16 @@ sourceSets.main {
             loader = "$group.moripafishing.MoripaFishingLoader"
             dependencies {
                 server("Vault", PaperPluginYaml.Load.BEFORE)
+            }
+        }
+        bukkitPluginYaml {
+            name = rootProject.name
+            version = project.version.toString()
+            website = "https://fishing.plugin.morino.party"
+            main = "$group.moripafishing.MoripaFishing"
+            apiVersion = "1.20"
+            dependencies {
+                "Vault"
             }
         }
     }

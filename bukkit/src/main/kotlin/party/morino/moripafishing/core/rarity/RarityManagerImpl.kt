@@ -7,6 +7,7 @@ import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.rarity.RarityId
+import party.morino.moripafishing.api.serialization.RegexSerializer
 
 /**
  * レアリティの管理を行う実装クラス
@@ -59,6 +60,11 @@ class RarityManagerImpl : RarityManager, KoinComponent {
                 prettyPrint = true
                 encodeDefaults = true
                 isLenient = true
+                allowStructuredMapKeys = true // Regexキーを持つMapのシリアライゼーションを有効化
+                serializersModule =
+                    kotlinx.serialization.modules.SerializersModule {
+                        contextual(Regex::class, RegexSerializer) // Regexシリアライザーを登録
+                    }
             }
         rarityDir.listFiles { file -> file.extension == "json" }?.forEach { file ->
             val rarity = json.decodeFromString<RarityData>(file.readText())

@@ -1,0 +1,21 @@
+{
+  "bonusEffects": {
+    ".*": [
+      {
+        "type": "MULTIPLY",
+        "value": 1.2,
+        "unit": "wait_time"
+      },
+      {
+        "type": "MULTIPLY",
+        "value": 0.9,
+        "unit": "world:default"
+      }
+    ]
+  },
+  "displayNameKey": "rod.test_beginner.name",
+  "loreKeys": [
+    "rod.test_beginner.lore.1",
+    "rod.test_beginner.lore.2"
+  ]
+}

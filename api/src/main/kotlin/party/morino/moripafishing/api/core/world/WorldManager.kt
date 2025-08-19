@@ -39,7 +39,10 @@ interface WorldManager {
      * @param generatorData ワールド生成データ
      * @return ワールド
      */
-    fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean
+    fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generatorData: GeneratorData,
+    ): Boolean
 
     /**
      * ワールドを削除する
