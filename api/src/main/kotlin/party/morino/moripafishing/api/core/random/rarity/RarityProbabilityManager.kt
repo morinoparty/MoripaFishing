@@ -99,4 +99,9 @@ interface RarityProbabilityManager {
      * 期限切れのレアリティ修正値をクリーンアップする
      */
     fun cleanupExpiredRarityModifiers()
+
+    /**
+     * すべての修正をクリーンアップする
+     */
+    fun cleanupAllRarityModifiers()
 }

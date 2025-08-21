@@ -11,9 +11,14 @@ import party.morino.moripafishing.MoripaFishingTest
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.fishing.ApplyType
 import party.morino.moripafishing.api.core.fishing.ApplyValue
+import party.morino.moripafishing.api.core.random.ProbabilityManager
+import party.morino.moripafishing.api.core.random.fish.FishProbabilityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.fish.FishId
+import party.morino.moripafishing.api.model.rod.Hook
+import party.morino.moripafishing.api.model.rod.Rod
+import party.morino.moripafishing.api.model.rod.RodConfiguration
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.Location
 import party.morino.moripafishing.mocks.angler.AnglerMock
@@ -25,7 +30,9 @@ import party.morino.moripafishing.mocks.world.FishingWorldMock
  */
 @ExtendWith(MoripaFishingTest::class)
 class FishProbabilityManagerFunctionalTest : KoinTest {
-    private lateinit var fishProbabilityManager: FishProbabilityManagerImpl
+    private val probabilityManager: ProbabilityManager by inject()
+
+    private val fishProbabilityManager by lazy { probabilityManager.getFishProbabilityManager() }
     private lateinit var angler: AnglerMock
     private lateinit var fishingWorld: FishingWorldMock
 
@@ -42,8 +49,7 @@ class FishProbabilityManagerFunctionalTest : KoinTest {
 
     @BeforeEach
     fun setUp() {
-        fishProbabilityManager = FishProbabilityManagerImpl()
-
+        fishProbabilityManager.cleanupAllFishModifiers()
         // 実際のデータを取得
         testFishId = fishManager.getFish().firstOrNull()?.id ?: FishId("sillago_japonica")
         testWorldId = worldManager.getDefaultWorldId()
@@ -58,6 +64,11 @@ class FishProbabilityManagerFunctionalTest : KoinTest {
         fishingWorld = FishingWorldMock(testWorldId)
         angler.setTestWorld(fishingWorld)
         angler.setTestLocation(Location(testWorldId, 0.0, 0.0, 0.0, 0.0, 0.0))
+
+        // hookをlocation内に配置
+        val hook = Hook(Location(testWorldId, 5.0, 5.0, 5.0, 0.0, 0.0))
+        val rod = Rod(configuration = RodConfiguration(), hook)
+        angler.setTestRod(rod)
     }
 
     @Test

@@ -99,4 +99,9 @@ interface FishProbabilityManager {
      * 期限切れの魚修正値をクリーンアップする
      */
     fun cleanupExpiredFishModifiers()
+
+    /**
+     * すべての修正をクリーンアップする
+     */
+    fun cleanupAllFishModifiers()
 }
