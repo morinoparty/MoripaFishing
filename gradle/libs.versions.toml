@@ -16,7 +16,7 @@ mockk = "1.14.5"
 junit = "5.12.1"
 mockBukkit = "3.93.2"
 adventure = "4.23.0"
-ktlint = "12.2.0"
+ktlint = "13.1.0"
 
 [libraries]
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
