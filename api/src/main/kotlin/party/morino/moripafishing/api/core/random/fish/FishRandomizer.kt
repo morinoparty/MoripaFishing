@@ -32,9 +32,7 @@ interface FishRandomizer {
     fun selectRandomFishByRarity(
         rarity: RarityId,
         fishingWorldId: FishingWorldId,
-    ): Fish {
-        return selectRandomFishByRarity(rarity, fishingWorldId)
-    }
+    ): Fish = selectRandomFishByRarity(rarity, fishingWorldId)
 
     /**
      * 魚データに基づいて魚を抽選する

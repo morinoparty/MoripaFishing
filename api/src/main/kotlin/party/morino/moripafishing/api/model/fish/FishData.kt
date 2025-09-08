@@ -22,7 +22,7 @@ data class FishData(
         )
         Locale,
         String,
-        > =
+    > =
         mapOf(
             Locale.JAPAN to "さかな",
         ),
@@ -45,7 +45,7 @@ data class FishData(
         @Serializable(with = LocaleSerializer::class)
         Locale,
         ArrayList<String>,
-        > =
+    > =
         mapOf(
             Locale.JAPAN to arrayListOf(),
             Locale.ENGLISH to arrayListOf(),

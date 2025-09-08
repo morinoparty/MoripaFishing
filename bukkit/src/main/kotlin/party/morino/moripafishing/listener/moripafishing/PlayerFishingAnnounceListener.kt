@@ -8,7 +8,9 @@ import org.bukkit.event.Listener
 import org.koin.core.component.KoinComponent
 import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
 
-class PlayerFishingAnnounceListener : Listener, KoinComponent {
+class PlayerFishingAnnounceListener :
+    Listener,
+    KoinComponent {
     @EventHandler
     fun onPlayerFishingAnnounce(event: AnglerFishCaughtEvent) {
         val angler = event.getAngler().getName()

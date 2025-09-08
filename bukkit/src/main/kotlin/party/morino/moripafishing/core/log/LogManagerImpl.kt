@@ -9,7 +9,9 @@ import party.morino.moripafishing.api.core.log.LogManager
 /**
  * LogManagerの実装クラス
  */
-class LogManagerImpl : LogManager, KoinComponent {
+class LogManagerImpl :
+    LogManager,
+    KoinComponent {
     val plugin: MoripaFishing by inject()
 
     /**

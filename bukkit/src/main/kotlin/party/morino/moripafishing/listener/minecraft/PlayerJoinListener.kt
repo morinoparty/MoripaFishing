@@ -9,7 +9,9 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.world.WorldManager
 
-class PlayerJoinListener : Listener, KoinComponent {
+class PlayerJoinListener :
+    Listener,
+    KoinComponent {
     private val worldManager: WorldManager by inject()
 
     @EventHandler

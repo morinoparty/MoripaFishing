@@ -21,7 +21,5 @@ object RarityIdSerializer : KSerializer<RarityId> {
         encoder.encodeString(value.value)
     }
 
-    override fun deserialize(decoder: Decoder): RarityId {
-        return RarityId(decoder.decodeString())
-    }
+    override fun deserialize(decoder: Decoder): RarityId = RarityId(decoder.decodeString())
 }

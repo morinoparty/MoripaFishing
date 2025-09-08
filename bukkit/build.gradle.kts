@@ -73,6 +73,7 @@ tasks {
                 // Vault
                 url("https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar")
                 modrinth("terra", "6.6.5-BETA-bukkit")
+//                github("minekube", "connect-java", "latest","connect-spigot.jar")
             }
         downloadPlugins {
             downloadPlugins.from(plugins)

@@ -13,7 +13,8 @@ import java.util.UUID
 
 class AnglerImpl(
     private val uniqueId: UUID,
-) : Angler, KoinComponent {
+) : Angler,
+    KoinComponent {
     val plugin: MoripaFishing by inject()
     val worldManager: WorldManager by inject()
 
@@ -21,13 +22,9 @@ class AnglerImpl(
      * 釣り人のIDを取得する
      * @return 釣り人のID
      */
-    override fun getAnglerUniqueId(): AnglerId {
-        return AnglerId(uniqueId)
-    }
+    override fun getAnglerUniqueId(): AnglerId = AnglerId(uniqueId)
 
-    override fun getMinecraftUniqueId(): UUID {
-        return uniqueId
-    }
+    override fun getMinecraftUniqueId(): UUID = uniqueId
 
     override fun getName(): String {
         // オフラインプレイヤーかもしれないので、getOfflinePlayerを使う

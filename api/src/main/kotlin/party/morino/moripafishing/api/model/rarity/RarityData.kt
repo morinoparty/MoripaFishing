@@ -23,7 +23,7 @@ data class RarityData(
         Locale,
         @Serializable(with = ComponentSerializer::class)
         Component,
-        > =
+    > =
         mapOf(
             Locale.JAPAN to Component.text("レアリティ"),
         ),

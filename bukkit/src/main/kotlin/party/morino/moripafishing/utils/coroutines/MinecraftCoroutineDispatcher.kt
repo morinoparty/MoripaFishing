@@ -5,7 +5,9 @@ import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
 import kotlin.coroutines.CoroutineContext
 
-class MinecraftCoroutineDispatcher(private val plugin: Plugin) : CoroutineDispatcher() {
+class MinecraftCoroutineDispatcher(
+    private val plugin: Plugin,
+) : CoroutineDispatcher() {
     /**
      * Handles dispatching the coroutine on the correct thread.
      */

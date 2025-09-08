@@ -19,7 +19,9 @@ import party.morino.moripafishing.core.world.biome.ConstBiomeGenerator
 import party.morino.moripafishing.utils.Utils
 
 @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
-class WorldManagerImpl : WorldManager, KoinComponent {
+class WorldManagerImpl :
+    WorldManager,
+    KoinComponent {
     private val plugin: MoripaFishing by inject()
     private val configManager: ConfigManager by inject()
     private val pluginDirectory: PluginDirectory by inject()
@@ -40,11 +42,12 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             worldDirectory.mkdirs()
         }
         worldIdList =
-                pluginDirectory.getWorldDirectory()
-                        .listFiles()
-                        .filter { it.name.endsWith(".json") }
-                        .map { FishingWorldId(it.nameWithoutExtension) }
-                        .toMutableSet()
+            pluginDirectory
+                .getWorldDirectory()
+                .listFiles()
+                .filter { it.name.endsWith(".json") }
+                .map { FishingWorldId(it.nameWithoutExtension) }
+                .toMutableSet()
     }
 
     override fun initializeWorlds() {
@@ -61,23 +64,21 @@ class WorldManagerImpl : WorldManager, KoinComponent {
         }
     }
 
-    override fun getDefaultWorldId(): FishingWorldId {
-        return worldConfig.defaultId
-    }
+    override fun getDefaultWorldId(): FishingWorldId = worldConfig.defaultId
 
-    override fun getWorldIdList(): List<FishingWorldId> {
-        return worldIdList.toList()
-    }
+    override fun getWorldIdList(): List<FishingWorldId> = worldIdList.toList()
 
-    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld {
-        return worldList.find { it.getId() == fishingWorldId } ?: run {
+    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld =
+        worldList.find { it.getId() == fishingWorldId } ?: run {
             val world = FishingWorldImpl(fishingWorldId)
             worldList.add(world)
             world
         }
-    }
 
-    override fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean {
+    override fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generatorData: GeneratorData,
+    ): Boolean {
         if (Bukkit.getWorld(fishingWorldId.value) != null) {
             return false
         }
@@ -95,21 +96,19 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             val worldDetailConfig = WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
             file.createNewFile()
             file.writeText(
-                    Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
+                Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
             )
         }
 
         val biomeProvider = generatorData.biomeProvider?.let { ConstBiomeGenerator(it) }
         val creator =
-                WorldCreator(namespacedKey)
-                        .generator(generatorData.generator)
-                        .let { creator ->
-                            generatorData.generatorSetting?.let { it1 -> creator.generatorSettings(it1) } ?: creator
-                        }
-                        .let { creator ->
-                            generatorData.type?.let { type -> creator.type(WorldType.valueOf(type)) } ?: creator
-                        }
-                        .biomeProvider(biomeProvider)
+            WorldCreator(namespacedKey)
+                .generator(generatorData.generator)
+                .let { creator ->
+                    generatorData.generatorSetting?.let { it1 -> creator.generatorSettings(it1) } ?: creator
+                }.let { creator ->
+                    generatorData.type?.let { type -> creator.type(WorldType.valueOf(type)) } ?: creator
+                }.biomeProvider(biomeProvider)
         val world = Bukkit.createWorld(creator)
         if (world == null) {
             plugin.logger.warning("Failed to create world ${fishingWorldId.value}")
@@ -147,8 +146,8 @@ class WorldManagerImpl : WorldManager, KoinComponent {
             return WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
         }
         return Utils.json.decodeFromString(
-                WorldDetailConfig.serializer(),
-                file.readText(),
+            WorldDetailConfig.serializer(),
+            file.readText(),
         )
     }
 }

@@ -17,14 +17,16 @@ import kotlin.math.floor
 /**
  * 天気をランダムに生成する実装クラス
  */
-class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomizer, KoinComponent {
+class WeatherRandomizerImpl(
+    val fishingWorldId: FishingWorldId,
+) : WeatherRandomizer,
+    KoinComponent {
     private val configManager: ConfigManager by inject()
     private val worldManager: WorldManager by inject()
 
-    private fun getClimateConfig(): ClimateConfig {
-        return worldManager.getWorld(fishingWorldId).getWorldDetails().climateConfig
+    private fun getClimateConfig(): ClimateConfig =
+        worldManager.getWorld(fishingWorldId).getWorldDetails().climateConfig
             ?: configManager.getConfig().world.defaultClimateConfig
-    }
 
     private val startDate: ZonedDateTime by lazy {
         ZonedDateTime.of(
@@ -85,7 +87,10 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
      */
     fun getWeatherByDate(date: ZonedDateTime): WeatherType {
         val random = get(getTimeDiff(date))
-        val total = getClimateConfig().weather.weight.values.sum()
+        val total =
+            getClimateConfig()
+                .weather.weight.values
+                .sum()
 
         val normalizedRandom = (random.toDouble() / 100) * total
 
@@ -112,9 +117,10 @@ class WeatherRandomizerImpl(val fishingWorldId: FishingWorldId) : WeatherRandomi
 
     private fun getHash(x: Long): Long {
         val hashBytes =
-            MessageDigest.getInstance(
-                "SHA-256",
-            ).digest((fishingWorldId.value + getClimateConfig().hashPepper + x.toString()).toByteArray())
+            MessageDigest
+                .getInstance(
+                    "SHA-256",
+                ).digest((fishingWorldId.value + getClimateConfig().hashPepper + x.toString()).toByteArray())
         // バイト配列を16進数文字列に変換
         val hexString = hashBytes.joinToString("") { "%02x".format(it) }
         // 16進数文字列の先頭8文字を取得してLongに変換 (TypeScriptの実装に合わせる)

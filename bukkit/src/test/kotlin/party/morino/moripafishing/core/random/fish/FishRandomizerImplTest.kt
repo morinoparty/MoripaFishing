@@ -88,9 +88,11 @@ class FishRandomizerImplTest : KoinTest {
             count[rarityId] = count.getOrDefault(rarityId, 0) + 1
         }
         val rate =
-            count.toList().sortedByDescending {
-                it.second
-            }.joinToString("\n") { (k, v) -> "${k.value.padEnd(25)} : ${v.toDouble() / list.size * 100}" }
+            count
+                .toList()
+                .sortedByDescending {
+                    it.second
+                }.joinToString("\n") { (k, v) -> "${k.value.padEnd(25)} : ${v.toDouble() / list.size * 100}" }
         println(rate)
     }
 
@@ -106,7 +108,5 @@ class FishRandomizerImplTest : KoinTest {
         println(rate)
     }
 
-    fun Double.toFix(decimal: Int): String {
-        return "%.0${decimal}f".format(this)
-    }
+    fun Double.toFix(decimal: Int): String = "%.0${decimal}f".format(this)
 }

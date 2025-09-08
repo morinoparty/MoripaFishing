@@ -1,6 +1,5 @@
 package party.morino.moripafishing.core.world
 
-import java.io.File
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import org.koin.core.component.KoinComponent
@@ -10,13 +9,16 @@ import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.model.world.generator.GeneratorData
 import party.morino.moripafishing.api.model.world.generator.GeneratorId
 import party.morino.moripafishing.utils.Utils
+import java.io.File
 
 /**
  * GeneratorManagerの実装クラス
  * generatorディレクトリ内のjsonファイルを全て読み込む簡易実装
  */
 @OptIn(ExperimentalSerializationApi::class)
-class GeneratorManagerImpl : GeneratorManager, KoinComponent {
+class GeneratorManagerImpl :
+    GeneratorManager,
+    KoinComponent {
     private val pluginDirectory: PluginDirectory by inject()
 
     private val generators = mutableListOf<GeneratorData>()
@@ -46,13 +48,9 @@ class GeneratorManagerImpl : GeneratorManager, KoinComponent {
         }
     }
 
-    override fun getGenerator(id: GeneratorId): GeneratorData? {
-        return generators.find { it.id == id }
-    }
+    override fun getGenerator(id: GeneratorId): GeneratorData? = generators.find { it.id == id }
 
-    override fun getAllGenerators(): List<GeneratorData> {
-        return generators
-    }
+    override fun getAllGenerators(): List<GeneratorData> = generators
 
     override fun addGenerator(generator: GeneratorData) {
         generators.add(generator)
@@ -62,4 +60,4 @@ class GeneratorManagerImpl : GeneratorManager, KoinComponent {
         }
         file.writeText(Utils.json.encodeToString(generator))
     }
-} 
+}

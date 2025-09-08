@@ -11,7 +11,9 @@ import party.morino.moripafishing.api.model.rarity.RarityId
 /**
  * レアリティの管理を行う実装クラス
  */
-class RarityManagerImpl : RarityManager, KoinComponent {
+class RarityManagerImpl :
+    RarityManager,
+    KoinComponent {
     private val rarities = arrayListOf<RarityData>()
     private val pluginDirectory: PluginDirectory by inject()
 
@@ -32,17 +34,13 @@ class RarityManagerImpl : RarityManager, KoinComponent {
      * @param id レアリティのID
      * @return レアリティ
      */
-    override fun getRarity(id: RarityId): RarityData? {
-        return rarities.find { it.id == id }
-    }
+    override fun getRarity(id: RarityId): RarityData? = rarities.find { it.id == id }
 
     /**
      * 登録されているレアリティの一覧を取得する
      * @return レアリティの一覧
      */
-    override fun getRarities(): List<RarityData> {
-        return rarities.toList()
-    }
+    override fun getRarities(): List<RarityData> = rarities.toList()
 
     /**
      * レアリティを読み込む

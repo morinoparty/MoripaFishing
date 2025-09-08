@@ -9,6 +9,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Spot(
-   val location: LocationData,
-   val radius: Double,
+    val location: LocationData,
+    val radius: Double,
 )

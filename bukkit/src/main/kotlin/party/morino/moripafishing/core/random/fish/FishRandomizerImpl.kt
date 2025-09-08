@@ -18,7 +18,9 @@ import java.util.concurrent.ThreadLocalRandom
  * 釣りシステムにおける魚の抽選を実装するクラス
  * レアリティや釣り場に応じた魚の抽選ロジックを提供する
  */
-class FishRandomizerImpl : FishRandomizer, KoinComponent {
+class FishRandomizerImpl :
+    FishRandomizer,
+    KoinComponent {
     // 乱数生成器
     private val random = Random()
 
@@ -48,7 +50,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
         // 条件に合致する魚データをフィルタリング
         val fishesData =
             fishManager.getFishesWithRarity(rarity).filter {
-                it.isDisabled == false &&
+                !it.isDisabled &&
                     (it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId)) &&
                     (it.conditions.weather.isEmpty() || it.conditions.weather.contains(weatherType))
             }
@@ -77,9 +79,7 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
     override fun selectRandomFishByRarity(
         rarity: RarityId,
         fishingWorldId: FishingWorldId,
-    ): Fish {
-        return selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId))
-    }
+    ): Fish = selectRandomFishByFishData(drawRandomFishDataByRarity(rarity, fishingWorldId))
 
     /**
      * 魚データに基づいて魚を抽選する
@@ -95,7 +95,8 @@ class FishRandomizerImpl : FishRandomizer, KoinComponent {
         val random = ThreadLocalRandom.current().nextGaussian() * standardDeviation + mid
         val size = random.coerceIn(min, max)
         val fish =
-            FishBuilderImpl.getBuilder()
+            FishBuilderImpl
+                .getBuilder()
                 .fishData(fishData)
                 .size(size)
                 .build()

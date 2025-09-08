@@ -19,7 +19,5 @@ object UUIDSerializer : kotlinx.serialization.KSerializer<UUID> {
         encoder.encodeString(value.toString())
     }
 
-    override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
+    override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): UUID = UUID.fromString(decoder.decodeString())
 }

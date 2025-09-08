@@ -21,13 +21,9 @@ class FishBuilderImpl : FishBuilder {
         return this
     }
 
-    override fun build(): Fish {
-        return FishImpl(fishData, size)
-    }
+    override fun build(): Fish = FishImpl(fishData, size)
 
     companion object {
-        fun getBuilder(): FishBuilder {
-            return FishBuilderImpl()
-        }
+        fun getBuilder(): FishBuilder = FishBuilderImpl()
     }
 }

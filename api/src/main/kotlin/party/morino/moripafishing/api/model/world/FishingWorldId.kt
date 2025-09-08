@@ -8,10 +8,10 @@ import party.morino.moripafishing.api.utils.serializer.FishingWorldIdSerializer
  * @param value ワールドのID
  */
 @Serializable(with = FishingWorldIdSerializer::class)
-class FishingWorldId(val value: String) {
-    override fun toString(): String {
-        return "FishingWorldId(value='$value')"
-    }
+class FishingWorldId(
+    val value: String,
+) {
+    override fun toString(): String = "FishingWorldId(value='$value')"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -22,7 +22,5 @@ class FishingWorldId(val value: String) {
         return true
     }
 
-    override fun hashCode(): Int {
-        return value.hashCode()
-    }
+    override fun hashCode(): Int = value.hashCode()
 }

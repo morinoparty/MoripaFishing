@@ -16,7 +16,8 @@ import party.morino.moripafishing.api.model.fish.CaughtFish
 class AnglerFishCaughtEvent(
     private val angler: Angler,
     private val caughtFish: CaughtFish,
-) : Event(), Cancellable {
+) : Event(),
+    Cancellable {
     companion object {
         @JvmStatic
         private val HANDLER_LIST: HandlerList = HandlerList()
@@ -27,9 +28,7 @@ class AnglerFishCaughtEvent(
          * @return イベントのハンドラリスト
          */
         @JvmStatic
-        fun getHandlerList(): HandlerList {
-            return HANDLER_LIST
-        }
+        fun getHandlerList(): HandlerList = HANDLER_LIST
     }
 
     private var isCancelled: Boolean
@@ -38,23 +37,15 @@ class AnglerFishCaughtEvent(
         this.isCancelled = false
     }
 
-    override fun isCancelled(): Boolean {
-        return isCancelled
-    }
+    override fun isCancelled(): Boolean = isCancelled
 
     override fun setCancelled(cancel: Boolean) {
         this.isCancelled = cancel
     }
 
-    fun getAngler(): Angler {
-        return angler
-    }
+    fun getAngler(): Angler = angler
 
-    fun getCaughtFish(): CaughtFish {
-        return caughtFish
-    }
+    fun getCaughtFish(): CaughtFish = caughtFish
 
-    override fun getHandlers(): HandlerList {
-        return HANDLER_LIST
-    }
+    override fun getHandlers(): HandlerList = HANDLER_LIST
 }
