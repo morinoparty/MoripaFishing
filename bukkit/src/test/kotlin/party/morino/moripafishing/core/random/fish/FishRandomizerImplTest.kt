@@ -107,6 +107,4 @@ class FishRandomizerImplTest : KoinTest {
         val rate = count.map { (k, v) -> "$k : ${v.toDouble() / r * 100}" }
         println(rate)
     }
-
-    fun Double.toFix(decimal: Int): String = "%.0${decimal}f".format(this)
 }

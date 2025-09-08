@@ -32,7 +32,7 @@ class FishingWorldMock(
 
     override fun getWorldSpawnPosition(): LocationData = worldSpawnPosition
 
-    override fun setWorldSpawnPosition(locationData: LocationData) {
+    override fun setWorldSpawnPosition(location: LocationData) {
         // モックなので何もしないのだ
     }
 

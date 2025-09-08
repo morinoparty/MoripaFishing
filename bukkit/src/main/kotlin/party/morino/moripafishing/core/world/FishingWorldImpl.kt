@@ -6,7 +6,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.decodeFromStream
 import org.bukkit.Bukkit
 import org.bukkit.GameRule
-import org.bukkit.Location
 import org.bukkit.World
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -88,29 +87,29 @@ class FishingWorldImpl(
         this.weatherEffect.apply(fishingWorldId = worldId)
     }
 
-    override fun getWorldSpawnPosition(): LocationData = worldDetailConfig.spawnLocationData
+    override fun getWorldSpawnPosition(): LocationData = worldDetailConfig.spawnLocation
 
-    override fun setWorldSpawnPosition(locationData: LocationData) {
+    override fun setWorldSpawnPosition(location: LocationData) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
                 world.spawnLocation =
-                    Location(
+                    org.bukkit.Location(
                         world,
-                        locationData.x,
-                        locationData.y,
-                        locationData.z,
-                        locationData.yaw.toFloat(),
-                        locationData.pitch.toFloat(),
+                        location.x,
+                        location.y,
+                        location.z,
+                        location.yaw.toFloat(),
+                        location.pitch.toFloat(),
                     )
             }
         }
 
         val file =
             pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
-        val newData = worldDetailConfig.copy(spawnLocationData = locationData)
+        val newData = worldDetailConfig.copy(spawnLocation = location)
         file.writeText(Utils.json.encodeToString(WorldDetailConfig.serializer(), newData))
-        if (worldDetailConfig.spawnLocationData != locationData) {
-            plugin.logger.info("[${worldId.value}] World spawn position updated: ${worldDetailConfig.spawnLocationData} -> $locationData")
+        if (worldDetailConfig.spawnLocation != location) {
+            plugin.logger.info("[${worldId.value}] World spawn position updated: ${worldDetailConfig.spawnLocation} -> $location")
         }
         worldDetailConfig = newData
     }

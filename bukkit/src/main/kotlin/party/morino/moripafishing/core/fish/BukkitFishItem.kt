@@ -1,5 +1,4 @@
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.minimessage.translation.Argument
 import net.kyori.adventure.translation.GlobalTranslator

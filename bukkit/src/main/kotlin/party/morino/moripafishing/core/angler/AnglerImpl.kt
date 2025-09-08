@@ -9,6 +9,7 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.LocationData
 import java.util.UUID
 
 class AnglerImpl(
@@ -39,5 +40,20 @@ class AnglerImpl(
         val world = worldManager.getWorld(FishingWorldId(player.world.name))
 
         return world
+    }
+
+    override fun getLocation(): LocationData? {
+        val world = getWorld() ?: return null
+        val player = Bukkit.getPlayer(uniqueId) ?: return null
+        val location =
+            LocationData(
+                world.getId(),
+                player.location.x,
+                player.location.y,
+                player.location.z,
+                player.location.yaw.toDouble(),
+                player.location.pitch.toDouble(),
+            )
+        return location
     }
 }

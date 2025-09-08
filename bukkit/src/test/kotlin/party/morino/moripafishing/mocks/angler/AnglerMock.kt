@@ -1,0 +1,85 @@
+package party.morino.moripafishing.mocks.angler
+
+import party.morino.moripafishing.api.core.angler.Angler
+import party.morino.moripafishing.api.core.world.FishingWorld
+import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.mocks.world.FishingWorldMock
+import java.util.UUID
+import party.morino.moripafishing.api.model.world.LocationData
+
+/**
+ * テスト用のAnglerモッククラス
+ * テストで様々な状況をシミュレートするため、状態を自由に設定できる
+ */
+class AnglerMock(
+    private val anglerId: AnglerId,
+    private val minecraftUuid: UUID = anglerId.uuid,
+    private val name: String = "TestAngler",
+) : Angler {
+    // テスト用の状態管理
+    private var testWorld: FishingWorld? = null
+    private var testLocation: LocationData? = null
+
+    override fun getAnglerUniqueId(): AnglerId = anglerId
+
+    override fun getMinecraftUniqueId(): UUID = minecraftUuid
+
+    override fun getName(): String = name
+
+    override fun getWorld(): FishingWorld? = testWorld
+
+    override fun getLocation(): LocationData? = testLocation
+
+    /**
+     * テスト用: ワールドを設定する
+     * @param worldId ワールドID、nullの場合はワールドなし状態
+     */
+    fun setTestWorld(worldId: FishingWorldId?) {
+        testWorld = worldId?.let { FishingWorldMock(it) }
+    }
+
+    /**
+     * テスト用: FishingWorldオブジェクトを直接設定する
+     * @param world 設定するワールド
+     */
+    fun setTestWorld(world: FishingWorld?) {
+        testWorld = world
+    }
+
+    /**
+     * テスト用: 位置を設定する
+     * @param location 位置、nullの場合は位置なし状態
+     */
+    fun setTestLocation(location: LocationData?) {
+        testLocation = location
+    }
+
+    /**
+     * テスト用: 座標を指定して位置を設定する
+     * @param worldId ワールドID
+     * @param x X座標
+     * @param y Y座標
+     * @param z Z座標
+     * @param yaw ヨー角（デフォルト0.0）
+     * @param pitch ピッチ角（デフォルト0.0）
+     */
+    fun setTestLocation(
+        worldId: FishingWorldId,
+        x: Double,
+        y: Double,
+        z: Double,
+        yaw: Double = 0.0,
+        pitch: Double = 0.0,
+    ) {
+        testLocation = LocationData(worldId, x, y, z, yaw, pitch)
+    }
+
+    /**
+     * テスト用: オフライン状態をシミュレート（ワールドも位置もnull）
+     */
+    fun setOffline() {
+        testWorld = null
+        testLocation = null
+    }
+}

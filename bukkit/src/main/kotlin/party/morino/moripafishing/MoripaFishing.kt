@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
+import org.jetbrains.annotations.NotNull
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.getOrNull
 import org.koin.dsl.module
@@ -34,9 +35,8 @@ import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
 import party.morino.moripafishing.listener.moripafishing.PlayerFishingAnnounceListener
 import party.morino.moripafishing.utils.coroutines.async
 
-class MoripaFishing :
-    JavaPlugin(),
-    MoripaFishingAPI {
+open class MoripaFishing : JavaPlugin(), MoripaFishingAPI {
+    // 各マネージャーのインスタンスをKoinから遅延初期化
     private val _configManager: ConfigManager by lazy { GlobalContext.get().get() }
     private val _randomizeManager: RandomizeManager by lazy { GlobalContext.get().get() }
     private val _rarityManager: RarityManager by lazy { GlobalContext.get().get() }
@@ -47,16 +47,11 @@ class MoripaFishing :
     private val _generatorManager: GeneratorManager by lazy { GlobalContext.get().get() }
     private val _logManager: LogManager by lazy { GlobalContext.get().get() }
 
-    /**
-     * プラグインの有効化時に呼び出されるメソッド
-     *
-     * このメソッドでは以下の初期化処理を行います：
-     * 1. Koinの初期化と依存性の設定
-     * 2. 各マネージャーのインスタンス化
-     * 3. データベースの初期化
-     */
     private var disable = false
 
+    /**
+     * プラグインの有効化時に呼び出されるメソッド
+     */
     override fun onEnable() {
         setupKoin()
         initializeManagers()
@@ -88,18 +83,19 @@ class MoripaFishing :
         }
 
         val appModule =
-            module {
-                single<MoripaFishing> { this@MoripaFishing }
-                single<ConfigManager> { ConfigManagerImpl() }
-                single<RandomizeManager> { RandomizeManagerImpl() }
-                single<RarityManager> { RarityManagerImpl() }
-                single<WorldManager> { WorldManagerImpl() }
-                single<PluginDirectory> { PluginDirectoryImpl() }
-                single<FishManager> { FishManagerImpl() }
-                single<AnglerManager> { AnglerManagerImpl() }
-                single<GeneratorManager> { GeneratorManagerImpl() }
-                single<LogManager> { LogManagerImpl() }
-            }
+                module {
+                    single<MoripaFishing> { this@MoripaFishing }
+                    single<ConfigManager> { ConfigManagerImpl() }
+                    single<RandomizeManager> { RandomizeManagerImpl() }
+                    single<RarityManager> { RarityManagerImpl() }
+                    single<WorldManager> { WorldManagerImpl() }
+                    single<PluginDirectory> { PluginDirectoryImpl() }
+                    single<FishManager> { FishManagerImpl() }
+                    single<AnglerManager> { AnglerManagerImpl() }
+                    single<GeneratorManager> { GeneratorManagerImpl() }
+                    single<LogManager> { LogManagerImpl() }
+
+                }
 
         getOrNull() ?: GlobalContext.startKoin {
             modules(appModule)
@@ -108,39 +104,40 @@ class MoripaFishing :
 
     private fun updateWorlds() {
         Bukkit.getScheduler().runTaskAsynchronously(
-            this,
-            Runnable {
-                runBlocking {
-                    withContext(Dispatchers.async) {
-                        val interval = _configManager.getConfig().world.refreshInterval * 1000L
-                        // whileループにラベルを付けて、ラムダ内からreturn@runWhileで抜ける
-                        runWhile@ while (!disable) {
-                            _worldManager.getWorldIdList().forEach {
-                                _worldManager.getWorld(it).updateState()
-                            }
-                            repeat(10) {
-                                if (disable) return@repeat // whileループごと抜ける
-                                delay(interval / 10)
+                this,
+                Runnable {
+                    runBlocking {
+                        withContext(Dispatchers.async) {
+                            val interval = _configManager.getConfig().world.refreshInterval * 1000L
+                            // whileループにラベルを付けて、ラムダ内からreturn@runWhileで抜ける
+                            runWhile@ while (!disable) {
+                                _worldManager.getWorldIdList().forEach {
+                                    _worldManager.getWorld(it).updateState()
+                                }
+                                repeat(10) {
+                                    if (disable) return@repeat // whileループごと抜ける
+                                    delay(interval / 10)
+                                }
                             }
                         }
                     }
-                }
-            },
+                },
         )
     }
 
     private fun loadListeners() {
         this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
         this.server.pluginManager.registerEvents(
-            PlayerJoinListener(),
-            this,
+                PlayerJoinListener(),
+                this,
         )
         this.server.pluginManager.registerEvents(
-            PlayerFishingAnnounceListener(),
-            this,
+                PlayerFishingAnnounceListener(),
+                this,
         )
     }
 
+    // API getters - 式本体で簡潔に
     override fun getConfigManager(): ConfigManager = _configManager
 
     override fun getRandomizeManager(): RandomizeManager = _randomizeManager

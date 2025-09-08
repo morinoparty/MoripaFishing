@@ -20,7 +20,7 @@ class PlayerJoinListener :
         val defaultWorldId = worldManager.getDefaultWorldId()
         val fishingWorld = worldManager.getWorld(defaultWorldId)
         val defaultWorld = Bukkit.getWorld(defaultWorldId.value) ?: return
-        val spawnLocation = fishingWorld.getWorldDetails().spawnLocationData
+        val spawnLocation = fishingWorld.getWorldDetails().spawnLocation
         val location =
             Location(
                 defaultWorld,
