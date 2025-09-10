@@ -93,7 +93,14 @@ class WorldManagerImpl :
 
         val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
         if (!file.exists()) {
-            val worldDetailConfig = WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
+            val worldDetailConfig =
+                WorldDetailConfig(
+                    id = fishingWorldId,
+                    name =
+                        mapOf(
+                            configManager.getConfig().defaultLocale to fishingWorldId.value,
+                        ),
+                )
             file.createNewFile()
             file.writeText(
                 Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
@@ -143,7 +150,7 @@ class WorldManagerImpl :
     fun getWorldDetailConfig(fishingWorldId: FishingWorldId): WorldDetailConfig {
         val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
         if (!file.exists()) {
-            return WorldDetailConfig(id = fishingWorldId, name = fishingWorldId.value)
+            return WorldDetailConfig(id = fishingWorldId, name = mapOf(configManager.getConfig().defaultLocale to fishingWorldId.value))
         }
         return Utils.json.decodeFromString(
             WorldDetailConfig.serializer(),

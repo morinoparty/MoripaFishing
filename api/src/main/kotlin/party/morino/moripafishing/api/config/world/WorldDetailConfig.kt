@@ -1,10 +1,12 @@
 package party.morino.moripafishing.api.config.world
 
+import java.util.Locale
 import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.generator.GeneratorId
+import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
 
 // ワールドの詳細設定を保持するデータクラス
 @Serializable
@@ -12,7 +14,10 @@ data class WorldDetailConfig(
         // ワールドのID
         val id: @Serializable FishingWorldId = FishingWorldId("default"),
         // ワールドの名前
-        val name: String = "つりとぴあ",
+        val name: Map<@Serializable(with = LocaleSerializer::class) Locale, String> =
+                mapOf(
+                        Locale.JAPAN to "つりとぴあ",
+                ),
         // ワールドの境界サイズ
         val borderSize: Double? = null,
         // ワールドの中心座標

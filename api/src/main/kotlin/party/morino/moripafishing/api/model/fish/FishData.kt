@@ -17,9 +17,7 @@ data class FishData(
     val cacheCommand: List<String> = emptyList(),
     // 表示名
     val displayName: Map<
-        @Serializable(
-            with = LocaleSerializer::class,
-        )
+        @Serializable(with = LocaleSerializer::class)
         Locale,
         String,
     > =

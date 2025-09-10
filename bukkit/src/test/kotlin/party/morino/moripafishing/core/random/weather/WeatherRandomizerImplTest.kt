@@ -47,7 +47,7 @@ class WeatherRandomizerImplTest : KoinTest {
                     .toList()
                     .sortedByDescending { (_, v) ->
                         v
-                    }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
+                    }.map { (k, v) -> "%s : %.3f".format(k, v.toDouble() / weatherList.size) }
             println(rate)
             // assert(diff.max() <= 1)
         }

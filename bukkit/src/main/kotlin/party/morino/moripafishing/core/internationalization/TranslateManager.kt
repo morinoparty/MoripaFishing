@@ -1,12 +1,10 @@
 package party.morino.moripafishing.core.internationalization
 
 import net.kyori.adventure.key.Key
-import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationStore
 import net.kyori.adventure.translation.GlobalTranslator
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.java.KoinJavaComponent.inject
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.fish.FishManager
@@ -14,7 +12,6 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import java.util.Locale
 import java.util.Properties
-import kotlin.jvm.java
 
 object TranslateManager : KoinComponent {
     private val pluginDirectory: PluginDirectory by inject()
@@ -74,7 +71,7 @@ object TranslateManager : KoinComponent {
 
         rarityManager.getRarities().forEach { rarity ->
             rarity.displayName.forEach { (locale, name) ->
-                myStore.register("moripa_fishing.rarity.${rarity.id.value}.name", locale, MiniMessage.miniMessage().serialize(name))
+                myStore.register("moripa_fishing.rarity.${rarity.id.value}.name", locale, name)
             }
         }
     }
@@ -82,7 +79,9 @@ object TranslateManager : KoinComponent {
     fun loadWorldData() {
         worldManager.getWorldIdList().forEach { worldId ->
             val world = worldManager.getWorld(worldId)
-            myStore.register("moripa_fishing.world.${worldId.value}.name", Locale.JAPAN, world.getWorldDetails().name)
+            world.getWorldDetails().name.forEach { (locale, name) ->
+                myStore.register("moripa_fishing.world.${worldId.value}.name", locale, name)
+            }
         }
     }
 }

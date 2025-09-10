@@ -4,9 +4,9 @@ import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.mocks.world.FishingWorldMock
 import java.util.UUID
-import party.morino.moripafishing.api.model.world.LocationData
 
 /**
  * テスト用のAnglerモッククラス
