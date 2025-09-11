@@ -55,6 +55,8 @@ interface MoripaFishingAPI {
      * @return ジェネレーター管理マネージャー
      */
     fun getGeneratorManager(): GeneratorManager
+
     fun getRarityManager(): RarityManager
+
     fun getLogManager(): LogManager
 }

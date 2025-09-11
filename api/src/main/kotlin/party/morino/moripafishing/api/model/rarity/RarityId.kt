@@ -7,16 +7,14 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.utils.serializer.RarityIdSerializer
 
 @Serializable(with = RarityIdSerializer::class)
-class RarityId(val value: String) : KoinComponent { // value class からクラスに変更
+class RarityId(
+    val value: String,
+) : KoinComponent { // value class からクラスに変更
     private val rarityManager: RarityManager by inject() // 依存性注入をここで使用
 
-    fun toRarityData(): RarityData {
-        return rarityManager.getRarity(this) ?: throw IllegalArgumentException("Invalid rarity value: $value")
-    }
+    fun toRarityData(): RarityData = rarityManager.getRarity(this) ?: throw IllegalArgumentException("Invalid rarity value: $value")
 
-    override fun toString(): String {
-        return "RarityId(value='$value')"
-    }
+    override fun toString(): String = "RarityId(value='$value')"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -13,7 +13,9 @@ import party.morino.moripafishing.api.model.world.generator.GeneratorData
 /**
  * WorldManagerのモッククラス
  */
-class WorldManagerMock : WorldManager, KoinComponent {
+class WorldManagerMock :
+    WorldManager,
+    KoinComponent {
     private val configManager: ConfigManager by inject()
     private val pluginDirectory: PluginDirectory by inject()
     private val worldConfig: WorldConfig
@@ -43,23 +45,17 @@ class WorldManagerMock : WorldManager, KoinComponent {
     /**
      * デフォルトのワールドIdを返す (モック用)
      */
-    override fun getDefaultWorldId(): FishingWorldId {
-        return worldConfig.defaultId
-    }
+    override fun getDefaultWorldId(): FishingWorldId = worldConfig.defaultId
 
     /**
      * ワールドIDのリストを返す (モック用)
      */
-    override fun getWorldIdList(): List<FishingWorldId> {
-        return worldIdList
-    }
+    override fun getWorldIdList(): List<FishingWorldId> = worldIdList
 
     /**
      * ワールドを取得する (モック用、未実装)
      */
-    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld {
-        return FishingWorldMock(fishingWorldId)
-    }
+    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld = FishingWorldMock(fishingWorldId)
 
     /**
      * ワールドを作成する (モック用、常にnull)
@@ -69,7 +65,10 @@ class WorldManagerMock : WorldManager, KoinComponent {
         return true
     }
 
-    override fun createWorld(fishingWorldId: FishingWorldId, generatorData: GeneratorData): Boolean {
+    override fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generatorData: GeneratorData,
+    ): Boolean {
         worldIdList.plus(fishingWorldId)
         return true
     }

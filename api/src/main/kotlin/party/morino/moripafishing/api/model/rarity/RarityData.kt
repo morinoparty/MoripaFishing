@@ -1,8 +1,6 @@
 package party.morino.moripafishing.api.model.rarity
 
 import kotlinx.serialization.Serializable
-import net.kyori.adventure.text.Component
-import party.morino.moripafishing.api.utils.serializer.ComponentSerializer
 import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
 import java.util.Locale
 
@@ -21,11 +19,10 @@ data class RarityData(
     val displayName: Map<
         @Serializable(with = LocaleSerializer::class)
         Locale,
-        @Serializable(with = ComponentSerializer::class)
-        Component,
-        > =
+        String,
+    > =
         mapOf(
-            Locale.JAPAN to Component.text("レアリティ"),
+            Locale.JAPAN to "レアリティ",
         ),
     val weight: Double = 1.0,
     val worthExpression: String = "1",

@@ -11,8 +11,8 @@ import party.morino.moripafishing.core.world.effect.ThunderWeatherEffect
  * 天候タイプごとにWeatherEffectを返すレジストリ
  */
 object WeatherTypeRegistry {
-    fun getEffect(type: WeatherType): WeatherEffect {
-        return when (type) {
+    fun getEffect(type: WeatherType): WeatherEffect =
+        when (type) {
             WeatherType.SUNNY -> SunnyWeatherEffect()
             WeatherType.RAINY -> RainWeatherEffect()
             WeatherType.THUNDERSTORM -> ThunderWeatherEffect()
@@ -20,5 +20,4 @@ object WeatherTypeRegistry {
             // 未対応の天候はとりあえず晴れにフォールバック
             else -> SunnyWeatherEffect()
         }
-    }
 }

@@ -21,7 +21,5 @@ object GeneratorIdSerializer : KSerializer<GeneratorId> {
         encoder.encodeString(value.value)
     }
 
-    override fun deserialize(decoder: Decoder): GeneratorId {
-        return GeneratorId(decoder.decodeString())
-    }
-} 
+    override fun deserialize(decoder: Decoder): GeneratorId = GeneratorId(decoder.decodeString())
+}

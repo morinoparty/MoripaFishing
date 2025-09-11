@@ -47,9 +47,9 @@ interface FishingWorld {
 
     /**
      * ワールドのスポーン位置を設定する。
-     * @param locationData ワールドのスポーン位置
+     * @param location ワールドのスポーン位置
      */
-    fun setWorldSpawnPosition(locationData: LocationData)
+    fun setWorldSpawnPosition(location: LocationData)
 
     /**
      * ワールドの大きさを取得する。

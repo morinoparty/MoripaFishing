@@ -13,12 +13,15 @@ import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.model.world.generator.GeneratorData
 import party.morino.moripafishing.api.model.world.generator.GeneratorId
 
-class GeneratorParser<C> : ArgumentParser<C, GeneratorData>, BlockingSuggestionProvider.Strings<CommandSender>, KoinComponent {
+class GeneratorParser<C> :
+    ArgumentParser<C, GeneratorData>,
+    BlockingSuggestionProvider.Strings<CommandSender>,
+    KoinComponent {
     val generatorManager: GeneratorManager by inject()
 
     override fun parse(
-            commandContext: CommandContext<C & Any>,
-            commandInput: CommandInput,
+        commandContext: CommandContext<C & Any>,
+        commandInput: CommandInput,
     ): ArgumentParseResult<GeneratorData> {
         val generatorId = commandInput.readString()
         val generator = generatorManager.getGenerator(GeneratorId(generatorId))
@@ -30,15 +33,12 @@ class GeneratorParser<C> : ArgumentParser<C, GeneratorData>, BlockingSuggestionP
     }
 
     override fun stringSuggestions(
-            commandContext: CommandContext<CommandSender?>,
-            input: CommandInput,
-    ): Iterable<String> {
-        return generatorManager.getAllGenerators().map { it.id.value }
-    }
+        commandContext: CommandContext<CommandSender?>,
+        input: CommandInput,
+    ): Iterable<String> = generatorManager.getAllGenerators().map { it.id.value }
 
     companion object {
-        fun generatorParser(): ParserDescriptor<CommandSender, GeneratorData> {
-            return ParserDescriptor.of(GeneratorParser(), GeneratorData::class.java)
-        }
+        fun generatorParser(): ParserDescriptor<CommandSender, GeneratorData> =
+            ParserDescriptor.of(GeneratorParser(), GeneratorData::class.java)
     }
 }

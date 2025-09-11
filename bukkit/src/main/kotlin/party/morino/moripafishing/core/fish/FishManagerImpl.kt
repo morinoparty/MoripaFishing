@@ -13,7 +13,9 @@ import java.io.File
 /**
  * 魚の管理を行う実装クラス
  */
-class FishManagerImpl : FishManager, KoinComponent {
+class FishManagerImpl :
+    FishManager,
+    KoinComponent {
     // 魚のデータを保持するマップ
     private val fishes = mutableMapOf<FishId, FishData>()
 
@@ -38,27 +40,21 @@ class FishManagerImpl : FishManager, KoinComponent {
      * 登録されている魚の一覧を取得する
      * @return 魚の一覧
      */
-    override fun getFish(): List<FishData> {
-        return fishes.values.toList()
-    }
+    override fun getFish(): List<FishData> = fishes.values.toList()
 
     /**
      * 魚を取得する
      * @param id 魚のID
      * @return 魚
      */
-    override fun getFishWithId(id: FishId): FishData? {
-        return fishes[id]
-    }
+    override fun getFishWithId(id: FishId): FishData? = fishes[id]
 
     /**
      * レアリティに基づいて魚を取得する
      * @param rarity レアリティ
      * @return 魚の一覧
      */
-    override fun getFishesWithRarity(rarity: RarityId): List<FishData> {
-        return fishes.values.filter { it.rarity == rarity }
-    }
+    override fun getFishesWithRarity(rarity: RarityId): List<FishData> = fishes.values.filter { it.rarity == rarity }
 
     /**
      * 魚のデータを読み込む

@@ -8,7 +8,9 @@ import party.morino.moripafishing.api.utils.serializer.FishIdSerializer
  * @property value 魚の一意の識別子
  */
 @Serializable(with = FishIdSerializer::class)
-class FishId(val value: String) {
+class FishId(
+    val value: String,
+) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FishId) return false
@@ -17,15 +19,9 @@ class FishId(val value: String) {
         return true
     }
 
-    override fun hashCode(): Int {
-        return value.hashCode()
-    }
+    override fun hashCode(): Int = value.hashCode()
 
-    override fun toString(): String {
-        return "FishId(value='$value')"
-    }
+    override fun toString(): String = "FishId(value='$value')"
 
-    fun toTranslateKey(): String {
-        return "moripa_fishing.fish.$value.name"
-    }
+    fun toTranslateKey(): String = "moripa_fishing.fish.$value.name"
 }

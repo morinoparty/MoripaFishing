@@ -10,12 +10,14 @@ tasks:
     cmds:
       - echo "{{.GREETING}}"
     silent: true
+
   docs:
     dir: docs
     cmds:
       - pnpm install
       - pnpm start
     silent: true
+
   check:
     cmds:
       - ./gradlew clean ktlintFormat
@@ -37,7 +39,6 @@ tasks:
     cmds:
       - task format
       - pnpm dlx git-cz
-      -
   dokka:
     cmds:
       - ./gradlew clean dokkaGenerate

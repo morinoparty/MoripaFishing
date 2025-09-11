@@ -23,7 +23,5 @@ object ComponentSerializer : KSerializer<Component> {
         encoder.encodeString(miniMessage.serialize(value))
     }
 
-    override fun deserialize(decoder: Decoder): Component {
-        return miniMessage.deserialize(decoder.decodeString())
-    }
+    override fun deserialize(decoder: Decoder): Component = miniMessage.deserialize(decoder.decodeString())
 }
