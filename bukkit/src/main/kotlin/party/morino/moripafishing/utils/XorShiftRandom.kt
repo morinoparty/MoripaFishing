@@ -1,6 +1,8 @@
 package party.morino.moripafishing.utils
 
-class XorShiftRandom(seed: Long = 88675123) {
+class XorShiftRandom(
+    seed: Long = 88675123,
+) {
     private var x: Int = 123456789
     private var y: Int = 362436069
     private var z: Int = 521288629

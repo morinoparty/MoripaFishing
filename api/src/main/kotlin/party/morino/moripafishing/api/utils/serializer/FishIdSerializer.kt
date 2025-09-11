@@ -21,7 +21,5 @@ object FishIdSerializer : KSerializer<FishId> {
         encoder.encodeString(value.value)
     }
 
-    override fun deserialize(decoder: Decoder): FishId {
-        return FishId(decoder.decodeString())
-    }
+    override fun deserialize(decoder: Decoder): FishId = FishId(decoder.decodeString())
 }

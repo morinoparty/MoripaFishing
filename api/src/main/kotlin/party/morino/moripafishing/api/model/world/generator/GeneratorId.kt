@@ -7,16 +7,15 @@ import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.utils.serializer.GeneratorIdSerializer
 
 @Serializable(with = GeneratorIdSerializer::class)
-class GeneratorId(val value: String) : KoinComponent {
+class GeneratorId(
+    val value: String,
+) : KoinComponent {
     private val generatorManager: GeneratorManager by inject()
 
-    override fun toString(): String {
-        return "GeneratorId(value='$value')"
-    }
+    override fun toString(): String = "GeneratorId(value='$value')"
 
-    fun toGeneratorData(): GeneratorData {
-        return generatorManager.getGenerator(this) ?: throw IllegalArgumentException("Generator not found: $value")
-    }
+    fun toGeneratorData(): GeneratorData =
+        generatorManager.getGenerator(this) ?: throw IllegalArgumentException("Generator not found: $value")
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -24,7 +23,5 @@ class GeneratorId(val value: String) : KoinComponent {
         return value == other.value
     }
 
-    override fun hashCode(): Int {
-        return value.hashCode()
-    }
+    override fun hashCode(): Int = value.hashCode()
 }

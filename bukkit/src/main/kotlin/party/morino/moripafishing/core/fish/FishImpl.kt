@@ -19,41 +19,35 @@ import kotlin.math.sqrt
 class FishImpl(
     private val fishData: FishData,
     private val size: Double,
-) : Fish, KoinComponent {
+) : Fish,
+    KoinComponent {
     private val rarityManager: RarityManager by inject()
 
     /**
      * 魚のキーを取得する
      * @return 魚のキー
      */
-    override fun getId(): FishId {
-        return fishData.id
-    }
+    override fun getId(): FishId = fishData.id
 
     /**
      * 魚の表示名を取得する
      * @return 魚の表示名
      */
-    override fun getDisplayName(): Map<Locale, String> {
-        return fishData.displayName
-    }
+    override fun getDisplayName(): Map<Locale, String> = fishData.displayName
 
     /**
      * 魚のサイズを取得する
      * @return 魚のサイズ
      */
-    override fun getSize(): Double {
-        return size
-    }
+    override fun getSize(): Double = size
 
     /**
      * 魚のレアリティを取得する
      * @return 魚のレアリティ
      */
-    override fun getRarity(): RarityData {
-        return rarityManager.getRarity(fishData.rarity)
+    override fun getRarity(): RarityData =
+        rarityManager.getRarity(fishData.rarity)
             ?: throw IllegalStateException("Rarity not found: ${fishData.rarity}")
-    }
 
     /**
      * 魚の価値を取得する
@@ -120,7 +114,5 @@ class FishImpl(
             ?: throw IllegalStateException("Worth expression not found for fish: ${fishData.id}")
     }
 
-    override fun toString(): String {
-        return "FishImpl(fishData=${fishData.id}, size=$size, rarity=${fishData.rarity}, worth=${getWorth()})"
-    }
+    override fun toString(): String = "FishImpl(fishData=${fishData.id}, size=$size, rarity=${fishData.rarity}, worth=${getWorth()})"
 }

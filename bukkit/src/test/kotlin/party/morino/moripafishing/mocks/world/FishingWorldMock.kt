@@ -16,44 +16,33 @@ class FishingWorldMock(
     private val worldSpawnPosition: LocationData = LocationData(worldId, 0.0, 64.0, 0.0, 90.0, 0.0),
     private val radius: Double = 100.0,
     private val center: Pair<Double, Double> = Pair(0.0, 0.0),
-) : FishingWorld, KoinComponent {
+) : FishingWorld,
+    KoinComponent {
     private var currentWeather: WeatherType = weatherType
 
-    override fun getId(): FishingWorldId {
-        return worldId
-    }
+    override fun getId(): FishingWorldId = worldId
 
-    override fun getCalculatedWeather(): WeatherType {
-        return weatherType
-    }
+    override fun getCalculatedWeather(): WeatherType = weatherType
 
-    override fun getCurrentWeather(): WeatherType {
-        return currentWeather
-    }
+    override fun getCurrentWeather(): WeatherType = currentWeather
 
     override fun setWeather(weatherType: WeatherType) {
         currentWeather = weatherType
     }
 
-    override fun getWorldSpawnPosition(): LocationData {
-        return worldSpawnPosition
-    }
+    override fun getWorldSpawnPosition(): LocationData = worldSpawnPosition
 
-    override fun setWorldSpawnPosition(locationData: LocationData) {
+    override fun setWorldSpawnPosition(location: LocationData) {
         // モックなので何もしないのだ
     }
 
-    override fun getSize(): Double {
-        return radius
-    }
+    override fun getSize(): Double = radius
 
     override fun setSize(size: Double) {
         // モックなので何もしないのだ
     }
 
-    override fun getCenter(): Pair<Double, Double> {
-        return center
-    }
+    override fun getCenter(): Pair<Double, Double> = center
 
     override fun setCenter(
         x: Double,
@@ -70,9 +59,7 @@ class FishingWorldMock(
         // モックなので何もしないのだ
     }
 
-    override fun getWorldDetails(): WorldDetailConfig {
-        return WorldDetailConfig()
-    }
+    override fun getWorldDetails(): WorldDetailConfig = WorldDetailConfig()
 
     override fun loadConfig() {
         // モックなので何もしないのだ

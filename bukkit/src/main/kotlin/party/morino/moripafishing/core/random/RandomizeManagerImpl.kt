@@ -15,16 +15,12 @@ class RandomizeManagerImpl : RandomizeManager {
      * 魚のランダム化を行うインスタンスを返す
      * @return 魚のランダム化を行うインスタンス
      */
-    override fun getFishRandomizer(): FishRandomizer {
-        return FishRandomizerImpl()
-    }
+    override fun getFishRandomizer(): FishRandomizer = FishRandomizerImpl()
 
     /**
      * 魚のランダム化を行うインスタンスを返す
      * @param fishingWorldId フィッシングワールドのID
      * @return 魚のランダム化を行うインスタンス
      */
-    override fun getWeatherRandomizer(fishingWorldId: FishingWorldId): WeatherRandomizer {
-        return WeatherRandomizerImpl(fishingWorldId)
-    }
+    override fun getWeatherRandomizer(fishingWorldId: FishingWorldId): WeatherRandomizer = WeatherRandomizerImpl(fishingWorldId)
 }

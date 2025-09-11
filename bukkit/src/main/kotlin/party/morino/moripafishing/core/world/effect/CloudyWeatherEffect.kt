@@ -17,7 +17,9 @@ import party.morino.moripafishing.utils.coroutines.minecraft
 /**
  * 晴れの天候効果
  */
-class CloudyWeatherEffect : WeatherEffect, KoinComponent {
+class CloudyWeatherEffect :
+    WeatherEffect,
+    KoinComponent {
     companion object {
         private const val BARRIER_HEIGHT = 200
     }

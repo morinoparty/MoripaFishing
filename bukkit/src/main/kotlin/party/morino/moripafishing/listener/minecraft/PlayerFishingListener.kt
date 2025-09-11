@@ -12,7 +12,9 @@ import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.fish.CaughtFish
 import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
 
-class PlayerFishingListener : Listener, KoinComponent {
+class PlayerFishingListener :
+    Listener,
+    KoinComponent {
     val randomizerManager: RandomizeManager by inject()
     val worldManager: WorldManager by inject()
     val angerManager: AnglerManager by inject()
@@ -43,7 +45,7 @@ class PlayerFishingListener : Listener, KoinComponent {
                     event.isCancelled = true
                     return
                 }
-                val fishItem = BukkitFishItem.create(caughtFish)
+                val fishItem = BukkitFishItem.create(caughtFish, player.locale())
                 minecraftFish.itemStack = fishItem
             }
             else -> {

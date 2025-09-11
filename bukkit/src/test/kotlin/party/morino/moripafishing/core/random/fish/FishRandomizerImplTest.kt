@@ -14,6 +14,7 @@ import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import kotlin.test.assertEquals
 
 @ExtendWith(MoripaFishingTest::class)
 class FishRandomizerImplTest : KoinTest {
@@ -70,7 +71,7 @@ class FishRandomizerImplTest : KoinTest {
             val fish: Fish = fishRandomizer.selectRandomFishByRarity(RarityId("common"), fishingWorldId)
             set.add(fish.getId())
         }
-        println(set.size)
+        assertEquals(2, set.size)
     }
 
     @Test
@@ -88,9 +89,16 @@ class FishRandomizerImplTest : KoinTest {
             count[rarityId] = count.getOrDefault(rarityId, 0) + 1
         }
         val rate =
-            count.toList().sortedByDescending {
-                it.second
-            }.joinToString("\n") { (k, v) -> "${k.value.padEnd(25)} : ${v.toDouble() / list.size * 100}" }
+            count
+                .toList()
+                .sortedByDescending {
+                    it.second
+                }.joinToString("\n") { (k, v) ->
+                    "%-${count.maxOf { it.key.value.length + 1 }}s : %.2f".format(
+                        k.value,
+                        v.toDouble() / list.size * 100,
+                    )
+                }
         println(rate)
     }
 
@@ -102,11 +110,11 @@ class FishRandomizerImplTest : KoinTest {
             val rarity = fishRandomizer.drawRandomRarity()
             count[rarity] = count.getOrDefault(rarity, 0) + 1
         }
-        val rate = count.map { (k, v) -> "$k : ${v.toDouble() / r * 100}" }
+        val rate =
+            count
+                .map { (k, v) ->
+                    "%-${count.maxOf { it.key.value.length + 1 }}s : %.2f".format(k.value, v.toDouble() / r * 100)
+                }.joinToString("\n")
         println(rate)
-    }
-
-    fun Double.toFix(decimal: Int): String {
-        return "%.0${decimal}f".format(this)
     }
 }

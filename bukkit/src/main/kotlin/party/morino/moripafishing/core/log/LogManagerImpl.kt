@@ -9,7 +9,9 @@ import party.morino.moripafishing.api.core.log.LogManager
 /**
  * LogManagerの実装クラス
  */
-class LogManagerImpl : LogManager, KoinComponent {
+class LogManagerImpl :
+    LogManager,
+    KoinComponent {
     val plugin: MoripaFishing by inject()
 
     /**
@@ -20,5 +22,26 @@ class LogManagerImpl : LogManager, KoinComponent {
         // 魚の情報を標準出力に出力する
         plugin.logger.info("Caught fish: ${fish.getId().value}, Length: ${fish.getSize()}, Worth: ${fish.getWorth()}")
         // TODO: 将来的にはファイルやデータベースへのロギングを検討する
+    }
+
+    /**
+     * INFOレベルのログを出力する
+     */
+    override fun info(message: String) {
+        plugin.logger.info(message)
+    }
+
+    /**
+     * WARNINGレベルのログを出力する
+     */
+    override fun warning(message: String) {
+        plugin.logger.warning(message)
+    }
+
+    /**
+     * SEVEREレベルのログを出力する
+     */
+    override fun severe(message: String) {
+        plugin.logger.severe(message)
     }
 }

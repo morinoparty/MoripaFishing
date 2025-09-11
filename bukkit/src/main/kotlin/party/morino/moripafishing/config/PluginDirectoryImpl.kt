@@ -16,7 +16,7 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
     private val fishDirectoryFile: File by lazy { File(rootDirectoryFile, "fish") }
     private val worldDirectoryFile: File by lazy { File(rootDirectoryFile, "world") }
     private val generatorDirectoryFile: File by lazy { File(rootDirectoryFile, "generator") }
-
+    private val translationDirectoryFile: File by lazy { File(rootDirectoryFile, "translation") }
     /**
      * プラグインのルートディレクトリを取得する
      * @return プラグインのルートディレクトリ
@@ -70,5 +70,12 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
             generatorDirectoryFile.mkdirs()
         }
         return generatorDirectoryFile
+    }
+
+    override fun getTranslationDirectory(): File {
+        if (!translationDirectoryFile.exists()) {
+            translationDirectoryFile.mkdirs()
+        }
+        return translationDirectoryFile
     }
 }

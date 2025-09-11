@@ -41,10 +41,13 @@ class WeatherRandomizerImplTest : KoinTest {
             val diff = order.zipWithNext { a, b -> (b - a).absoluteValue }
             // println("max: ${diff.maxOrNull()} min: ${diff.minOrNull()}")
             val rate =
-                weatherList.groupingBy { it }.eachCount().toList().sortedByDescending {
-                        (_, v) ->
-                    v
-                }.map { (k, v) -> "$k : ${v.toDouble() / weatherList.size}" }
+                weatherList
+                    .groupingBy { it }
+                    .eachCount()
+                    .toList()
+                    .sortedByDescending { (_, v) ->
+                        v
+                    }.map { (k, v) -> "%s : %.3f".format(k, v.toDouble() / weatherList.size) }
             println(rate)
             // assert(diff.max() <= 1)
         }

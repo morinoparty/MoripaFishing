@@ -24,4 +24,4 @@ interface GeneratorManager {
      * @param generator 追加するジェネレータ
      */
     fun addGenerator(generator: GeneratorData)
-} 
+}

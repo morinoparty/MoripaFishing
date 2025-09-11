@@ -13,7 +13,10 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
-class FishingWorldParser<C> : ArgumentParser<C, FishingWorld>, BlockingSuggestionProvider.Strings<CommandSender>, KoinComponent {
+class FishingWorldParser<C> :
+    ArgumentParser<C, FishingWorld>,
+    BlockingSuggestionProvider.Strings<CommandSender>,
+    KoinComponent {
     val worldManager: WorldManager by inject()
 
     override fun parse(
@@ -32,13 +35,10 @@ class FishingWorldParser<C> : ArgumentParser<C, FishingWorld>, BlockingSuggestio
     override fun stringSuggestions(
         commandContext: CommandContext<CommandSender?>,
         input: CommandInput,
-    ): Iterable<String> {
-        return worldManager.getWorldIdList().map { it.value }
-    }
+    ): Iterable<String> = worldManager.getWorldIdList().map { it.value }
 
     companion object {
-        fun fishingIdParser(): ParserDescriptor<CommandSender, FishingWorld> {
-            return ParserDescriptor.of(FishingWorldParser(), FishingWorld::class.java)
-        }
+        fun fishingIdParser(): ParserDescriptor<CommandSender, FishingWorld> =
+            ParserDescriptor.of(FishingWorldParser(), FishingWorld::class.java)
     }
 }

@@ -3,7 +3,9 @@ package party.morino.moripafishing.api.model.world
 /**
  * 天候の種類を表す列挙型
  */
-enum class WeatherType(name: String) {
+enum class WeatherType(
+    name: String,
+) {
     /**
      * 晴れの天候
      */
@@ -39,7 +41,5 @@ enum class WeatherType(name: String) {
      * 天候の名前を文字列として返す
      * @return 天候の名前
      */
-    override fun toString(): String {
-        return name
-    }
+    override fun toString(): String = name
 }

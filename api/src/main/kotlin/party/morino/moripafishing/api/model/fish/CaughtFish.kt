@@ -51,8 +51,8 @@ data class CaughtFish(
             fish: Fish,
             angler: Angler,
             world: FishingWorld,
-        ): CaughtFish {
-            return CaughtFish(
+        ): CaughtFish =
+            CaughtFish(
                 uniqueId = UuidCreator.getTimeOrderedEpoch(),
                 fish = fish.getId(),
                 size = fish.getSize(),
@@ -63,6 +63,5 @@ data class CaughtFish(
                 world = world.getId(),
                 timestamp = ZonedDateTime.now(),
             )
-        }
     }
 }
