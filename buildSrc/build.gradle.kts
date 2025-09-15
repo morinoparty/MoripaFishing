@@ -26,7 +26,7 @@ dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
     implementation(libs.kotlinx.serialization.json)
-    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.google.code.gson:gson:2.13.2")
     compileOnly(libs.paper.api)
 
         implementation(kotlin("reflect"))
