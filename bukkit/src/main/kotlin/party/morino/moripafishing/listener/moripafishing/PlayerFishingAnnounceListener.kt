@@ -1,5 +1,6 @@
 package party.morino.moripafishing.listener.moripafishing
 
+import net.kyori.adventure.audience.ForwardingAudience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.translation.Argument
 import org.bukkit.Bukkit
@@ -15,7 +16,7 @@ class PlayerFishingAnnounceListener :
     fun onPlayerFishingAnnounce(event: AnglerFishCaughtEvent) {
         val angler = event.getAngler().getName()
         val caughtFish = event.getCaughtFish()
-        val fishTranslateKey = event.getCaughtFish().fish.toTranslateKey()
+        val fishTranslateKey = caughtFish.fish.toTranslateKey()
 
         val translateTags =
             listOf(
@@ -29,14 +30,12 @@ class PlayerFishingAnnounceListener :
                 Argument.component("timestamp", Component.text(caughtFish.timestamp.toString())),
             )
 
-        val message =
+        val audience: ForwardingAudience = Bukkit.getServer()
+        audience.sendMessage(
             Component.translatable(
                 "moripa_fishing.message.angler_fish_caught",
                 translateTags,
-            )
-
-        // Send the message to all players
-        println("$angler caught a fish: $caughtFish")
-        Bukkit.broadcast(message)
+            ),
+        )
     }
 }

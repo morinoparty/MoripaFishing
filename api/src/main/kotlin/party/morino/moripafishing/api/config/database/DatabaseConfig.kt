@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DatabaseConfig(
     // データベースの種類
-    val type: String = "SQLITE",
+    val type: DatabaseType = DatabaseType.SQLITE,
+    // SQLiteを使用する場合のファイルパス
+    val sqliteFilePath: String = "moripa_fishing.db",
     // データベースのホスト
     val host: String = "localhost",
     // データベースのポート
@@ -18,3 +20,4 @@ data class DatabaseConfig(
     // データベースのパスワード
     val password: String = "password",
 )
+

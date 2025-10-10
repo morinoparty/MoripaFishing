@@ -13,6 +13,8 @@ class FishingWorldId(
 ) {
     override fun toString(): String = "FishingWorldId(value='$value')"
 
+    fun localeTag(): String = "<lang:moripa_fishing.world.$value.name>"
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FishingWorldId) return false

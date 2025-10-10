@@ -51,9 +51,7 @@ class WorldCommand : KoinComponent {
     fun list(sender: CommandSender) {
         sender.sendMessage("Fishing Worlds:")
         worldManager.getWorldIdList().forEach { fishingWorld ->
-            val worldDetails = worldManager.getWorld(fishingWorld).getWorldDetails()
-            // TODO もっといい書き方
-            sender.sendRichMessage("<green>${worldDetails.name}</green>")
+            sender.sendRichMessage("<green>- ${fishingWorld.localeTag()}")
         }
     }
 
