@@ -14,7 +14,7 @@ postgresql = "42.7.8"
 jnoise = "4.1.0"
 mockk = "1.14.7"
 junit = "5.12.1"
-mockBukkit = "4.98.0"
+mockBukkit = "4.98.4"
 adventure = "4.26.1"
 ktlint = "14.0.1"
 
