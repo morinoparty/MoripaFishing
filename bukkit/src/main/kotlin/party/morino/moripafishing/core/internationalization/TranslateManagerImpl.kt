@@ -12,8 +12,9 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import java.util.Locale
 import java.util.Properties
+import party.morino.moripafishing.api.core.internationalization.TranslateManager
 
-object TranslateManager : KoinComponent {
+class TranslateManagerImpl : TranslateManager, KoinComponent {
     private val pluginDirectory: PluginDirectory by inject()
     private val configManager: ConfigManager by inject()
     private val fishManager: FishManager by inject()
@@ -22,14 +23,14 @@ object TranslateManager : KoinComponent {
 
     lateinit var myStore: MiniMessageTranslationStore
 
-    fun load() {
+    override fun load() {
         myStore = MiniMessageTranslationStore.create(Key.key("moripafishing:translations"))
         myStore.defaultLocale(configManager.getConfig().defaultLocale)
 
         loadFromResources()
-
         loadFishData()
         loadWorldData()
+        loadRarityData()
         GlobalTranslator.translator().addSource(myStore)
     }
 
@@ -57,7 +58,7 @@ object TranslateManager : KoinComponent {
         }
     }
 
-    fun loadFishData() {
+    override fun loadFishData() {
         fishManager.getFish().forEach { fish ->
             fish.lore.forEach { (locale, list) ->
                 list.forEachIndexed { index, lore ->
@@ -69,6 +70,19 @@ object TranslateManager : KoinComponent {
             }
         }
 
+
+    }
+
+    override fun loadWorldData() {
+        worldManager.getWorldIdList().forEach { worldId ->
+            val world = worldManager.getWorld(worldId)
+            world.getWorldDetails().name.forEach { (locale, name) ->
+                myStore.register("moripa_fishing.world.${worldId.value}.name", locale, name)
+            }
+        }
+    }
+
+    override fun loadRarityData() {
         rarityManager.getRarities().forEach { rarity ->
             rarity.displayName.forEach { (locale, name) ->
                 myStore.register("moripa_fishing.rarity.${rarity.id.value}.name", locale, name)
@@ -76,12 +90,12 @@ object TranslateManager : KoinComponent {
         }
     }
 
-    fun loadWorldData() {
-        worldManager.getWorldIdList().forEach { worldId ->
-            val world = worldManager.getWorld(worldId)
-            world.getWorldDetails().name.forEach { (locale, name) ->
-                myStore.register("moripa_fishing.world.${worldId.value}.name", locale, name)
-            }
-        }
+    override fun reload() {
+
+        myStore.defaultLocale(configManager.getConfig().defaultLocale)
+        loadFromResources()
+        loadFishData()
+        loadWorldData()
+        loadRarityData()
     }
 }

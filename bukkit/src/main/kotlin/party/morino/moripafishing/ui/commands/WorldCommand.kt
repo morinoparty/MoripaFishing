@@ -23,7 +23,6 @@ import party.morino.moripafishing.utils.coroutines.minecraft
 @Command("mf world")
 @Permission("moripa_fishing.command.world")
 class WorldCommand : KoinComponent {
-    private val plugin: MoripaFishing by inject()
     private val worldManager: WorldManager by inject()
 
     @Command("transfer <world> <player>")

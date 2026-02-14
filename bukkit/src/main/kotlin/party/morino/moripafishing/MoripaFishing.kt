@@ -23,7 +23,8 @@ import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
-import party.morino.moripafishing.core.internationalization.TranslateManager
+import party.morino.moripafishing.api.core.internationalization.TranslateManager
+import party.morino.moripafishing.core.internationalization.TranslateManagerImpl
 import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
@@ -47,6 +48,7 @@ open class MoripaFishing :
     private val _anglerManager: AnglerManager by lazy { GlobalContext.get().get() }
     private val _generatorManager: GeneratorManager by lazy { GlobalContext.get().get() }
     private val _logManager: LogManager by lazy { GlobalContext.get().get() }
+    private val _translateManager: TranslateManager by lazy {  GlobalContext.get().get() }
 
     private var disable = false
 
@@ -57,7 +59,7 @@ open class MoripaFishing :
         setupKoin()
         initializeManagers()
         loadListeners()
-        TranslateManager.load()
+        _translateManager.load()
         logger.info("MoripaFishing enabled")
         updateWorlds()
     }
@@ -95,6 +97,7 @@ open class MoripaFishing :
                 single<AnglerManager> { AnglerManagerImpl() }
                 single<GeneratorManager> { GeneratorManagerImpl() }
                 single<LogManager> { LogManagerImpl() }
+                single<TranslateManager> { TranslateManagerImpl() }
             }
 
         getOrNull() ?: GlobalContext.startKoin {
