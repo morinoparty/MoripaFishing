@@ -1,0 +1,15 @@
+{
+  "title": "MoripaFishing",
+  "pages": [
+    "---はじめに---",
+    "index",
+    "---コマンド---",
+    "...commands",
+    "---フォーマット---",
+    "...format",
+    "---ユーティリティ---",
+    "...utilities",
+    "---構造---",
+    "...structure"
+  ]
+}

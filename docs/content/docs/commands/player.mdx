@@ -1,0 +1,30 @@
+---
+title: プレイヤー用コマンド
+---
+
+プレイヤー用のコマンドです。
+
+export const commandList = [
+    {
+        command: "/mf list fish",
+        description: "現在のワールドで釣れる魚一覧を表示します",
+        tags: ["player"],
+        aliases: [],
+        permission: "moripa_fishing.command.player.list.fish",
+        status: "proposal"
+    },
+    {
+        command: "/mf list world",
+        description: "釣りワールド一覧を表示します",
+        tags: ["player"],
+        aliases: [],
+        permission: "moripa_fishing.command.player.list.world",
+        status: "proposal"
+    }
+];
+
+import { CommandList } from "@/components/commands/command-list";
+
+# コマンド
+
+<CommandList list={commandList} />

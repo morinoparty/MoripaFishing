@@ -85,10 +85,10 @@ dokka {
         footerMessage.set("No right reserved. This docs under CC0 1.0.")
     }
     dokkaPublications.html {
-        outputDirectory.set(file("${project.rootDir}/docs/static/dokka"))
+        outputDirectory.set(file("${project.rootDir}/docs/public/dokka"))
     }
     dokkaPublications.javadoc {
-        outputDirectory.set(file("${project.rootDir}/docs/static/javadoc"))
+        outputDirectory.set(file("${project.rootDir}/docs/public/javadoc"))
     }
 }
 

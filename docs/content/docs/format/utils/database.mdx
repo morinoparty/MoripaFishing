@@ -1,0 +1,29 @@
+---
+title: データベース
+---
+
+import { AccountsTable, FishingLogsTable } from '@/components/tables';
+
+# データベース
+
+MoripaFishingはSQLiteとPostgreSQLをサポートしています。
+
+## Table definition
+
+<AccountsTable />
+
+<FishingLogsTable />
+
+## ER図
+
+```mermaid
+erDiagram
+
+    ACCOUNTS {
+        int id
+        uuid player_unique_id
+        varchar player_name
+        decimal balance
+    }
+
+```
