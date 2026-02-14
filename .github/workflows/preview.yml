@@ -55,14 +55,6 @@ jobs:
           after="${before//v/}"
           sed -i 's/VersionPlaceholder/$after/' ./gradle.properties
 
-      - name: Configure Docusaurus for preview
-        run: |
-          cd docs
-          # baseUrlを一時的に変更
-          sed -i 's#baseUrl: "/"#baseUrl: "/${{ env.COMMIT_SHORT_SHA }}/docs/"#g' docusaurus.config.ts
-          # urlを一時的に変更
-          sed -i 's#url: "https://fishing.plugin.morino.party"#url: "https://mf-ci.nikomaru.dev"#g' docusaurus.config.ts
-
       - name: Install docs dependencies
         working-directory: docs
         run: pnpm install
@@ -70,8 +62,10 @@ jobs:
       - name: Generate Dokka API documentation
         run: ./gradlew dokkaGenerate
 
-      - name: Build Docusaurus
+      - name: Build docs
         working-directory: docs
+        env:
+          BASE_PATH: /${{ env.COMMIT_SHORT_SHA }}/docs
         run: pnpm run build
 
       - name: Build with Gradle
@@ -90,7 +84,7 @@ jobs:
           mkdir -p ./upload/detekt
           cp -r ./build/reports/detekt/* ./upload/detekt/
           mkdir -p ./upload/docs
-          cp -r ./docs/build/* ./upload/docs/
+          cp -r ./docs/out/* ./upload/docs/
           # CRC32チェックサムアルゴリズムを使用してS3互換エンドポイントとの互換性を確保
           aws s3 cp ./upload --endpoint-url ${S3_ENDPOINT} s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }} --recursive --checksum-algorithm=CRC32 || echo "S3 upload completed with warnings"
 
