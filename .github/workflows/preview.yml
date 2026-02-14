@@ -19,7 +19,7 @@ env:
   AWS_DEFAULT_S3_SIGNATURE_VERSION: s3v4
   S3_UPLOAD_BUCKET: ${{ secrets.S3_UPLOAD_BUCKET }}
   S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
-  PREVIEW_BASE_URL: https://mf-ci.nikomaru.dev
+  PREVIEW_BASE_URL: https://moripa-ci.nikomaru.dev/moripafishing
   PROJECT_NAME: MoripaFishing
 
 jobs:
@@ -160,7 +160,7 @@ jobs:
       - name: Build Fumadocs
         working-directory: docs
         env:
-          BASE_PATH: /${{ env.COMMIT_SHORT_SHA }}/docs
+          BASE_PATH: /moripafishing/${{ env.COMMIT_SHORT_SHA }}/docs
         run: pnpm run build
 
       - name: Upload docs artifacts
@@ -231,7 +231,7 @@ jobs:
           # AWS CLIの並列リクエスト数を増やす
           aws configure set default.s3.max_concurrent_requests 50
 
-          S3_BASE="s3://${{ env.S3_UPLOAD_BUCKET }}/${{ env.COMMIT_SHORT_SHA }}"
+          S3_BASE="s3://${{ env.S3_UPLOAD_BUCKET }}/moripafishing/${{ env.COMMIT_SHORT_SHA }}"
           S3_OPTS="--endpoint-url ${S3_ENDPOINT} --only-show-errors"
 
           # Docs と レポートを並列でアップロード
