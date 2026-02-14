@@ -8,17 +8,18 @@ import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 
 @Command("mf")
 @Permission("moripa_fishing.command.world")
 class DefaultCommand : KoinComponent {
-    private val plugin: MoripaFishing by inject()
     private val worldManager: WorldManager by inject()
     private val fishManager: FishManager by inject()
     private val rarityManager: RarityManager by inject()
     private val configManager: ConfigManager by inject()
+    private val translateManager: TranslateManager by inject()
 
     @Command("reload")
     @Permission("moripa_fishing.command.world.default")
@@ -46,6 +47,8 @@ class DefaultCommand : KoinComponent {
         fishManager.loadFishes()
         sender.sendRichMessage("<green>[4 / $n] Reloaded all fishes")
 
-        // TODO i18n
+        // i18n
+        translateManager.reload()
+        sender.sendRichMessage("<green>[5 / $n] Reloaded all i18n files")
     }
 }

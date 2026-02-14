@@ -44,6 +44,7 @@ dependencies {
 
     implementation(libs.noise)
 
+    testImplementation(libs.paper.api)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
     testImplementation(libs.mock.bukkit)

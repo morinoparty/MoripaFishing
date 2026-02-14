@@ -15,7 +15,7 @@ tasks:
     dir: docs
     cmds:
       - pnpm install
-      - pnpm start
+      - pnpm dev
     silent: true
 
   check:

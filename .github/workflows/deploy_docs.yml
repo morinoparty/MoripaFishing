@@ -3,14 +3,17 @@ name: deploy docs
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
-      - "docs"
+      - "docs/**"
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  # Dokka 生成ジョブ
+  generate-dokka:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -19,13 +22,31 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'gradle'
+
+      # Gradle キャッシュの設定（setup-gradle を使用）
+      - uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
+      - name: Generate Dokka
         run: ./gradlew dokkaGenerate
+
+      - name: Upload Dokka artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dokka-output
+          path: ./docs/public/dokka
+          retention-days: 1
+
+  # Docs ビルドジョブ（Dokka 完了後に実行）
+  build:
+    needs: [generate-dokka]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -36,6 +57,28 @@ jobs:
         with:
           version: 10
           run_install: false
+
+      # pnpm キャッシュの設定
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Dokka artifacts をダウンロード
+      - name: Download Dokka artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dokka-output
+          path: ./docs/public/dokka
 
       - name: Install
         working-directory: docs
@@ -50,7 +93,7 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
-          path: ./docs/build
+          path: ./docs/out
 
   deploy:
     name: Deploy to GitHub Pages

@@ -4,6 +4,11 @@ on:
   release:
     types: [ published ]
 
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
 jobs:
   build:
     env:
@@ -18,11 +23,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'gradle'
+
+      # Gradle キャッシュの設定（setup-gradle を使用）
+      - uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
 
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
-
 
       - name: Set version env
         run: |
@@ -35,8 +41,8 @@ jobs:
           echo "バージョンは ${{ env.PLUGIN_VERSION }} なのだ！"
           sed -i "s/VersionPlaceholder/${{ env.PLUGIN_VERSION }}/" ./gradle.properties
 
-      - name: Build with Gradle
-        run: ./gradlew :bukkit:build -x test
+      - name: Build with Gradle (parallel)
+        run: ./gradlew build -x test --parallel
 
       - name: Upload package
         run: ./gradlew publish
@@ -44,6 +50,12 @@ jobs:
       - name: Change file name
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+
+      # GitHub Attestations で署名（SLSA3 provenance）
+      - name: Attest JAR artifact
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: './bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar'
 
       - uses: Kir-Antipov/mc-publish@995edadc13559a8b28d0b7e6571229f067ec7659 # v3.3.0
         with:
@@ -66,3 +78,11 @@ jobs:
           java: |
             21
 
+      # JitPack でAPIモジュールのビルドをトリガー（キャッシュウォームアップ）
+      - name: Trigger JitPack build for API
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering JitPack build for MoripaFishing API tag: $TAG"
+          curl -s "https://jitpack.io/api/builds/com.github.morinoparty/MoripaFishing/$TAG" || true
+          curl -s "https://jitpack.io/com/github/morinoparty/MoripaFishing/api/$TAG/api-$TAG.pom" > /dev/null 2>&1 || true
+          echo "JitPack build triggered for MoripaFishing API"

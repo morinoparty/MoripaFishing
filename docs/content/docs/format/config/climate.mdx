@@ -1,0 +1,65 @@
+---
+title: 天候
+---
+
+# 天候
+
+:::warning[注意]
+この設定は、`config.json`及び、`world/<fishing_world_name>.json`に存在するデータであり、独立して存在するものではありません。
+:::
+
+## Format
+
+```json
+{
+    "constant" : {
+        "weather": "SUNNY",
+        "dayCycle": 1
+    },
+    "dayCycle" : {
+        "offset": 0
+    },
+    "weather": {
+       "weight": {
+        "SUNNY": 4,
+        "CLOUDY": 2,
+        "RAINY": 2,
+        "THUNDERSTORM": 1
+       },
+        "offset": 0,
+        "interval": 8,
+        "maxInclination": 30
+    },
+    "hashPepper": "pepper"
+}
+```
+
+## 各設定の説明
+
+### constant
+
+天候を固定する場合の設定です。
+
+- `constant.weather`: 固定する天候を指定します。nullの場合は天候が変化します（デフォルト: null）
+- `constant.dayCycle`: 固定する時間を指定します。nullの場合は天候が変化します（デフォルト: null）
+
+### weather
+
+天候が変化する場合の設定です。
+
+- `weather.weight`: 各天気の出現確率を指定します
+- `weather.offset`: 天気の更新タイミングのオフセット（時間）を指定します
+- `weather.interval`: 天気の更新間隔（時間）を指定します
+- `weather.maxInclination`: 天気の変化の最大傾斜（度）を指定します
+
+### hashPepper
+
+天気予測のハッシュ生成に使用するペッパー文字列を指定します。
+
+### dayCycle
+
+日周期の設定です。設定されたタイムゾーンに従って日周期を制御します。
+
+日時の更新は、`config.json`の`world.refreshInterval`で指定された間隔で定期的に実行され、現実世界の日時に同期して日周期を設定します。
+
+- `dayCycle.offset`: 日周期のオフセット（時間）を指定します。`config.json`の`world.defaultTimeZone`に基づいて取得された値に対して、`dayCycle.offset`を加算した値が使用されます。
