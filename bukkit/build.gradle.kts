@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.shadow)
     alias(libs.plugins.run.paper)
     alias(libs.plugins.resource.factory)
-    `maven-publish`
 }
 
 group = "party.morino"
@@ -105,17 +104,6 @@ sourceSets.main {
             dependencies {
                 "Vault"
             }
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = group.toString()
-            artifactId = "moripafishing-bukkit"
-            version = version
-            from(components["kotlin"])
         }
     }
 }
