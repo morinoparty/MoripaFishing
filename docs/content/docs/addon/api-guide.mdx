@@ -1,0 +1,229 @@
+---
+title: API利用ガイド
+---
+
+# API利用ガイド（アドオン開発者向け）
+
+MoripaFishingは、アドオン開発者がプラグインの機能を拡張できるAPIを提供しています。
+このガイドでは、APIの導入方法から基本的な使い方までを解説します。
+
+## 依存関係の追加
+
+### リポジトリの設定
+
+MoripaFishing APIは[JitPack](https://jitpack.io/#morinoparty/MoripaFishing)で公開されています。
+認証不要で利用できます。
+
+#### Gradle (Kotlin DSL)
+
+```kotlin title="build.gradle.kts"
+repositories {
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    compileOnly("com.github.morinoparty.MoripaFishing:api:<version>")
+}
+```
+
+#### Gradle (Groovy)
+
+```groovy title="build.gradle"
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    compileOnly 'com.github.morinoparty.MoripaFishing:api:<version>'
+}
+```
+
+#### Maven
+
+```xml title="pom.xml"
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.github.morinoparty.MoripaFishing</groupId>
+        <artifactId>api</artifactId>
+        <version>VERSION</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
+### SNAPSHOTビルド
+
+開発中のブランチのAPIを利用したい場合は、`<branch>-SNAPSHOT`をバージョンに指定できます。
+
+```kotlin title="build.gradle.kts"
+dependencies {
+    compileOnly("com.github.morinoparty.MoripaFishing:api:main-SNAPSHOT")
+}
+```
+
+:::warning[注意]
+SNAPSHOTビルドは開発中のため不安定です。本番環境ではリリースタグのバージョンを使用してください。
+:::
+
+### plugin.yml の設定
+
+プラグインの`plugin.yml`に依存関係を追加してください。
+
+```yaml title="plugin.yml"
+depend:
+  - MoripaFishing
+```
+
+## APIの取得
+
+MoripaFishingのプラグインインスタンスは`MoripaFishingAPI`インターフェースを実装しています。
+Bukkitのプラグインマネージャーからインスタンスを取得できます。
+
+### Kotlin
+
+```kotlin
+import party.morino.moripafishing.api.MoripaFishingAPI
+
+val api = Bukkit.getPluginManager().getPlugin("MoripaFishing") as? MoripaFishingAPI
+    ?: throw IllegalStateException("MoripaFishing is not loaded")
+```
+
+### Java
+
+```java
+import party.morino.moripafishing.api.MoripaFishingAPI;
+
+MoripaFishingAPI api = (MoripaFishingAPI) Bukkit.getPluginManager().getPlugin("MoripaFishing");
+if (api == null) {
+    throw new IllegalStateException("MoripaFishing is not loaded");
+}
+```
+
+## 利用可能なマネージャー
+
+APIインスタンスから以下のマネージャーを取得できます。
+
+| マネージャー | メソッド | 説明 |
+|---|---|---|
+| `ConfigManager` | `getConfigManager()` | プラグイン設定の取得・変更 |
+| `FishManager` | `getFishManager()` | 魚の登録・取得 |
+| `WorldManager` | `getWorldManager()` | 釣り場ワールドの管理 |
+| `AnglerManager` | `getAnglerManager()` | つりびと（プレイヤー）データの管理 |
+| `RarityManager` | `getRarityManager()` | レアリティの管理 |
+| `RandomizeManager` | `getRandomizeManager()` | 魚・天候のランダム化 |
+| `GeneratorManager` | `getGeneratorManager()` | ワールドジェネレーターの管理 |
+| `LogManager` | `getLogManager()` | ログ出力 |
+| `PluginDirectory` | `getPluginDirectory()` | プラグインディレクトリの取得 |
+
+## 使用例
+
+### 魚の一覧を取得する
+
+```kotlin
+val fishManager = api.getFishManager()
+val allFish = fishManager.getFish()
+allFish.forEach { fish ->
+    println("${fish.id}: ${fish.displayName}")
+}
+```
+
+### レアリティ別に魚を取得する
+
+```kotlin
+val fishManager = api.getFishManager()
+val rarityId = RarityId("legendary")
+val legendaryFish = fishManager.getFishesWithRarity(rarityId)
+```
+
+### つりびとの情報を取得する
+
+```kotlin
+val anglerManager = api.getAnglerManager()
+val angler = anglerManager.getAnglerByMinecraftUniqueId(player.uniqueId)
+angler?.let {
+    println("Name: ${it.getName()}")
+    println("World: ${it.getWorld()?.getId()}")
+}
+```
+
+### ワールドの一覧を取得する
+
+```kotlin
+val worldManager = api.getWorldManager()
+val worldIds = worldManager.getWorldIdList()
+worldIds.forEach { id ->
+    val world = worldManager.getWorld(id)
+    println("World: $id")
+}
+```
+
+### カスタムジェネレーターを登録する
+
+```kotlin
+val generatorManager = api.getGeneratorManager()
+generatorManager.addGenerator(myCustomGenerator)
+```
+
+## イベント
+
+MoripaFishingは、魚が釣れた際にBukkitイベントを発火します。
+
+### AnglerFishCaughtEvent
+
+つりびとが魚を釣ったときに発生するイベントです。
+
+```kotlin
+import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
+
+class MyListener : Listener {
+    @EventHandler
+    fun onFishCaught(event: AnglerFishCaughtEvent) {
+        val angler = event.getAngler()
+        val caughtFish = event.getCaughtFish()
+
+        // 釣れた魚の情報を取得
+        val fishId = caughtFish.fish
+        val size = caughtFish.size
+        val rarity = caughtFish.rarity
+        val worth = caughtFish.worth
+
+        // つりびとの情報
+        val playerName = angler.getName()
+
+        // イベントのキャンセル（魚の取得を無効にする）
+        // event.isCancelled = true
+    }
+}
+```
+
+#### CaughtFish のフィールド
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `uniqueId` | `UUID` | 釣果の一意ID |
+| `fish` | `FishId` | 魚のID |
+| `size` | `Double` | 魚のサイズ |
+| `rarity` | `RarityId` | レアリティID |
+| `worth` | `Double` | 魚の価値 |
+| `cfd` | `Double` | 累積分布関数（0〜1） |
+| `angler` | `AnglerId` | つりびとID |
+| `world` | `FishingWorldId` | 釣り場ワールドID |
+| `timestamp` | `ZonedDateTime` | 釣った日時 |
+
+## Dokka APIリファレンス
+
+詳細なAPIリファレンスは[Dokka](https://fishing.plugin.morino.party/dokka/api/)を参照してください。
+
+## 注意事項
+
+:::warning[注意]
+現在MoripaFishingは開発中のため、APIに破壊的な変更が行われる可能性があります。
+バージョンアップ時は、リリースノートを確認してください。
+:::

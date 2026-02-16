@@ -1,0 +1,31 @@
+---
+title: FishManager
+---
+
+# FishManager
+
+[Dokka APIリファレンス](https://fishing.plugin.morino.party/dokka/api/party.morino.moripafishing.api.core.fish/-fish-manager/index.html)
+
+FishManagerは、魚データの登録・取得を行うマネージャーです。
+
+## 主なメソッド
+
+| メソッド | 説明 |
+|---|---|
+| `getFish()` | 登録されている全ての魚を取得する |
+| `getFishWithId(id)` | IDから魚を取得する |
+| `getFishesWithRarity(rarity)` | レアリティで魚を絞り込む |
+| `registerFish(fish)` | 魚を登録する |
+
+## 魚の抽選の流れ
+
+釣りイベントが発生すると、以下の手順で魚が決定されます。
+
+1. **レアリティ抽選** — 各レアリティの`weight`に基づいて重み付き抽選
+2. **魚種抽選** — 選ばれたレアリティ・天候・ワールド条件に合う魚から抽選
+3. **サイズ決定** — 正規分布に基づき、`min`〜`max`の範囲でサイズを生成
+4. **Fishオブジェクト生成** — `FishBuilder`で最終的な`Fish`オブジェクトを構築
+
+:::warning[注意]
+釣れる魚は釣り場（ワールド）と天候条件によって変わります。
+:::

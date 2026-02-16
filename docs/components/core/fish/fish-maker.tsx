@@ -150,7 +150,7 @@ const DisplayScore = () => {
     return (
         <>
             計算式: <code className="text-sm">{expression}</code>
-            <table className="w-2/3 pt-4">
+            <table className="">
                 <thead className="bg-gray-100">
                     <tr>
                         <th className="w-xs">サイズ</th>

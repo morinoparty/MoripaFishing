@@ -1,0 +1,33 @@
+---
+title: CaughtFish
+---
+
+# CaughtFish
+
+釣り上げた魚の情報を表すデータクラスです。DB保存やイベントでのデータ受け渡しに使用されます。
+
+## フィールド
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `uniqueId` | `UUID` | 釣果の一意ID |
+| `fish` | `FishId` | 魚種ID |
+| `size` | `Double` | 魚のサイズ |
+| `rarity` | `RarityId` | レアリティID |
+| `worth` | `Double` | 魚の価値 |
+| `cfd` | `Double` | 累積分布関数値（0〜1） |
+| `angler` | `AnglerId` | つりびとID |
+| `world` | `FishingWorldId` | 釣り場ワールドID |
+| `timestamp` | `ZonedDateTime` | 釣った日時（ISO8601） |
+
+## 利用例
+
+`AnglerFishCaughtEvent`から釣果データを取得できます。
+
+```kotlin
+@EventHandler
+fun onFishCaught(event: AnglerFishCaughtEvent) {
+    val caught = event.getCaughtFish()
+    println("魚: ${caught.fish}, サイズ: ${caught.size}, 価値: ${caught.worth}")
+}
+```

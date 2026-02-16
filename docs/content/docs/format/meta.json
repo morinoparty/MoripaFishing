@@ -1,4 +1,8 @@
 {
   "title": "フォーマット",
-  "pages": ["...config", "...utils"]
+  "pages": [
+    "config",
+      "data",
+      "other"
+  ]
 }

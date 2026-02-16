@@ -44,9 +44,6 @@ jobs:
       - name: Build with Gradle (parallel)
         run: ./gradlew build -x test --parallel
 
-      - name: Upload package
-        run: ./gradlew publish
-
       - name: Change file name
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar

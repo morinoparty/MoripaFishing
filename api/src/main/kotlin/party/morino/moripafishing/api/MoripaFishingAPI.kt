@@ -56,7 +56,15 @@ interface MoripaFishingAPI {
      */
     fun getGeneratorManager(): GeneratorManager
 
+    /**
+     * レアリティマネージャーを取得する
+     * @return レアリティマネージャー
+     */
     fun getRarityManager(): RarityManager
 
+    /**
+     * ログマネージャーを取得する
+     * @return ログマネージャー
+     */
     fun getLogManager(): LogManager
 }

@@ -103,6 +103,18 @@ jobs:
           path: ./gradle-artifacts
           retention-days: 1
 
+  # JitPack SNAPSHOT ビルドをトリガー
+  trigger-jitpack:
+    needs: [setup, build-gradle]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger JitPack SNAPSHOT build
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Triggering JitPack SNAPSHOT build for branch: $BRANCH"
+          curl -s "https://jitpack.io/api/builds/com.github.morinoparty/MoripaFishing/${BRANCH}-SNAPSHOT" || true
+          echo "JitPack SNAPSHOT build triggered"
+
   # Docs ビルドジョブ（gradle と並列実行）
   build-docs:
     needs: setup
