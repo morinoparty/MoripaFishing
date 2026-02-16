@@ -108,12 +108,14 @@ jobs:
     needs: [setup, build-gradle]
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger JitPack SNAPSHOT build
+      - name: Trigger JitPack builds
         run: |
           BRANCH="${{ github.head_ref }}"
-          echo "Triggering JitPack SNAPSHOT build for branch: $BRANCH"
+          COMMIT="${{ github.event.pull_request.head.sha }}"
+          echo "Triggering JitPack builds for branch: $BRANCH, commit: $COMMIT"
           curl -s "https://jitpack.io/api/builds/com.github.morinoparty/MoripaFishing/${BRANCH}-SNAPSHOT" || true
-          echo "JitPack SNAPSHOT build triggered"
+          curl -s "https://jitpack.io/api/builds/com.github.morinoparty/MoripaFishing/${COMMIT}" || true
+          echo "JitPack builds triggered"
 
   # Docs ビルドジョブ（gradle と並列実行）
   build-docs:

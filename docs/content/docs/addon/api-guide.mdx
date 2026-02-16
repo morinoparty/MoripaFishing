@@ -58,18 +58,21 @@ dependencies {
 </dependencies>
 ```
 
-### SNAPSHOTビルド
+### SNAPSHOTビルド・コミットハッシュ指定
 
-開発中のブランチのAPIを利用したい場合は、`<branch>-SNAPSHOT`をバージョンに指定できます。
+開発中のブランチのAPIを利用したい場合は、`<branch>-SNAPSHOT`またはコミットハッシュをバージョンに指定できます。
 
 ```kotlin title="build.gradle.kts"
 dependencies {
+    // ブランチの最新を追跡
     compileOnly("com.github.morinoparty.MoripaFishing:api:main-SNAPSHOT")
+    // 特定のコミットを指定
+    compileOnly("com.github.morinoparty.MoripaFishing:api:<commit-hash>")
 }
 ```
 
 :::warning[注意]
-SNAPSHOTビルドは開発中のため不安定です。本番環境ではリリースタグのバージョンを使用してください。
+SNAPSHOTビルドやコミットハッシュ指定は開発中のため不安定です。本番環境ではリリースタグのバージョンを使用してください。
 :::
 
 ### plugin.yml の設定
