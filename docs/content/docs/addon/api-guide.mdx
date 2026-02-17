@@ -11,18 +11,18 @@ MoripaFishingは、アドオン開発者がプラグインの機能を拡張で�
 
 ### リポジトリの設定
 
-MoripaFishing APIは[JitPack](https://jitpack.io/#morinoparty/MoripaFishing)で公開されています。
+MoripaFishing APIは[Maven Central](https://central.sonatype.com/artifact/party.morino/moripafishing-api)で公開されています。
 認証不要で利用できます。
 
 #### Gradle (Kotlin DSL)
 
 ```kotlin title="build.gradle.kts"
 repositories {
-    maven("https://jitpack.io")
+    mavenCentral()
 }
 
 dependencies {
-    compileOnly("com.github.morinoparty.MoripaFishing:api:<version>")
+    compileOnly("party.morino:moripafishing-api:<version>")
 }
 ```
 
@@ -30,39 +30,36 @@ dependencies {
 
 ```groovy title="build.gradle"
 repositories {
-    maven { url 'https://jitpack.io' }
+    mavenCentral()
 }
 
 dependencies {
-    compileOnly 'com.github.morinoparty.MoripaFishing:api:<version>'
+    compileOnly 'party.morino:moripafishing-api:<version>'
 }
 ```
 
 #### Maven
 
 ```xml title="pom.xml"
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-
 <dependencies>
     <dependency>
-        <groupId>com.github.morinoparty.MoripaFishing</groupId>
-        <artifactId>api</artifactId>
+        <groupId>party.morino</groupId>
+        <artifactId>moripafishing-api</artifactId>
         <version>VERSION</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
 ```
 
-### SNAPSHOTビルド・コミットハッシュ指定
+### SNAPSHOTビルド（JitPack）
 
-開発中のブランチのAPIを利用したい場合は、`<branch>-SNAPSHOT`またはコミットハッシュをバージョンに指定できます。
+開発中のブランチのAPIを利用したい場合は、[JitPack](https://jitpack.io/#morinoparty/MoripaFishing)経由で`<branch>-SNAPSHOT`またはコミットハッシュを指定できます。
 
 ```kotlin title="build.gradle.kts"
+repositories {
+    maven("https://jitpack.io")
+}
+
 dependencies {
     // ブランチの最新を追跡
     compileOnly("com.github.morinoparty.MoripaFishing:api:main-SNAPSHOT")
