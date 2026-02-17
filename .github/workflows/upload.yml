@@ -59,10 +59,38 @@ jobs:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
       # GitHub Attestations で署名（SLSA3 provenance + Linked Artifacts）
-      - name: Attest JAR artifact
+      - name: Attest Bukkit JAR
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         with:
           subject-path: './bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar'
+
+      - name: Attest API JAR
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: './api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar'
+
+      # Linked Artifacts: Maven Central の Storage Record を作成
+      - name: Register Maven Central artifact to Linked Artifacts
+        run: |
+          API_JAR="./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar"
+          DIGEST="sha256:$(sha256sum "$API_JAR" | awk '{print $1}')"
+          MAVEN_PATH="party/morino/moripafishing-api/${{ env.PLUGIN_VERSION }}/moripafishing-api-${{ env.PLUGIN_VERSION }}.jar"
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /orgs/${{ github.repository_owner }}/artifacts/metadata/storage-record \
+            -f name="party.morino:moripafishing-api" \
+            -f digest="$DIGEST" \
+            -f registry_url="https://repo1.maven.org/maven2/" \
+            -f version="${{ env.PLUGIN_VERSION }}" \
+            -f artifact_url="https://repo1.maven.org/maven2/${MAVEN_PATH}" \
+            -f path="$MAVEN_PATH" \
+            -f github_repository="${{ github.repository }}" \
+            -f status="active"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: Kir-Antipov/mc-publish@995edadc13559a8b28d0b7e6571229f067ec7659 # v3.3.0
         with:
