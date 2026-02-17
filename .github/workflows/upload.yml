@@ -64,6 +64,17 @@ jobs:
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
+      # GitHub Attestations（Linked Artifacts 用）
+      - name: Attest Bukkit JAR
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: './bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar'
+
+      - name: Attest API JAR
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: './api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar'
+
       # SLSA 3 用: アーティファクトのハッシュを生成
       - name: Generate artifact hashes
         id: hash
