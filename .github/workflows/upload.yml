@@ -87,7 +87,7 @@ jobs:
             -f version="${{ env.PLUGIN_VERSION }}" \
             -f artifact_url="https://repo1.maven.org/maven2/${MAVEN_PATH}" \
             -f path="$MAVEN_PATH" \
-            -f github_repository="${{ github.repository }}" \
+            -f github_repository="${{ github.event.repository.name }}" \
             -f status="active"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
