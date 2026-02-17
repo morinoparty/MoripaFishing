@@ -86,7 +86,7 @@ jobs:
           mkdir -p ./gradle-artifacts/junit
           mkdir -p ./gradle-artifacts/detekt
           mv ./bukkit/build/libs/bukkit-*-all.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
-          mv ./api/build/libs/api-*.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./api/build/libs/api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
           cp -r ./bukkit/build/reports/tests/test/* ./gradle-artifacts/junit/ || echo "No JUnit reports found"
           cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
 
