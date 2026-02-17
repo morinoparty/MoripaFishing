@@ -9,14 +9,18 @@ permissions:
   id-token: write
   attestations: write
   artifact-metadata: write
+  actions: read
 
 jobs:
+  # ビルド・Maven Central 公開・アーティファクト準備
   build:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
     runs-on: ubuntu-latest
-
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+      plugin_version: ${{ steps.version.outputs.plugin_version }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -32,10 +36,12 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Set version env
+        id: version
         run: |
           before="${{ github.event.release.tag_name }}"
           after="${before//v/}"
           echo "PLUGIN_VERSION=$after" >> $GITHUB_ENV
+          echo "plugin_version=$after" >> $GITHUB_OUTPUT
 
       - name: change plugin.yml version
         run: |
@@ -54,25 +60,69 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_PUBLISH_GPG_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_PUBLISH_GPG_PASSPHRASE }}
 
-      - name: Change file name
+      - name: Rename Bukkit JAR
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
-      # GitHub Attestations で署名（SLSA3 provenance + Linked Artifacts）
-      - name: Attest Bukkit JAR
-        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
-        with:
-          subject-path: './bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar'
+      # SLSA 3 用: アーティファクトのハッシュを生成
+      - name: Generate artifact hashes
+        id: hash
+        run: |
+          BUKKIT_JAR="./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar"
+          API_JAR="./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar"
+          echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" | base64 -w0)" >> $GITHUB_OUTPUT
 
-      - name: Attest API JAR
-        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+      - name: Upload Bukkit JAR
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          subject-path: './api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar'
+          name: bukkit-jar
+          path: ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+          retention-days: 1
+
+      - name: Upload API JAR
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: api-jar
+          path: ./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar
+          retention-days: 1
+
+  # SLSA 3 provenance 生成（分離された reusable workflow）
+  provenance:
+    needs: [build]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assets: true
+
+  # Modrinth・GitHub Release 公開 + Linked Artifacts 登録
+  publish:
+    needs: [build, provenance]
+    runs-on: ubuntu-latest
+    env:
+      PLUGIN_VERSION: ${{ needs.build.outputs.plugin_version }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Download Bukkit JAR
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: bukkit-jar
+          path: ./artifacts
+
+      - name: Download API JAR
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: api-jar
+          path: ./artifacts
 
       # Linked Artifacts: Maven Central の Storage Record を作成
       - name: Register Maven Central artifact to Linked Artifacts
         run: |
-          API_JAR="./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar"
+          API_JAR="./artifacts/api-${{ env.PLUGIN_VERSION }}.jar"
           DIGEST="sha256:$(sha256sum "$API_JAR" | awk '{print $1}')"
           MAVEN_PATH="party/morino/moripafishing-api/${{ env.PLUGIN_VERSION }}/moripafishing-api-${{ env.PLUGIN_VERSION }}.jar"
 
@@ -83,10 +133,11 @@ jobs:
             /orgs/${{ github.repository_owner }}/artifacts/metadata/storage-record \
             -f name="party.morino:moripafishing-api" \
             -f digest="$DIGEST" \
-            -f registry_url="https://repo1.maven.org/maven2/" \
+            -f registry_url="https://central.sonatype.com/" \
             -f version="${{ env.PLUGIN_VERSION }}" \
-            -f artifact_url="https://repo1.maven.org/maven2/${MAVEN_PATH}" \
+            -f artifact_url="https://central.sonatype.com/artifact/party.morino/moripafishing-api/${{ env.PLUGIN_VERSION }}" \
             -f path="$MAVEN_PATH" \
+            -f repository="party.morino:moripafishing-api" \
             -f github_repository="${{ github.event.repository.name }}" \
             -f status="active"
         env:
@@ -101,7 +152,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-draft: false
           files: |
-            ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+            ./artifacts/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
           loaders: |
             paper
             purpur
@@ -112,4 +163,3 @@ jobs:
             Vault(required)
           java: |
             21
-
