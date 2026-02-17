@@ -86,7 +86,7 @@ jobs:
           mkdir -p ./gradle-artifacts/junit
           mkdir -p ./gradle-artifacts/detekt
           mv ./bukkit/build/libs/bukkit-*-all.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
-          mv ./api/build/libs/api-*.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./api/build/libs/api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
           cp -r ./bukkit/build/reports/tests/test/* ./gradle-artifacts/junit/ || echo "No JUnit reports found"
           cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
 
@@ -184,43 +184,7 @@ jobs:
           path: ./docs/out
           retention-days: 1
 
-  # GitHub Release にプレビュー版としてアップロード
-  upload-release:
-    needs: [setup, build-gradle]
-    runs-on: ubuntu-latest
-    env:
-      COMMIT_SHORT_SHA: ${{ needs.setup.outputs.commit_sha }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    outputs:
-      release_url: ${{ steps.create-release.outputs.release_url }}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Download JAR artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: gradle-artifacts
-          path: ./artifacts
-
-      # プレビューリリースを作成
-      - name: Create preview release
-        id: create-release
-        run: |
-          TAG_NAME="preview-pr${{ github.event.pull_request.number }}-${{ env.COMMIT_SHORT_SHA }}"
-          RELEASE_URL=$(gh release create "$TAG_NAME" \
-            --title "🧪 Preview: PR #${{ github.event.pull_request.number }} (${{ env.COMMIT_SHORT_SHA }})" \
-            --notes "Preview build for PR #${{ github.event.pull_request.number }}
-
-          **Commit:** ${{ github.sha }}
-          **Branch:** ${{ github.head_ref }}
-
-          > ⚠️ This is a preview build and may be unstable.
-          > 📜 Verify with: \`gh attestation verify <jar-file> --owner morinoparty\`" \
-            --prerelease \
-            ./artifacts/jars/*.jar)
-          echo "release_url=https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME" >> $GITHUB_OUTPUT
-
-  # S3 アップロードジョブ（Docs とレポートのみ）
+  # S3 アップロードジョブ（JARs, Docs, レポート）
   upload-s3:
     needs: [setup, build-gradle, build-docs]
     runs-on: ubuntu-latest
@@ -235,6 +199,7 @@ jobs:
       - name: Prepare upload directory
         run: |
           mkdir -p ./upload
+          cp -r ./artifacts/gradle-artifacts/jars ./upload/ || echo "No JARs"
           cp -r ./artifacts/gradle-artifacts/junit ./upload/ || echo "No JUnit reports"
           cp -r ./artifacts/gradle-artifacts/detekt ./upload/ || echo "No Detekt reports"
           mkdir -p ./upload/docs
@@ -248,7 +213,8 @@ jobs:
           S3_BASE="s3://${{ env.S3_UPLOAD_BUCKET }}/moripafishing/${{ env.COMMIT_SHORT_SHA }}"
           S3_OPTS="--endpoint-url ${S3_ENDPOINT} --only-show-errors"
 
-          # Docs と レポートを並列でアップロード
+          # JARs, Docs, レポートを並列でアップロード
+          [ -d ./upload/jars ] && aws s3 cp ./upload/jars $S3_BASE/jars $S3_OPTS --recursive &
           aws s3 cp ./upload/junit $S3_BASE/junit $S3_OPTS --recursive &
           aws s3 cp ./upload/detekt $S3_BASE/detekt $S3_OPTS --recursive &
           aws s3 cp ./upload/docs $S3_BASE/docs $S3_OPTS --recursive &
@@ -259,7 +225,7 @@ jobs:
 
   # コメント作成ジョブ
   comment:
-    needs: [setup, build-gradle, upload-s3, upload-release]
+    needs: [setup, build-gradle, upload-s3]
     runs-on: ubuntu-latest
     if: ${{ github.event.action == 'opened' || github.event.action == 'synchronize' }}
     env:
@@ -275,8 +241,7 @@ jobs:
 
       - name: Create comment file
         env:
-          RELEASE_URL: "${{ needs.upload-release.outputs.release_url }}"
-          RELEASE_DOWNLOAD_BASE: "https://github.com/${{ github.repository }}/releases/download/preview-pr${{ github.event.pull_request.number }}-${{ env.COMMIT_SHORT_SHA }}"
+          S3_DOWNLOAD_BASE: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/jars"
           JUNIT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
           DETEKT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
           DOCS_PREVIEW_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/docs/index.html"
@@ -286,16 +251,16 @@ jobs:
           cat << EOF > comment.md
           ## 🚀 Preview of ${{ github.event.repository.name }}
 
-          ### 📦 Preview JARs ([Release Page]($RELEASE_URL))
+          ### 📦 Preview JARs
+          Available for 7 days (until $LIMIT_TIME)
           | Artifact | Download |
           |----------|----------|
-          | Bukkit | [${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar]($RELEASE_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar) |
-          | API | [${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar]($RELEASE_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar) |
+          | Bukkit | [${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar) |
+          | API | [${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar) |
 
           > 📜 **Attestation**: \`gh attestation verify <jar-file> --owner morinoparty\`
 
           ### 📖 Documentation & Reports
-          Available for 7 days (until $LIMIT_TIME)
           | Resource | Link |
           |----------|------|
           | 📖 Documentation | [Preview]($DOCS_PREVIEW_URL) |

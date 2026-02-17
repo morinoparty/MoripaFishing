@@ -17,3 +17,5 @@ bukkit/run
 
 docs/static/dokka
 docs/static/javadoc
+
+.playwright-mcp/**

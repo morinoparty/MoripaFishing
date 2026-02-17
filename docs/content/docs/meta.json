@@ -2,6 +2,7 @@
   "title": "MoripaFishing",
   "pages": [
     "index",
+    "setup",
     "---コマンド---",
     "...commands",
     "---フォーマット---",
