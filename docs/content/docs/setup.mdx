@@ -1,0 +1,158 @@
+---
+title: セットアップガイド
+---
+
+# セットアップガイド
+
+サーバー管理者向けの MoripaFishing 導入・設定ガイドです。
+
+## 動作要件
+
+| 項目 | 要件 |
+|------|------|
+| Minecraft | 1.21.4 以降 |
+| サーバー | Paper / Purpur |
+| Java | 21 以降 |
+| 依存プラグイン | [Vault](https://github.com/MilkBowl/Vault) |
+
+:::warning[注意]
+Spigot サーバーには対応していません。必ず Paper または Purpur を使用してください。
+:::
+
+## インストール
+
+### 1. JAR ファイルの取得
+
+以下のいずれかから最新の JAR ファイルをダウンロードしてください。
+
+- [Modrinth](https://modrinth.com/plugin/moripafishing)
+- [GitHub Releases](https://github.com/morinoparty/MoripaFishing/releases)
+
+ダウンロードするファイルは `MoripaFishing_<バージョン>.jar` です。
+
+### 2. プラグインの配置
+
+ダウンロードした JAR ファイルをサーバーの `plugins/` ディレクトリに配置します。
+
+```bash
+plugins/
+├── Vault.jar
+└── MoripaFishing_0.1.8.jar
+```
+
+:::note
+Vault が未導入の場合は、先に Vault をインストールしてください。
+:::
+
+### 3. サーバーの起動
+
+サーバーを起動すると、`plugins/MoripaFishing/` ディレクトリに設定ファイルが自動生成されます。
+
+```bash
+plugins/MoripaFishing/
+├── config.json          # メイン設定
+├── moripa_fishing.db    # SQLiteデータベース（デフォルト）
+├── translation/         # 翻訳ファイル
+│   ├── en_US.properties
+│   └── ja_JP.properties
+├── fish/                # 魚データ
+├── world/               # ワールドデータ
+├── rarity/              # レアリティデータ
+└── generator/           # ジェネレーターデータ
+```
+
+## 初期設定
+
+### config.json の基本設定
+
+`plugins/MoripaFishing/config.json` を編集して基本設定を行います。
+詳細は[コンフィグ](./format/config)を参照してください。
+
+主な設定項目:
+
+- **データベース**: デフォルトは SQLite です。MySQL に変更する場合は `database.type` を `MYSQL` に変更してください
+- **デフォルトワールド**: `world.defaultId` でデフォルトの釣り場IDを指定します
+- **タイムゾーン**: `world.defaultTimeZone` でタイムゾーンを設定します（デフォルト: `Asia/Tokyo`）
+- **言語**: `defaultLocale` でプラグインの表示言語を設定します（`ja_JP` / `en_US`）
+
+### 釣りワールドの作成
+
+プラグイン導入後、釣り用のワールドを作成します。
+
+```
+/mf world create <ワールドID> <generator>
+```
+
+例:
+```
+/mf world create fishing_world default
+```
+
+ワールド作成後、以下のコマンドでスポーン地点やワールドサイズを設定できます。
+
+| コマンド | 説明 |
+|----------|------|
+| `/mf world config set spawn <world>` | スポーン地点を現在位置に設定 |
+| `/mf world config set center <world> <x> <z>` | ワールドの中心座標を設定 |
+| `/mf world config set size <world> <size>` | ワールドのサイズを設定 |
+| `/mf world config view <world>` | ワールドの設定を確認 |
+
+### 魚・レアリティの設定
+
+`plugins/MoripaFishing/fish/` と `plugins/MoripaFishing/rarity/` に JSON ファイルを配置して、釣れる魚とレアリティを定義します。
+
+- 魚データのフォーマット: [魚データ](./format/data/fish)
+- レアリティのフォーマット: [レアリティ](./format/data/rarity)
+- ジェネレーターのフォーマット: [ジェネレーター](./format/data/generator)
+
+## データベース設定
+
+### SQLite（デフォルト）
+
+デフォルトでは SQLite が使用され、追加の設定は不要です。
+データは `plugins/MoripaFishing/moripa_fishing.db` に保存されます。
+
+### MySQL / MariaDB
+
+MySQL を使用する場合は `config.json` の `database` セクションを以下のように変更します。
+
+```json title="plugins/MoripaFishing/config.json"
+{
+    "database": {
+        "type": "MYSQL",
+        "host": "localhost",
+        "port": 3306,
+        "database": "moripafishing",
+        "username": "your_username",
+        "password": "your_password"
+    }
+}
+```
+
+事前にデータベースを作成しておく必要があります。
+
+```sql
+CREATE DATABASE moripafishing;
+```
+
+テーブルはプラグインが自動的に作成します。
+
+## 権限設定
+
+Vault と連携する権限プラグイン（LuckPerms 等）で以下のパーミッションを設定してください。
+
+| パーミッション | 説明 |
+|----------------|------|
+| `moripa_fishing.command.world` | ワールド管理コマンドの基本権限 |
+| `moripa_fishing.command.world.default` | ワールド一覧表示・プレイヤー移動 |
+| `moripa_fishing.command.world.create` | ワールドの作成 |
+| `moripa_fishing.command.world.delete` | ワールドの削除 |
+| `moripa_fishing.command.world.config` | ワールド設定の変更・表示 |
+
+## 設定の反映
+
+設定ファイルを変更した後は、以下のコマンドで再読み込みできます。
+
+```
+/mf reload
+```

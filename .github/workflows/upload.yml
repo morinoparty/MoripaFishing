@@ -8,6 +8,7 @@ permissions:
   contents: write
   id-token: write
   attestations: write
+  artifact-metadata: write
 
 jobs:
   build:
@@ -57,9 +58,9 @@ jobs:
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
-      # GitHub Attestations で署名（SLSA3 provenance）
+      # GitHub Attestations で署名（SLSA3 provenance + Linked Artifacts）
       - name: Attest JAR artifact
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         with:
           subject-path: './bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar'
 
