@@ -44,8 +44,14 @@ jobs:
       - name: Build with Gradle (parallel)
         run: ./gradlew build -x test --parallel
 
-      - name: Upload package
-        run: ./gradlew publish
+      - name: Publish API to Maven Central
+        run: ./gradlew :api:publishAndReleaseToMavenCentral
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_PUBLISH_MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_PUBLISH_MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_PUBLISH_GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_PUBLISH_GPG_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_PUBLISH_GPG_PASSPHRASE }}
 
       - name: Change file name
         run:
@@ -78,11 +84,3 @@ jobs:
           java: |
             21
 
-      # JitPack でAPIモジュールのビルドをトリガー（キャッシュウォームアップ）
-      - name: Trigger JitPack build for API
-        run: |
-          TAG="${{ github.event.release.tag_name }}"
-          echo "Triggering JitPack build for MoripaFishing API tag: $TAG"
-          curl -s "https://jitpack.io/api/builds/com.github.morinoparty/MoripaFishing/$TAG" || true
-          curl -s "https://jitpack.io/com/github/morinoparty/MoripaFishing/api/$TAG/api-$TAG.pom" > /dev/null 2>&1 || true
-          echo "JitPack build triggered for MoripaFishing API"

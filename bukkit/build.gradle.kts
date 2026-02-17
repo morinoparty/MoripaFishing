@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.shadow)
     alias(libs.plugins.run.paper)
     alias(libs.plugins.resource.factory)
-    `maven-publish`
 }
 
 group = "party.morino"
@@ -105,28 +104,6 @@ sourceSets.main {
             dependencies {
                 "Vault"
             }
-        }
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/morinoparty/MoripaFishing")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
-        }
-    }
-
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = group.toString()
-            artifactId = "moripafishing-bukkit"
-            version = version
-            from(components["kotlin"])
         }
     }
 }

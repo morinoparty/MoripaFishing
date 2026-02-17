@@ -10,6 +10,7 @@ title: コンフィグ
 {
     "database": {
         "type": "SQLITE",
+        "sqliteFilePath": "moripa_fishing.db",
         "host": "localhost",
         "port": 3306,
         "database": "moripafishing",
@@ -25,7 +26,7 @@ title: コンフィグ
             "receiveDamage": false
         },
         "defaultWorldSize": 100.0,
-        "defaultClimateConfig":"省略",
+        "defaultClimateConfig": null,
         "refreshInterval": 60,
         "defaultTimeZone": "Asia/Tokyo"
     },
@@ -38,8 +39,56 @@ title: コンフィグ
         "spawnAnimals": false,
         "receiveDamage": false
     },
-    "defaultLocale": "ja-JP"
+    "defaultLocale": "ja_JP"
 }
 ```
 
-defaultClimateConfigについては項目が多いため[天候](./climate)を参照
+## 各設定の説明
+
+### database
+
+データベースの接続設定です。
+
+- `type`: データベースの種類を指定します。`SQLITE` または `MYSQL` が使用可能です（デフォルト: `SQLITE`）
+- `sqliteFilePath`: SQLiteを使用する場合のファイルパスを指定します（デフォルト: `moripa_fishing.db`）
+- `host`: MySQLを使用する場合のホストを指定します（デフォルト: `localhost`）
+- `port`: MySQLを使用する場合のポートを指定します（デフォルト: `3306`）
+- `database`: MySQLを使用する場合のデータベース名を指定します（デフォルト: `moripafishing`）
+- `username`: MySQLを使用する場合のユーザー名を指定します（デフォルト: `root`）
+- `password`: MySQLを使用する場合のパスワードを指定します（デフォルト: `password`）
+
+:::warning[注意]
+MySQLを使用する場合は、`type`を`MYSQL`に変更し、接続情報を適切に設定してください。
+SQLiteを使用する場合は、`host`、`port`、`database`、`username`、`password`の設定は無視されます。
+:::
+
+### world
+
+ワールド関連の設定です。
+
+- `defaultId`: デフォルトの釣り場ワールドIDを指定します（デフォルト: `default`）
+- `spawnConfig`: ワールドのスポーン設定です。詳細は下記の[spawn](#spawn)を参照
+- `defaultWorldSize`: デフォルトのワールドボーダーサイズを指定します（デフォルト: `100.0`）
+- `defaultClimateConfig`: デフォルトの天候設定です。詳細は[天候](./climate)を参照
+- `refreshInterval`: ワールドの状態更新間隔を秒単位で指定します（デフォルト: `60`）
+- `defaultTimeZone`: デフォルトのタイムゾーンIDを指定します。`Asia/Tokyo`、`UTC`、`America/New_York`等のIANAタイムゾーンIDが使用可能です（デフォルト: `Asia/Tokyo`）
+
+### fishing
+
+:::warning[注意]
+この設定は現在プレースホルダーです。将来のバージョンで釣り関連の設定が追加される予定です。
+:::
+
+### spawn
+
+スポーン関連の設定です。`world.spawnConfig`とトップレベルの`spawn`の両方で指定可能です。
+
+- `spawnMobs`: モブのスポーンを許可するかどうか（デフォルト: `false`）
+- `spawnMonsters`: モンスターのスポーンを許可するかどうか（デフォルト: `false`）
+- `spawnAnimals`: 動物のスポーンを許可するかどうか（デフォルト: `false`）
+- `receiveDamage`: プレイヤーがダメージを受けるかどうか（デフォルト: `false`）
+
+### defaultLocale
+
+プラグインのデフォルトロケールを指定します（デフォルト: `ja_JP`）。
+i18nの翻訳ファイルと対応しており、プレイヤーへのメッセージ表示言語に影響します。
