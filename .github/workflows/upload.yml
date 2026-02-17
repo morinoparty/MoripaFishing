@@ -83,10 +83,11 @@ jobs:
             /orgs/${{ github.repository_owner }}/artifacts/metadata/storage-record \
             -f name="party.morino:moripafishing-api" \
             -f digest="$DIGEST" \
-            -f registry_url="https://repo1.maven.org/maven2/" \
+            -f registry_url="https://central.sonatype.com/" \
             -f version="${{ env.PLUGIN_VERSION }}" \
-            -f artifact_url="https://repo1.maven.org/maven2/${MAVEN_PATH}" \
+            -f artifact_url="https://central.sonatype.com/artifact/party.morino/moripafishing-api/${{ env.PLUGIN_VERSION }}" \
             -f path="$MAVEN_PATH" \
+            -f repository="party.morino:moripafishing-api" \
             -f github_repository="${{ github.event.repository.name }}" \
             -f status="active"
         env:
