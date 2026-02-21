@@ -10,6 +10,7 @@ title: ワールド
 {
     "id" : "default",
     "name" : "つりとぴあ",
+    "enableBorder" : true,
     "borderSize" : null,
     "borderCentral" : {
         "first" : 0.0,
@@ -26,6 +27,12 @@ title: ワールド
 }
 ```
 
-## デフォルトの設定
+## 各設定の説明
 
-climateConfigの設定は[天候](../config/climate)を参照
+- `id`: ワールドのIDを指定します
+- `name`: ワールドの表示名を指定します
+- `enableBorder`: プラグインによるワールドボーダーの自動管理を有効にするかどうかを指定します（デフォルト: `true`）。`false`の場合、`borderSize`と`borderCentral`の自動設定をスキップし、手動管理またはバニラのデフォルトに委ねます
+- `borderSize`: ワールドボーダーのサイズを指定します。`null`の場合は`config.json`の`world.defaultWorldSize`が使用されます
+- `borderCentral`: ワールドボーダーの中心座標を指定します
+- `spawnLocation`: プレイヤーのスポーン地点を指定します
+- `climateConfig`: ワールド固有の天候設定です。`null`の場合は`config.json`の`world.defaultClimateConfig`が使用されます。詳細は[天候](../config/climate)を参照

@@ -14,6 +14,7 @@ import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
  * @param world ワールド関連の設定
  * @param fishing 釣り関連の設定
  * @param spawn スポーン関連の設定
+ * @param features サブ機能の有効/無効設定（テレポート、アナウンス等）
  */
 @Serializable
 data class ConfigData(
@@ -25,6 +26,8 @@ data class ConfigData(
     val fishing: FishingConfig = FishingConfig(),
     // スポーン設定
     val spawn: SpawnConfig = SpawnConfig(),
+    // 機能トグル設定
+    val features: FeaturesConfig = FeaturesConfig(),
 
     val defaultLocale: @Serializable(with = LocaleSerializer::class) Locale = Locale.JAPAN
 )
