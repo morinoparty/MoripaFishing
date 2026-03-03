@@ -12,6 +12,7 @@ import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
+import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
@@ -175,18 +176,40 @@ class FishingWorldImpl(
     }
 
     override fun updateState() {
-        setCenter(worldDetailConfig.borderCentral.first, worldDetailConfig.borderCentral.second)
-        setSize(worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize)
-        updateGameRule()
-        updateWeather()
-        syncronoizeTime()
+        // ボーダー管理: enableBorder が true の場合のみプラグインがボーダーを制御する
+        if (worldDetailConfig.enableBorder) {
+            setCenter(worldDetailConfig.borderCentral.first, worldDetailConfig.borderCentral.second)
+            setSize(worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize)
+        }
+
+        val climateConfig =
+            worldDetailConfig.climateConfig
+                ?: configManager.getConfig().world.defaultClimateConfig
+
+        updateGameRule(climateConfig)
+
+        // 天候制御: enableWeather が true の場合のみプラグインが天候を管理する
+        if (climateConfig.enableWeather) {
+            updateWeather()
+        }
+
+        // 時間同期: enableDayCycle が true の場合のみプラグインが時間を管理する
+        if (climateConfig.enableDayCycle) {
+            syncronoizeTime()
+        }
     }
 
-    private fun updateGameRule() {
+    /**
+     * ゲームルールを設定する
+     *
+     * 各フラグが有効な場合はバニラのサイクルを無効化し、プラグインが制御する。
+     * 無効な場合はバニラのサイクルを有効化し、Minecraft のデフォルト動作に委ねる。
+     */
+    private fun updateGameRule(climateConfig: ClimateConfig) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
-                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
-                world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
+                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, !climateConfig.enableDayCycle)
+                world.setGameRule(GameRule.DO_WEATHER_CYCLE, !climateConfig.enableWeather)
             }
         }
     }

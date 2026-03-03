@@ -129,15 +129,20 @@ open class MoripaFishing :
     }
 
     private fun loadListeners() {
+        // コア機能: 釣りイベント処理は常に有効
         this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
-        this.server.pluginManager.registerEvents(
-            PlayerJoinListener(),
-            this,
-        )
-        this.server.pluginManager.registerEvents(
-            PlayerFishingAnnounceListener(),
-            this,
-        )
+
+        val features = _configManager.getConfig().features
+
+        // サブ機能: ログイン時の自動テレポート
+        if (features.enableTeleportOnJoin) {
+            this.server.pluginManager.registerEvents(PlayerJoinListener(), this)
+        }
+
+        // サブ機能: 釣果アナウンス
+        if (features.enableCatchAnnouncements) {
+            this.server.pluginManager.registerEvents(PlayerFishingAnnounceListener(), this)
+        }
     }
 
     // API getters - 式本体で簡潔に

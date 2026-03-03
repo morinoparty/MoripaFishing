@@ -12,6 +12,8 @@ title: 天候
 
 ```json
 {
+    "enableWeather": true,
+    "enableDayCycle": true,
     "constant" : {
         "weather": "SUNNY",
         "dayCycle": 1
@@ -35,6 +37,24 @@ title: 天候
 ```
 
 ## 各設定の説明
+
+### enableWeather
+
+プラグインによる天候制御を有効にするかどうかを指定します（デフォルト: `true`）。
+
+- `true`: `DO_WEATHER_CYCLE`を`false`に設定し、プラグインが天候を管理します（従来の動作）
+- `false`: `DO_WEATHER_CYCLE`を`true`に設定し、バニラの天候サイクルに委ねます。`constant.weather`や`weather`の設定は無視されます
+
+### enableDayCycle
+
+プラグインによる時間同期を有効にするかどうかを指定します（デフォルト: `true`）。
+
+- `true`: `DO_DAYLIGHT_CYCLE`を`false`に設定し、プラグインがリアルタイム同期または固定時間を管理します（従来の動作）
+- `false`: `DO_DAYLIGHT_CYCLE`を`true`に設定し、バニラの昼夜サイクルに委ねます。`constant.dayCycle`や`dayCycle`の設定は無視されます
+
+:::info
+この設定はワールドの状態更新（デフォルト60秒間隔）ごとに再評価されるため、`/mf reload`後に自動で反映されます。
+:::
 
 ### constant
 
