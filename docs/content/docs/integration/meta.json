@@ -1,0 +1,7 @@
+{
+  "title": "Integration",
+  "icon": "Plug",
+  "description": "Core が連携できる外部プラグインと統合機能の説明です。",
+  "root": true,
+  "pages": ["overview", "world-lifecycle"]
+}

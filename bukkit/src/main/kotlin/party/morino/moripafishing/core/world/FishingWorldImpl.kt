@@ -13,14 +13,20 @@ import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.config.climate.ClimateConfig
+import party.morino.moripafishing.api.config.climate.WeatherMode
 import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WeatherEffect
+import party.morino.moripafishing.api.core.world.weather.WeatherProvider
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
+import party.morino.moripafishing.core.world.weather.provider.ExternalWeatherProvider
+import party.morino.moripafishing.core.world.weather.provider.InternalWeatherProvider
+import party.morino.moripafishing.core.world.weather.provider.VanillaWeatherProvider
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
 import java.time.LocalDateTime
@@ -35,24 +41,46 @@ class FishingWorldImpl(
     private val pluginDirectory: PluginDirectory by inject()
     private val configManager: ConfigManager by inject()
     private val randomizeManager: RandomizeManager by inject()
+    private val weatherProviderRegistry: WeatherProviderRegistry by inject()
 
     private var weatherEffect: WeatherEffect = WeatherTypeRegistry.getEffect(WeatherType.SUNNY)
 
     private lateinit var worldDetailConfig: WorldDetailConfig
 
-    private var weatherType: WeatherType = WeatherType.SUNNY
+    /**
+     * INTERNAL モードで MoripaFishing が自ら適用した最新の天候。
+     * VANILLA / EXTERNAL モードではプロバイダーを直接参照するため使用しない。
+     *
+     * 非同期リフレッシュループ (`updateState`) とメインスレッド読み取り
+     * (`FishRandomizerImpl` 等) の双方から触られるので `@Volatile` で可視性を担保する。
+     */
+    @Volatile
+    private var appliedInternalWeather: WeatherType? = null
 
     private val weatherRandomizer: WeatherRandomizer by lazy {
-        val weatherRandomizer = randomizeManager.getWeatherRandomizer(worldId)
-        weatherRandomizer
+        randomizeManager.getWeatherRandomizer(worldId)
+    }
+
+    @Volatile
+    private var weatherProvider: WeatherProvider? = null
+    private val weatherProviderLock = Any()
+
+    /**
+     * プロバイダーはモードに応じた唯一のインスタンスを保持する必要があるため
+     * (例: `VanillaWeatherProvider` は Bukkit Listener を登録するので二重登録を避ける)、
+     * double-checked locking で初期化を直列化する。
+     */
+    private fun weatherProvider(): WeatherProvider {
+        val cached = weatherProvider
+        if (cached != null) return cached
+        return synchronized(weatherProviderLock) {
+            weatherProvider ?: resolveWeatherProvider().also { weatherProvider = it }
+        }
     }
 
     init {
         loadConfig()
-        // 呼び出し元
-        // val t = Thread.currentThread().getStackTrace();
         plugin.logger.info("FishingWorldImpl(${worldId.value}) initialized")
-        // plugin.logger.info("Thread: ${t.map { it }}")
     }
 
     override fun loadConfig() {
@@ -61,6 +89,8 @@ class FishingWorldImpl(
             throw IllegalArgumentException("World detail config file not found: ${file.absolutePath}")
         }
         worldDetailConfig = Utils.json.decodeFromStream<WorldDetailConfig>(file.inputStream())
+        // モードが変わり得るのでプロバイダーキャッシュを無効化する
+        weatherProvider = null
     }
 
     private var world: World =
@@ -75,13 +105,26 @@ class FishingWorldImpl(
 
     override fun getCalculatedWeather(): WeatherType = weatherRandomizer.drawWeather()
 
-    override fun getCurrentWeather(): WeatherType = weatherType
+    override fun getCurrentWeather(): WeatherType = weatherProvider().getCurrentWeather(worldId)
 
+    /**
+     * 天候を設定する。
+     *
+     * INTERNAL モードでは内部状態を更新し Bukkit ワールドにも反映する。
+     * VANILLA / EXTERNAL モードでは MoripaFishing がワールドを支配しないため no-op。
+     */
     override fun setWeather(weatherType: WeatherType) {
-        if (weatherType == this.weatherType) {
+        val mode = currentClimateConfig().weatherMode
+        if (mode != WeatherMode.INTERNAL) {
+            plugin.logger.fine(
+                "[${worldId.value}] setWeather($weatherType) ignored: weatherMode=$mode is not INTERNAL.",
+            )
             return
         }
-        this.weatherType = weatherType
+        if (weatherType == this.appliedInternalWeather) {
+            return
+        }
+        this.appliedInternalWeather = weatherType
         this.weatherEffect.reset()
         val newEffect = WeatherTypeRegistry.getEffect(weatherType)
         this.weatherEffect = newEffect
@@ -118,11 +161,15 @@ class FishingWorldImpl(
     override fun getSize(): Double = world.worldBorder.size
 
     override fun setSize(size: Double) {
-        runBlocking {
-            withContext(Dispatchers.minecraft) {
-                world.worldBorder.size = size
-            }
-        }
+        val newCenter = worldDetailConfig.borderCentral
+        plugin.getWorldLifecycleProvider()?.applyBorder(
+            worldId = worldId,
+            centerX = newCenter.first,
+            centerZ = newCenter.second,
+            size = size,
+        ) ?: plugin.logger.fine(
+            "[${worldId.value}] setSize($size) skipped: WorldLifecycleProvider is not available.",
+        )
         val file =
             pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
         val newData = worldDetailConfig.copy(borderSize = size)
@@ -139,11 +186,15 @@ class FishingWorldImpl(
         x: Double,
         z: Double,
     ) {
-        runBlocking {
-            withContext(Dispatchers.minecraft) {
-                world.worldBorder.setCenter(x, z)
-            }
-        }
+        val currentSize = worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize
+        plugin.getWorldLifecycleProvider()?.applyBorder(
+            worldId = worldId,
+            centerX = x,
+            centerZ = z,
+            size = currentSize,
+        ) ?: plugin.logger.fine(
+            "[${worldId.value}] setCenter($x, $z) skipped: WorldLifecycleProvider is not available.",
+        )
         val file =
             pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
         val newData = worldDetailConfig.copy(borderCentral = Pair(x, z))
@@ -158,7 +209,7 @@ class FishingWorldImpl(
         val timezone = configManager.getConfig().world.defaultTimeZone
         val zone = ZoneId.of(timezone)
         val time = LocalDateTime.now(zone)
-        val climateConfig = worldDetailConfig.climateConfig ?: configManager.getConfig().world.defaultClimateConfig
+        val climateConfig = currentClimateConfig()
         val offset: Int = climateConfig.dayCycle.offset
         val hour = time.hour + offset
         val minute = time.minute
@@ -167,8 +218,6 @@ class FishingWorldImpl(
                 if (climateConfig.constant.dayCycle != null) {
                     world.time = (climateConfig.constant.dayCycle!!.toLong() * 1000 + 18000) % 24000
                 } else {
-                    // 0 で 6:00
-                    // 1000 で 7:00
                     world.time = ((hour * 1000 + minute * 16).toLong() + 18000) % 24000
                 }
             }
@@ -176,52 +225,58 @@ class FishingWorldImpl(
     }
 
     override fun updateState() {
-        // ボーダー管理: enableBorder が true の場合のみプラグインがボーダーを制御する
         if (worldDetailConfig.enableBorder) {
             setCenter(worldDetailConfig.borderCentral.first, worldDetailConfig.borderCentral.second)
             setSize(worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize)
         }
 
-        val climateConfig =
-            worldDetailConfig.climateConfig
-                ?: configManager.getConfig().world.defaultClimateConfig
+        val climateConfig = currentClimateConfig()
 
         updateGameRule(climateConfig)
 
-        // 天候制御: enableWeather が true の場合のみプラグインが天候を管理する
-        if (climateConfig.enableWeather) {
+        // 天候制御: INTERNAL モード時のみプラグインが天候を決定・適用する
+        if (climateConfig.weatherMode == WeatherMode.INTERNAL) {
             updateWeather()
         }
 
-        // 時間同期: enableDayCycle が true の場合のみプラグインが時間を管理する
         if (climateConfig.enableDayCycle) {
             syncronoizeTime()
         }
     }
 
     /**
-     * ゲームルールを設定する
+     * ゲームルールを設定する。
      *
-     * 各フラグが有効な場合はバニラのサイクルを無効化し、プラグインが制御する。
-     * 無効な場合はバニラのサイクルを有効化し、Minecraft のデフォルト動作に委ねる。
+     * `DO_WEATHER_CYCLE` は VANILLA モードのみ true（バニラ天候を読み取るため）、
+     * INTERNAL / EXTERNAL では false（それぞれ MoripaFishing / 外部プラグインが管理するため、
+     * バニラの自動変化を止める）。
      */
     private fun updateGameRule(climateConfig: ClimateConfig) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
                 world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, !climateConfig.enableDayCycle)
-                world.setGameRule(GameRule.DO_WEATHER_CYCLE, !climateConfig.enableWeather)
+                world.setGameRule(
+                    GameRule.DO_WEATHER_CYCLE,
+                    climateConfig.weatherMode == WeatherMode.VANILLA,
+                )
             }
         }
     }
 
-    /**
-     * 天候や特殊効果の終了時に呼び出されるメソッド
-     * ここでは天候効果のリセットや、必要な後処理を実装する
-     */
     override fun effectFinish() {
-        // 現在の天候効果をリセット
         weatherEffect.reset()
-        // 必要に応じて追加の後処理をここに記述
         plugin.logger.info("[${worldId.value}] effectFinish called: weatherEffect reset.")
     }
+
+    private fun currentClimateConfig(): ClimateConfig =
+        worldDetailConfig.climateConfig
+            ?: configManager.getConfig().world.defaultClimateConfig
+
+    private fun resolveWeatherProvider(): WeatherProvider =
+        when (currentClimateConfig().weatherMode) {
+            WeatherMode.INTERNAL ->
+                InternalWeatherProvider(weatherRandomizer) { appliedInternalWeather }
+            WeatherMode.VANILLA -> VanillaWeatherProvider(plugin)
+            WeatherMode.EXTERNAL -> ExternalWeatherProvider(weatherProviderRegistry, plugin.logger)
+        }
 }

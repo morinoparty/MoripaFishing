@@ -55,6 +55,15 @@ dependencies {
     implementation(libs.bundles.kyori)
 
     implementation(libs.uuid.creator)
+
+    testImplementation(platform("org.junit:junit-bom:6.0.3"))
+    testImplementation(libs.bundles.junit.jupiter)
+    testImplementation(libs.junit.platform.launcher)
+    testImplementation(libs.kotlinx.serialization.json)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 kotlin {

@@ -1,0 +1,77 @@
+---
+title: WorldLifecycle
+---
+
+# MoripaFishingWorldLifecycle
+
+MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integration。
+以下の 2 つの機能を提供します。
+
+- 釣りワールドの **境界（WorldBorder）同期**: `WorldDetailConfig.borderCentral` / `borderSize` を Bukkit ワールドに反映
+- カスタム **ジェネレーター** によるワールド作成: `generator/*.json` を元に Terra / void / normal 等のワールドを生成
+
+## 導入
+
+1. サーバーの `plugins/` に `MoripaFishingWorldLifecycle-<version>.jar` を配置する。
+2. サーバーを起動する。Integration → Core の順でロードされる。
+3. Core のログに以下が出ていれば検出済み。
+
+   ```
+   [MoripaFishing] WorldLifecycle integration detected: MoripaFishingWorldLifecycle
+   ```
+
+未導入時は Core のログに以下が出て、関連機能は自動的にスキップされる。
+
+```
+[MoripaFishing] WorldLifecycle integration not installed; border sync and custom generators are disabled.
+```
+
+## 未導入時の Core の振る舞い
+
+| 機能 | 未導入時の挙動 |
+|---|---|
+| ボーダー同期（`FishingWorldImpl.updateState`） | スキップ（`fine` ログのみ） |
+| `WorldManager.createWorld(id)` | 警告ログ + `false` を返す |
+| `WorldManager.createWorld(id, generator)` | 警告ログ + `false` を返す |
+| `/mf world create` 系コマンド | 失敗メッセージ |
+| 既存ワールドでの釣り | 影響なし（読み取り系は Core 単体で完結） |
+
+## ジェネレーター定義
+
+Integration 側の `plugins/MoripaFishingWorldLifecycle/generator/*.json` に配置される。
+初回起動時にバンドル済みの `terra.json` / `void.json` / `normal.json` が展開される。
+
+```json title="generator/terra.json"
+{
+  "id": "terra",
+  "generator": "Terra:OVERWORLD",
+  "type": "NORMAL",
+  "biomeProvider": null,
+  "generatorSetting": null
+}
+```
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `id` | string | ジェネレーター ID。`WorldDetailConfig.generator` から参照される |
+| `generator` | string? | `WorldCreator.generator()` に渡される文字列（プラグイン名:ID） |
+| `type` | string? | `WorldType` 名（`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED`） |
+| `biomeProvider` | string? | 固定バイオーム名（例: `minecraft:plains`） |
+| `generatorSetting` | string? | ジェネレーター設定文字列 |
+
+## SPI
+
+Integration は `party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider` を実装する。
+
+```kotlin
+interface WorldLifecycleProvider {
+    fun applyBorder(worldId: FishingWorldId, centerX: Double, centerZ: Double, size: Double)
+    fun createBukkitWorld(worldId: FishingWorldId, generatorData: GeneratorData): Boolean
+    fun getGenerator(id: GeneratorId): GeneratorData?
+    fun listGenerators(): List<GeneratorData>
+    fun addGenerator(generator: GeneratorData)
+}
+```
+
+独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
+`MoripaFishingWorldLifecycle` の名前でビルドして配置すれば Core はそちらを優先する。

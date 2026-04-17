@@ -17,8 +17,11 @@ import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
-import party.morino.moripafishing.api.core.world.GeneratorManager
 import party.morino.moripafishing.api.core.world.WorldManager
+import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
+import party.morino.moripafishing.api.core.world.weather.WeatherProvider
+import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
@@ -28,7 +31,6 @@ import party.morino.moripafishing.core.internationalization.TranslateManagerImpl
 import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
-import party.morino.moripafishing.core.world.GeneratorManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
 import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
@@ -46,22 +48,54 @@ open class MoripaFishing :
     private val _worldManager: WorldManager by lazy { GlobalContext.get().get() }
     private val _fishManager: FishManager by lazy { GlobalContext.get().get() }
     private val _anglerManager: AnglerManager by lazy { GlobalContext.get().get() }
-    private val _generatorManager: GeneratorManager by lazy { GlobalContext.get().get() }
     private val _logManager: LogManager by lazy { GlobalContext.get().get() }
     private val _translateManager: TranslateManager by lazy {  GlobalContext.get().get() }
+    private val _weatherProviderRegistry: WeatherProviderRegistry by lazy { GlobalContext.get().get() }
 
     private var disable = false
+
+    private var worldLifecycleProvider: WorldLifecycleProvider? = null
 
     /**
      * プラグインの有効化時に呼び出されるメソッド
      */
     override fun onEnable() {
         setupKoin()
+        resolveWorldLifecycleProvider()
         initializeManagers()
         loadListeners()
         _translateManager.load()
         logger.info("MoripaFishing enabled")
         updateWorlds()
+    }
+
+    /**
+     * `MoripaFishingWorldLifecycle` (softdepend) を検出し、`WorldLifecycleProvider` を実装していれば採用する。
+     * 未導入時は `null` のままで、ワールド境界の同期やカスタムジェネレーターでのワールド作成機能は
+     * スキップされる。
+     */
+    private fun resolveWorldLifecycleProvider() {
+        val integrationName = "MoripaFishingWorldLifecycle"
+        val integrationPlugin = Bukkit.getPluginManager().getPlugin(integrationName)
+        worldLifecycleProvider =
+            when {
+                integrationPlugin is WorldLifecycleProvider -> {
+                    logger.info("WorldLifecycle integration detected: $integrationName")
+                    integrationPlugin
+                }
+                integrationPlugin != null -> {
+                    logger.warning(
+                        "$integrationName is installed but does not implement WorldLifecycleProvider.",
+                    )
+                    null
+                }
+                else -> {
+                    logger.info(
+                        "WorldLifecycle integration not installed; border sync and custom generators are disabled.",
+                    )
+                    null
+                }
+            }
     }
 
     /**
@@ -95,9 +129,9 @@ open class MoripaFishing :
                 single<PluginDirectory> { PluginDirectoryImpl() }
                 single<FishManager> { FishManagerImpl() }
                 single<AnglerManager> { AnglerManagerImpl() }
-                single<GeneratorManager> { GeneratorManagerImpl() }
                 single<LogManager> { LogManagerImpl() }
                 single<TranslateManager> { TranslateManagerImpl() }
+                single<WeatherProviderRegistry> { WeatherProviderRegistry() }
             }
 
         getOrNull() ?: GlobalContext.startKoin {
@@ -160,7 +194,18 @@ open class MoripaFishing :
 
     override fun getAnglerManager(): AnglerManager = _anglerManager
 
-    override fun getGeneratorManager(): GeneratorManager = _generatorManager
-
     override fun getLogManager(): LogManager = _logManager
+
+    override fun registerWeatherProvider(
+        worldId: FishingWorldId,
+        provider: WeatherProvider,
+    ) {
+        _weatherProviderRegistry.register(worldId, provider)
+    }
+
+    override fun unregisterWeatherProvider(worldId: FishingWorldId) {
+        _weatherProviderRegistry.unregister(worldId)
+    }
+
+    override fun getWorldLifecycleProvider(): WorldLifecycleProvider? = worldLifecycleProvider
 }

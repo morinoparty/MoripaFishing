@@ -93,6 +93,7 @@ sourceSets.main {
             loader = "$group.moripafishing.MoripaFishingLoader"
             dependencies {
                 server("Vault", PaperPluginYaml.Load.BEFORE)
+                server("MoripaFishingWorldLifecycle", PaperPluginYaml.Load.BEFORE, required = false)
             }
         }
         bukkitPluginYaml {
@@ -101,6 +102,7 @@ sourceSets.main {
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
+            softDepend.set(listOf("MoripaFishingWorldLifecycle"))
             dependencies {
                 "Vault"
             }

@@ -1,4 +1,4 @@
-package party.morino.moripafishing.core.world.biome
+package party.morino.moripafishing.integrations.worldlifecycle.biome
 
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
@@ -23,5 +23,6 @@ class ConstBiomeGenerator(
             .getOrThrow(namespace)
     }
 
-    override fun getBiomes(worldInfo: WorldInfo): List<Biome> = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).toList()
+    override fun getBiomes(worldInfo: WorldInfo): List<Biome> =
+        RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).toList()
 }
