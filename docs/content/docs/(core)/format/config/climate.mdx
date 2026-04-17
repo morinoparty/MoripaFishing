@@ -12,7 +12,7 @@ title: 天候
 
 ```json
 {
-    "enableWeather": true,
+    "weatherMode": "INTERNAL",
     "enableDayCycle": true,
     "constant" : {
         "weather": "SUNNY",
@@ -38,12 +38,13 @@ title: 天候
 
 ## 各設定の説明
 
-### enableWeather
+### weatherMode
 
-プラグインによる天候制御を有効にするかどうかを指定します（デフォルト: `true`）。
+ワールドの天候を「誰が決定するか」を指定します（デフォルト: `INTERNAL`）。
 
-- `true`: `DO_WEATHER_CYCLE`を`false`に設定し、プラグインが天候を管理します（従来の動作）
-- `false`: `DO_WEATHER_CYCLE`を`true`に設定し、バニラの天候サイクルに委ねます。`constant.weather`や`weather`の設定は無視されます
+- `INTERNAL`: プラグイン内蔵のランダマイザーが天候を決定し、Bukkit ワールドにも適用します（従来の `enableWeather: true` 相当）。`DO_WEATHER_CYCLE` は `false` になります。
+- `VANILLA`: Bukkit のバニラ天候状態 (`hasStorm` / `isThundering`) を読み取り、魚の抽選条件にのみ反映します。`constant.weather` や `weather` の設定は無視され、`DO_WEATHER_CYCLE` は `true` のままになります。バニラ天候は `SUNNY` / `RAINY` / `THUNDERSTORM` の3値しか表現できないため、`CLOUDY` / `FOGGY` / `SNOWY` を条件に持つ魚はこのモードでは出現しません。
+- `EXTERNAL`: 外部プラグインが `MoripaFishingAPI.registerWeatherProvider` で登録した `WeatherProvider` に天候決定を委譲します。`DO_WEATHER_CYCLE` は `false` に設定され、バニラの自動天候変化は止まります。プロバイダーが未登録のワールドでは `SUNNY` にフォールバックします。
 
 ### enableDayCycle
 

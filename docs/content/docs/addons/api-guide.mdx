@@ -118,7 +118,7 @@ APIインスタンスから以下のマネージャーを取得できます。
 | `AnglerManager` | `getAnglerManager()` | つりびと（プレイヤー）データの管理 |
 | `RarityManager` | `getRarityManager()` | レアリティの管理 |
 | `RandomizeManager` | `getRandomizeManager()` | 魚・天候のランダム化 |
-| `GeneratorManager` | `getGeneratorManager()` | ワールドジェネレーターの管理 |
+| `WorldLifecycleProvider?` | `getWorldLifecycleProvider()` | ワールド生成・境界管理の Integration (未導入時は `null`) |
 | `LogManager` | `getLogManager()` | ログ出力 |
 | `PluginDirectory` | `getPluginDirectory()` | プラグインディレクトリの取得 |
 
@@ -166,9 +166,13 @@ worldIds.forEach { id ->
 
 ### カスタムジェネレーターを登録する
 
+ワールド生成は [`MoripaFishingWorldLifecycle` Integration](../integration/world-lifecycle) が提供する。
+未導入環境では `getWorldLifecycleProvider()` が `null` を返すのでチェックが必要。
+
 ```kotlin
-val generatorManager = api.getGeneratorManager()
-generatorManager.addGenerator(myCustomGenerator)
+val worldLifecycle = api.getWorldLifecycleProvider()
+    ?: error("MoripaFishingWorldLifecycle integration is not installed")
+worldLifecycle.addGenerator(myCustomGenerator)
 ```
 
 ## イベント

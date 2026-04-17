@@ -49,6 +49,31 @@ title: はじめに
 
 </details>
 
+MoripaFishing は **Core / Integration / Addon** の 3 層で構成されます。
+
+- **Core**: 魚抽選・釣りイベントなどの最小機能を提供する本体プラグイン
+- **Integration**: Core が `softdepend` で参照する外部プラグイン。導入時に機能が有効になる（例: ワールド境界同期、カスタムジェネレーター）
+- **Addon**: Core に `depend` して Core の API を使い拡張する外部プラグイン
+
+詳細は [Integration とは](../integration/overview) を参照してください。
+
+```mermaid
+flowchart BT
+    core[MoripaFishing-Core]
+
+    int1[Integration 1]
+    int2[Integration 2]
+
+    addon1[Addon 1]
+    addon2[Addon 2]
+
+    core -.softdepend.-> int1
+    core -.softdepend.-> int2
+
+    addon1 -- depend --> core
+    addon2 -- depend --> core
+```
+
 ## サポート
 
 このプラグインは、Minecraft 1.21.4 以降をサポートしています。
