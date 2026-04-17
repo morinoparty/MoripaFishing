@@ -207,5 +207,13 @@ open class MoripaFishing :
         _weatherProviderRegistry.unregister(worldId)
     }
 
-    override fun getWorldLifecycleProvider(): WorldLifecycleProvider? = worldLifecycleProvider
+    /**
+     * WorldLifecycle Integration の `WorldLifecycleProvider` を返す。未導入時は `null`。
+     *
+     * `MoripaFishingAPI` には公開しない (`WorldLifecycleProvider` は独立モジュールにあり、
+     * core は shade していないため)。外部プラグインは
+     * `Bukkit.getPluginManager().getPlugin("MoripaFishingWorldLifecycle") as? WorldLifecycleProvider`
+     * で直接取得すること。
+     */
+    fun getWorldLifecycleProvider(): WorldLifecycleProvider? = worldLifecycleProvider
 }

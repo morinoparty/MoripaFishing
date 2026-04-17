@@ -2,6 +2,7 @@ package party.morino.moripafishing.core.world.weather.provider
 
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
+import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.weather.ThunderChangeEvent
 import org.bukkit.event.weather.WeatherChangeEvent
@@ -65,6 +66,15 @@ class VanillaWeatherProvider(
         val world = event.world
         val hasStorm = world.hasStorm()
         snapshot[world.name] = classify(hasStorm, event.toThunderState())
+    }
+
+    /**
+     * 本プロバイダーが破棄されるタイミング (例: `loadConfig` による `weatherMode` 切替) で呼び、
+     * 登録済み Bukkit Listener を解除する。呼び忘れると `/mf reload` で listener が多重化する。
+     */
+    fun dispose() {
+        HandlerList.unregisterAll(this as Listener)
+        snapshot.clear()
     }
 
     private fun classify(

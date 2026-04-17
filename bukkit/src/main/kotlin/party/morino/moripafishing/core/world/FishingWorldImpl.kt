@@ -89,8 +89,12 @@ class FishingWorldImpl(
             throw IllegalArgumentException("World detail config file not found: ${file.absolutePath}")
         }
         worldDetailConfig = Utils.json.decodeFromStream<WorldDetailConfig>(file.inputStream())
-        // モードが変わり得るのでプロバイダーキャッシュを無効化する
-        weatherProvider = null
+        // モードが変わり得るのでプロバイダーキャッシュを無効化する。
+        // 既存の provider が Bukkit Listener を登録していた場合 (VANILLA) は解除する。
+        synchronized(weatherProviderLock) {
+            (weatherProvider as? VanillaWeatherProvider)?.dispose()
+            weatherProvider = null
+        }
     }
 
     private var world: World =

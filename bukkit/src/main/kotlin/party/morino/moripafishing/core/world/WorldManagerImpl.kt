@@ -47,15 +47,22 @@ class WorldManagerImpl :
     }
 
     override fun initializeWorlds() {
-        worldIdList.forEach { world ->
-            val res = createWorld(world)
-            if (res == true) {
-                plugin.logger.info("World created! ${world.value}")
-            } else {
+        worldIdList.toList().forEach { world ->
+            // Bukkit ワールドが既に存在する場合は FishingWorldImpl を構築して updateState するのみ。
+            // 存在しない場合は createWorld で生成する (WorldLifecycle integration が必要)。
+            if (Bukkit.getWorld(world.value) != null) {
                 plugin.logger.info("World is found! Skipping ${world.value}")
                 worldList.add(FishingWorldImpl(world))
                 worldList.find { it.getId() == world }?.updateState()
-                worldIdList.add(world)
+                return@forEach
+            }
+            if (createWorld(world)) {
+                plugin.logger.info("World created! ${world.value}")
+            } else {
+                plugin.logger.warning(
+                    "Skipping ${world.value}: Bukkit world is not loaded and creation failed " +
+                        "(WorldLifecycle integration missing or generator invalid).",
+                )
             }
         }
     }

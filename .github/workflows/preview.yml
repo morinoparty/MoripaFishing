@@ -87,6 +87,8 @@ jobs:
           mkdir -p ./gradle-artifacts/detekt
           mv ./bukkit/build/libs/bukkit-*-all.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
           mv ./api/build/libs/api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./integrations/world-lifecycle-api/build/libs/world-lifecycle-api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-world-lifecycle-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./integrations/world-lifecycle/build/libs/world-lifecycle-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-world-lifecycle-${{ env.COMMIT_SHORT_SHA }}.jar
           cp -r ./bukkit/build/reports/tests/test/* ./gradle-artifacts/junit/ || echo "No JUnit reports found"
           cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
 
@@ -255,8 +257,10 @@ jobs:
           Available for 7 days (until $LIMIT_TIME)
           | Artifact | Download |
           |----------|----------|
-          | Bukkit | [${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar) |
+          | Bukkit (core) | [${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar) |
           | API | [${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar) |
+          | WorldLifecycle (integration plugin) | [${{ env.PROJECT_NAME }}-world-lifecycle-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-world-lifecycle-${{ env.COMMIT_SHORT_SHA }}.jar) |
+          | WorldLifecycle API | [${{ env.PROJECT_NAME }}-world-lifecycle-api-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-world-lifecycle-api-${{ env.COMMIT_SHORT_SHA }}.jar) |
 
           > 📜 **Attestation**: \`gh attestation verify <jar-file> --owner morinoparty\`
 

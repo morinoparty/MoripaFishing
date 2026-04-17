@@ -8,7 +8,6 @@ import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
-import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
 import party.morino.moripafishing.api.core.world.weather.WeatherProvider
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
@@ -85,15 +84,4 @@ interface MoripaFishingAPI {
      * @param worldId 対象ワールドの ID
      */
     fun unregisterWeatherProvider(worldId: FishingWorldId)
-
-    /**
-     * `WorldLifecycleProvider` (Integration) を取得する。
-     *
-     * ワールド境界の同期やカスタムジェネレーターでのワールド作成を担当する外部 jar
-     * (`MoripaFishingWorldLifecycle` 等) が存在する場合に返る。
-     * 未導入のサーバーでは `null` を返し、該当機能はスキップされる。
-     *
-     * @return 登録されたプロバイダー、未導入時は `null`
-     */
-    fun getWorldLifecycleProvider(): WorldLifecycleProvider?
 }
