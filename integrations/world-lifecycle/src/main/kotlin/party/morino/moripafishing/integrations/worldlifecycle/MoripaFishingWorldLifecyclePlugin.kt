@@ -9,9 +9,7 @@ import org.bukkit.WorldCreator
 import org.bukkit.WorldType
 import org.bukkit.plugin.java.JavaPlugin
 import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
-import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
-import party.morino.moripafishing.api.model.world.generator.GeneratorId
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 import party.morino.moripafishing.integrations.worldlifecycle.biome.ConstBiomeGenerator
 import java.io.File
 
@@ -21,8 +19,7 @@ import java.io.File
  * コア側の `MoripaFishing` (softdepend) が Bukkit の `PluginManager` 経由で本プラグインを
  * `WorldLifecycleProvider` として検出・利用する。
  *
- * プラグイン自体はコアに依存しないため、単体でも無害にロードされる（ただし API jar に対する
- * compile 時依存のみ持つ）。
+ * プラグイン自体はコアに依存しないため、単体でも無害にロードされる。
  */
 @OptIn(ExperimentalSerializationApi::class)
 open class MoripaFishingWorldLifecyclePlugin :
@@ -41,7 +38,7 @@ open class MoripaFishingWorldLifecyclePlugin :
     override fun onEnable() {
         loadGenerators()
         logger.info(
-            "MoripaFishingWorldLifecycle enabled (generators: ${generators.map { it.id.value }}).",
+            "MoripaFishingWorldLifecycle enabled (generators: ${generators.map { it.id }}).",
         )
     }
 
@@ -69,12 +66,12 @@ open class MoripaFishingWorldLifecyclePlugin :
     }
 
     override fun applyBorder(
-        worldId: FishingWorldId,
+        worldId: String,
         centerX: Double,
         centerZ: Double,
         size: Double,
     ) {
-        val world = Bukkit.getWorld(worldId.value) ?: return
+        val world = Bukkit.getWorld(worldId) ?: return
         Bukkit.getScheduler().runTask(
             this,
             Runnable {
@@ -85,18 +82,18 @@ open class MoripaFishingWorldLifecyclePlugin :
     }
 
     override fun createBukkitWorld(
-        worldId: FishingWorldId,
+        worldId: String,
         generatorData: GeneratorData,
     ): Boolean {
-        if (Bukkit.getWorld(worldId.value) != null) {
+        if (Bukkit.getWorld(worldId) != null) {
             return false
         }
         val reserved = setOf("world", "world_nether", "world_the_end")
-        if (worldId.value in reserved) {
-            logger.warning("World name is not allowed: ${worldId.value}")
+        if (worldId in reserved) {
+            logger.warning("World name is not allowed: $worldId")
             return false
         }
-        val namespacedKey = NamespacedKey(this, worldId.value)
+        val namespacedKey = NamespacedKey(this, worldId)
         val biomeProvider = generatorData.biomeProvider?.let { ConstBiomeGenerator(it) }
         val creator =
             WorldCreator(namespacedKey)
@@ -106,20 +103,20 @@ open class MoripaFishingWorldLifecyclePlugin :
                 .biomeProvider(biomeProvider)
         val world = Bukkit.createWorld(creator)
         if (world == null) {
-            logger.warning("Failed to create world ${worldId.value}")
+            logger.warning("Failed to create world $worldId")
             return false
         }
         logger.info("World ${world.name} created via integration")
         return true
     }
 
-    override fun getGenerator(id: GeneratorId): GeneratorData? = generators.find { it.id == id }
+    override fun getGenerator(id: String): GeneratorData? = generators.find { it.id == id }
 
     override fun listGenerators(): List<GeneratorData> = generators.toList()
 
     override fun addGenerator(generator: GeneratorData) {
         generators.add(generator)
-        val file = File(File(dataFolder, "generator"), "${generator.id.value}.json")
+        val file = File(File(dataFolder, "generator"), "${generator.id}.json")
         if (!file.exists()) {
             file.createNewFile()
         }

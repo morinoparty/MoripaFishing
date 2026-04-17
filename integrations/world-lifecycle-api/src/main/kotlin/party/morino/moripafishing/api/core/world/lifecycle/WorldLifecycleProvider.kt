@@ -1,8 +1,6 @@
 package party.morino.moripafishing.api.core.world.lifecycle
 
-import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
-import party.morino.moripafishing.api.model.world.generator.GeneratorId
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 
 /**
  * 釣りワールドのライフサイクル（境界制御・ワールド生成）を提供する SPI。
@@ -13,18 +11,25 @@ import party.morino.moripafishing.api.model.world.generator.GeneratorId
  * 本 SPI は **Integration** パターンとして提供され、通常は別 jar
  * (`MoripaFishingWorldLifecycle` 等) の `JavaPlugin` がこれを実装し、
  * コア側は Bukkit の softdepend で実体を検出して利用する。
+ *
+ * ### 境界を跨ぐ型について
+ *
+ * 本 SPI は `:api` モジュールに一切依存しない。ワールド ID やジェネレータ ID は
+ * `String` としてやり取りし、ジェネレータ定義は本モジュールに定義された
+ * [GeneratorData] を用いる。これにより classloader の class identity 問題が
+ * 発生する余地をなくしている。
  */
 interface WorldLifecycleProvider {
     /**
      * 指定された釣りワールドの Bukkit `WorldBorder` を更新する。
      *
-     * @param worldId 対象ワールドの ID
+     * @param worldId 対象ワールドの ID (Bukkit ワールド名と同一)
      * @param centerX ボーダーの中心 X 座標
      * @param centerZ ボーダーの中心 Z 座標
      * @param size ボーダーのサイズ
      */
     fun applyBorder(
-        worldId: FishingWorldId,
+        worldId: String,
         centerX: Double,
         centerZ: Double,
         size: Double,
@@ -35,30 +40,30 @@ interface WorldLifecycleProvider {
      *
      * 既存のワールドがある場合や作成に失敗した場合は `false` を返す。
      *
-     * @param worldId 作成するワールドの ID
-     * @param generatorData ジェネレーター情報
+     * @param worldId 作成するワールドの ID (Bukkit ワールド名と同一)
+     * @param generatorData ジェネレータ情報
      * @return 作成に成功した場合 `true`
      */
     fun createBukkitWorld(
-        worldId: FishingWorldId,
+        worldId: String,
         generatorData: GeneratorData,
     ): Boolean
 
     /**
-     * ジェネレーター ID から定義を取得する。
+     * ジェネレータ ID から定義を取得する。
      *
-     * @param id ジェネレーター ID
+     * @param id ジェネレータ ID
      * @return 対応する定義（見つからない場合は `null`）
      */
-    fun getGenerator(id: GeneratorId): GeneratorData?
+    fun getGenerator(id: String): GeneratorData?
 
     /**
-     * 登録されているすべてのジェネレーター定義を返す。
+     * 登録されているすべてのジェネレータ定義を返す。
      */
     fun listGenerators(): List<GeneratorData>
 
     /**
-     * 新しいジェネレーター定義を登録する。
+     * 新しいジェネレータ定義を登録する。
      *
      * @param generator 追加する定義
      */

@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
-import party.morino.moripafishing.api.model.world.generator.GeneratorId
 import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
 
 /**
@@ -19,7 +18,8 @@ import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
  * @property borderCentral ワールドの中心座標
  * @property spawnLocation スポーン地点の座標
  * @property climateConfig 天気設定（`null` の場合はデフォルト設定を使用）
- * @property generator ワールドのジェネレータ
+ * @property generator ワールドのジェネレータ ID
+ *   (`MoripaFishingWorldLifecycle` Integration が管理するジェネレータ定義のキー)
  */
 @Serializable
 data class WorldDetailConfig(
@@ -33,5 +33,5 @@ data class WorldDetailConfig(
         val borderCentral: Pair<Double, Double> = Pair(0.0, 0.0),
         val spawnLocation: LocationData = LocationData(id, 0.0, 64.0, 0.0, 90.0, 0.0),
         val climateConfig: ClimateConfig? = null,
-        val generator: GeneratorId = GeneratorId("void"),
+        val generator: String = "void",
 )

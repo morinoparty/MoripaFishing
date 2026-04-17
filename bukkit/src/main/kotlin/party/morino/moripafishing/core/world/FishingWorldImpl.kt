@@ -167,7 +167,7 @@ class FishingWorldImpl(
     override fun setSize(size: Double) {
         val newCenter = worldDetailConfig.borderCentral
         plugin.getWorldLifecycleProvider()?.applyBorder(
-            worldId = worldId,
+            worldId = worldId.value,
             centerX = newCenter.first,
             centerZ = newCenter.second,
             size = size,
@@ -192,7 +192,7 @@ class FishingWorldImpl(
     ) {
         val currentSize = worldDetailConfig.borderSize ?: configManager.getConfig().world.defaultWorldSize
         plugin.getWorldLifecycleProvider()?.applyBorder(
-            worldId = worldId,
+            worldId = worldId.value,
             centerX = x,
             centerZ = z,
             size = currentSize,

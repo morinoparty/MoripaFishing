@@ -10,8 +10,7 @@ import org.incendo.cloud.suggestion.BlockingSuggestionProvider
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
-import party.morino.moripafishing.api.model.world.generator.GeneratorId
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 
 class GeneratorParser<C> :
     ArgumentParser<C, GeneratorData>,
@@ -29,7 +28,7 @@ class GeneratorParser<C> :
                 ?: return ArgumentParseResult.failure(
                     Throwable("WorldLifecycle integration is not installed."),
                 )
-        val generator = provider.getGenerator(GeneratorId(generatorId))
+        val generator = provider.getGenerator(generatorId)
         return if (generator != null) {
             ArgumentParseResult.success(generator)
         } else {
@@ -41,7 +40,7 @@ class GeneratorParser<C> :
         commandContext: CommandContext<CommandSender?>,
         input: CommandInput,
     ): Iterable<String> =
-        plugin.getWorldLifecycleProvider()?.listGenerators()?.map { it.id.value } ?: emptyList()
+        plugin.getWorldLifecycleProvider()?.listGenerators()?.map { it.id } ?: emptyList()
 
     companion object {
         fun generatorParser(): ParserDescriptor<CommandSender, GeneratorData> =

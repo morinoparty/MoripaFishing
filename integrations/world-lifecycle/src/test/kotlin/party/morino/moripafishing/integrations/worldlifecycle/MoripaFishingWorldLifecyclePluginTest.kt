@@ -9,8 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockbukkit.mockbukkit.MockBukkit
 import org.mockbukkit.mockbukkit.ServerMock
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
-import party.morino.moripafishing.api.model.world.generator.GeneratorId
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 
 class MoripaFishingWorldLifecyclePluginTest {
     private lateinit var server: ServerMock
@@ -29,33 +28,33 @@ class MoripaFishingWorldLifecyclePluginTest {
 
     @Test
     fun `loads bundled default generators on enable`() {
-        val ids = plugin.listGenerators().map { it.id.value }.toSet()
+        val ids = plugin.listGenerators().map { it.id }.toSet()
         assertTrue(ids.containsAll(setOf("terra", "void", "normal")), "missing default generators: $ids")
     }
 
     @Test
     fun `getGenerator returns bundled void definition`() {
-        val data = plugin.getGenerator(GeneratorId("void"))
+        val data = plugin.getGenerator("void")
         assertNotNull(data)
     }
 
     @Test
     fun `getGenerator returns null for unknown id`() {
-        assertNull(plugin.getGenerator(GeneratorId("nonexistent")))
+        assertNull(plugin.getGenerator("nonexistent"))
     }
 
     @Test
     fun `addGenerator persists and becomes discoverable`() {
         val custom =
             GeneratorData(
-                id = GeneratorId("custom_test_gen"),
+                id = "custom_test_gen",
                 generator = null,
                 type = "NORMAL",
                 biomeProvider = null,
                 generatorSetting = null,
             )
         plugin.addGenerator(custom)
-        val found = plugin.getGenerator(GeneratorId("custom_test_gen"))
+        val found = plugin.getGenerator("custom_test_gen")
         assertNotNull(found)
         assertEquals("NORMAL", found!!.type)
     }

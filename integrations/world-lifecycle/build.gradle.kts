@@ -10,17 +10,14 @@ group = "party.morino"
 version = project.version.toString()
 
 dependencies {
-    // SPI モジュール: `WorldLifecycleProvider` を提供する。
+    // SPI モジュール: `WorldLifecycleProvider` / `GeneratorData` を提供する。
     // core 側は compileOnly のみなので、本プラグインが唯一 shaded する責任を持つ。
     implementation(project(":integrations:world-lifecycle-api"))
-    // 値型 (FishingWorldId / GeneratorData / GeneratorId 等) は :api に存在するため同梱する。
-    implementation(project(":api"))
     compileOnly(libs.paper.api)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.koin.core)
 
-    testImplementation(project(":api"))
     testImplementation(project(":integrations:world-lifecycle-api"))
     testImplementation(libs.paper.api)
     testImplementation(libs.mock.bukkit)

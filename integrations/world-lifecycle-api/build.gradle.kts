@@ -3,15 +3,15 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     java
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "party.morino"
 version = project.version.toString()
 
 dependencies {
-    // `FishingWorldId`, `GeneratorData`, `GeneratorId` の型参照用。
-    // 実行時は core または integration plugin が shaded している :api 由来クラスが使われる。
-    compileOnly(project(":api"))
+    // `GeneratorData` の `@Serializable` のみのために含める。`:api` への依存は持たない。
+    implementation(libs.kotlinx.serialization.json)
 }
 
 tasks {

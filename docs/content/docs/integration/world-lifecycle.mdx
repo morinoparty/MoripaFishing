@@ -62,16 +62,19 @@ Integration 側の `plugins/MoripaFishingWorldLifecycle/generator/*.json` に配
 ## SPI
 
 Integration は `party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider` を実装する。
+SPI は独立モジュール `moripafishing-world-lifecycle-api` として公開され、`:api` には依存しない。
 
 ```kotlin
 interface WorldLifecycleProvider {
-    fun applyBorder(worldId: FishingWorldId, centerX: Double, centerZ: Double, size: Double)
-    fun createBukkitWorld(worldId: FishingWorldId, generatorData: GeneratorData): Boolean
-    fun getGenerator(id: GeneratorId): GeneratorData?
+    fun applyBorder(worldId: String, centerX: Double, centerZ: Double, size: Double)
+    fun createBukkitWorld(worldId: String, generatorData: GeneratorData): Boolean
+    fun getGenerator(id: String): GeneratorData?
     fun listGenerators(): List<GeneratorData>
     fun addGenerator(generator: GeneratorData)
 }
 ```
+
+境界をまたぐ型は `String` と本モジュールの `GeneratorData` のみで、classloader 間の class identity 問題が起きない。
 
 独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
 `MoripaFishingWorldLifecycle` の名前でビルドして配置すれば Core はそちらを優先する。

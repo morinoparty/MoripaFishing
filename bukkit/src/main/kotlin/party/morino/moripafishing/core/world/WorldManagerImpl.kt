@@ -11,7 +11,7 @@ import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 import party.morino.moripafishing.utils.Utils
 
 @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
@@ -78,7 +78,12 @@ class WorldManagerImpl :
             world
         }
 
-    override fun createWorld(
+    /**
+     * 指定されたジェネレータデータで Bukkit ワールドを作成する。
+     * コマンド (`/mf world create`) から呼ばれる内部 API。
+     * Integration 未導入時は warning を出して `false` を返す。
+     */
+    fun createWorld(
         fishingWorldId: FishingWorldId,
         generatorData: GeneratorData,
     ): Boolean {
@@ -108,7 +113,7 @@ class WorldManagerImpl :
             )
         }
 
-        val created = provider.createBukkitWorld(fishingWorldId, generatorData)
+        val created = provider.createBukkitWorld(fishingWorldId.value, generatorData)
         if (!created) {
             return false
         }
@@ -132,7 +137,7 @@ class WorldManagerImpl :
         val generator =
             provider.getGenerator(detailConfig.generator) ?: run {
                 plugin.logger.warning(
-                    "Generator '${detailConfig.generator.value}' was not found in the WorldLifecycle integration.",
+                    "Generator '${detailConfig.generator}' was not found in the WorldLifecycle integration.",
                 )
                 return false
             }
