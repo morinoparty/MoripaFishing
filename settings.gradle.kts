@@ -13,3 +13,5 @@ plugins {
 }
 
 include("bukkit", "api")
+include("integrations:world-lifecycle-api")
+include("integrations:world-lifecycle")

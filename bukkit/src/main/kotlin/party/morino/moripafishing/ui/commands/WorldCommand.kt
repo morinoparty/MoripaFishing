@@ -16,7 +16,8 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
+import party.morino.moripafishing.core.world.WorldManagerImpl
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
 
@@ -65,9 +66,14 @@ class WorldCommand : KoinComponent {
             sender.sendMessage("World $id already exists.")
             return
         }
+        val impl =
+            worldManager as? WorldManagerImpl ?: run {
+                sender.sendMessage("World creation with explicit generator requires the default WorldManagerImpl.")
+                return
+            }
         val res =
             withContext(Dispatchers.minecraft) {
-                worldManager.createWorld(FishingWorldId(id), generator)
+                impl.createWorld(FishingWorldId(id), generator)
             }
         if (!res) {
             sender.sendMessage("Failed to create world $id.")

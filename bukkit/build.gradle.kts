@@ -16,6 +16,10 @@ version = project.version.toString()
 
 dependencies {
     implementation(project(":api"))
+    // WorldLifecycle Integration の SPI。
+    // core 自身は shade せず、integration plugin (softdepend) がロードした
+    // `WorldLifecycleProvider` クラスを `join-classpath: true` 経由で参照する。
+    compileOnly(project(":integrations:world-lifecycle-api"))
 
     compileOnly(libs.paper.api)
 
@@ -47,6 +51,9 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
     testImplementation(libs.mock.bukkit)
+    // テスト時のみ、MockBukkit が MoripaFishing を ByteBuddy でプロキシする際に
+    // `WorldLifecycleProvider` の型解決が必要なので含める。production jar には同梱されない。
+    testImplementation(project(":integrations:world-lifecycle-api"))
 
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
     testImplementation(libs.bundles.junit.jupiter)
@@ -93,6 +100,7 @@ sourceSets.main {
             loader = "$group.moripafishing.MoripaFishingLoader"
             dependencies {
                 server("Vault", PaperPluginYaml.Load.BEFORE)
+                server("MoripaFishingWorldLifecycle", PaperPluginYaml.Load.BEFORE, required = false)
             }
         }
         bukkitPluginYaml {
@@ -101,6 +109,7 @@ sourceSets.main {
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
+            softDepend.set(listOf("MoripaFishingWorldLifecycle"))
             dependencies {
                 "Vault"
             }
