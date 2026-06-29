@@ -55,7 +55,7 @@ dependencies {
     // `WorldLifecycleProvider` の型解決が必要なので含める。production jar には同梱されない。
     testImplementation(project(":integrations:world-lifecycle-api"))
 
-    testImplementation(platform("org.junit:junit-bom:6.0.3"))
+    testImplementation(platform("org.junit:junit-bom:6.1.1"))
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
     testImplementation(libs.junit.platform.launcher)
