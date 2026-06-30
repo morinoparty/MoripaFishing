@@ -15,3 +15,5 @@ plugins {
 include("bukkit", "api")
 include("integrations:world-lifecycle-api")
 include("integrations:world-lifecycle")
+include("integrations:weather-api")
+include("integrations:weather")

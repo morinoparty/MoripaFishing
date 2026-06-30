@@ -21,6 +21,7 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
 import party.morino.moripafishing.api.core.world.weather.WeatherProvider
+import party.morino.moripafishing.api.core.world.weather.control.WeatherControlProvider
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
@@ -56,12 +57,15 @@ open class MoripaFishing :
 
     private var worldLifecycleProvider: WorldLifecycleProvider? = null
 
+    private var weatherControlProvider: WeatherControlProvider? = null
+
     /**
      * プラグインの有効化時に呼び出されるメソッド
      */
     override fun onEnable() {
         setupKoin()
         resolveWorldLifecycleProvider()
+        resolveWeatherControlProvider()
         initializeManagers()
         loadListeners()
         _translateManager.load()
@@ -92,6 +96,35 @@ open class MoripaFishing :
                 else -> {
                     logger.info(
                         "WorldLifecycle integration not installed; border sync and custom generators are disabled.",
+                    )
+                    null
+                }
+            }
+    }
+
+    /**
+     * `MoripaFishingWeather` (softdepend) を検出し、`WeatherControlProvider` を実装していれば採用する。
+     * 未導入時は `null` のままで、天候の適用 (ワールド改変) はスキップされる。
+     * 天候の決定・参照はコアが行うため、未導入でも釣りの抽選条件には反映され続ける。
+     */
+    private fun resolveWeatherControlProvider() {
+        val integrationName = "MoripaFishingWeather"
+        val integrationPlugin = Bukkit.getPluginManager().getPlugin(integrationName)
+        weatherControlProvider =
+            when {
+                integrationPlugin is WeatherControlProvider -> {
+                    logger.info("Weather integration detected: $integrationName")
+                    integrationPlugin
+                }
+                integrationPlugin != null -> {
+                    logger.warning(
+                        "$integrationName is installed but does not implement WeatherControlProvider.",
+                    )
+                    null
+                }
+                else -> {
+                    logger.info(
+                        "Weather integration not installed; weather application to worlds is disabled.",
                     )
                     null
                 }
@@ -216,4 +249,12 @@ open class MoripaFishing :
      * で直接取得すること。
      */
     fun getWorldLifecycleProvider(): WorldLifecycleProvider? = worldLifecycleProvider
+
+    /**
+     * Weather Integration の `WeatherControlProvider` を返す。未導入時は `null`。
+     *
+     * `getWorldLifecycleProvider()` と同様に `MoripaFishingAPI` には公開しない
+     * (`WeatherControlProvider` は独立モジュールにあり、core は shade していないため)。
+     */
+    fun getWeatherControlProvider(): WeatherControlProvider? = weatherControlProvider
 }

@@ -18,7 +18,6 @@ import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
 import party.morino.moripafishing.api.core.world.FishingWorld
-import party.morino.moripafishing.api.core.world.WeatherEffect
 import party.morino.moripafishing.api.core.world.weather.WeatherProvider
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
@@ -42,8 +41,6 @@ class FishingWorldImpl(
     private val configManager: ConfigManager by inject()
     private val randomizeManager: RandomizeManager by inject()
     private val weatherProviderRegistry: WeatherProviderRegistry by inject()
-
-    private var weatherEffect: WeatherEffect = WeatherTypeRegistry.getEffect(WeatherType.SUNNY)
 
     private lateinit var worldDetailConfig: WorldDetailConfig
 
@@ -129,10 +126,12 @@ class FishingWorldImpl(
             return
         }
         this.appliedInternalWeather = weatherType
-        this.weatherEffect.reset()
-        val newEffect = WeatherTypeRegistry.getEffect(weatherType)
-        this.weatherEffect = newEffect
-        this.weatherEffect.apply(fishingWorldId = worldId)
+        plugin.getWeatherControlProvider()?.applyWeather(
+            worldId = worldId.value,
+            weatherType = weatherType.name,
+        ) ?: plugin.logger.fine(
+            "[${worldId.value}] setWeather($weatherType) skipped: WeatherControlProvider is not available.",
+        )
     }
 
     override fun getWorldSpawnPosition(): LocationData = worldDetailConfig.spawnLocation
@@ -268,8 +267,8 @@ class FishingWorldImpl(
     }
 
     override fun effectFinish() {
-        weatherEffect.reset()
-        plugin.logger.info("[${worldId.value}] effectFinish called: weatherEffect reset.")
+        plugin.getWeatherControlProvider()?.resetWeather(worldId.value)
+        plugin.logger.info("[${worldId.value}] effectFinish called: weather reset requested.")
     }
 
     private fun currentClimateConfig(): ClimateConfig =

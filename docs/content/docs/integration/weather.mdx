@@ -1,0 +1,79 @@
+---
+title: Weather
+---
+
+# MoripaFishingWeather
+
+MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integration。
+釣りワールドへの **天候の適用（破壊的処理）** を一手に担う。
+
+Core は天候の **決定・参照** のみを行い、ワールドの実体を改変する処理は本 Integration に委譲される。
+これにより、Integration を導入しない限り Core 単体ではワールドを書き換えない安全な構成になる。
+
+提供する処理は次のとおり。
+
+- `WeatherType` に応じた **天候の適用**: `World.setStorm` / `isThundering` の切り替え
+- `CLOUDY` の **クライアント側バリア天井**: 各プレイヤーの頭上 (y=200) に Paper の
+  `Player.sendMultiBlockChange` で **見た目だけのバリア** を送り、「屋根の下」と判定させて
+  雨粒だけを止める。空は暗いまま曇り空になり、嵐 (`setStorm(true)`) も併用する。
+  **実ブロックもバイオームも一切変更しない**ため、草・水・空の色は変化しない。天井はプレイヤーに
+  追従するパッチとして定期再送され、移動やチャンク再読込にも追従する。`RAINY` とも両立する。
+
+## 導入
+
+1. サーバーの `plugins/` に `MoripaFishingWeather-<version>.jar` を配置する。
+2. サーバーを起動する。Integration → Core の順でロードされる。
+3. Core のログに以下が出ていれば検出済み。
+
+   ```
+   [MoripaFishing] Weather integration detected: MoripaFishingWeather
+   ```
+
+未導入時は Core のログに以下が出て、天候の適用は自動的にスキップされる。
+
+```
+[MoripaFishing] Weather integration not installed; weather application to worlds is disabled.
+```
+
+## 未導入時の Core の振る舞い
+
+| 機能 | 未導入時の挙動 |
+|---|---|
+| 天候の適用（`FishingWorldImpl.setWeather`、`WeatherMode.INTERNAL`） | スキップ（`fine` ログのみ） |
+| 天候のリセット（`FishingWorldImpl.effectFinish`） | スキップ |
+| 天候の決定（`WeatherRandomizer`）・参照（`getCurrentWeather`） | 影響なし（Core 単体で完結） |
+| 魚の抽選条件への天候反映 | 影響なし |
+
+天候は Core が決定・追跡し続けるため、Integration が無くても釣りの抽選条件には天候が反映される。
+実際にワールドの嵐やバリアが現れるのは Integration 導入時のみ。
+
+## SPI
+
+Integration は `party.morino.moripafishing.api.core.world.weather.control.WeatherControlProvider` を実装する。
+SPI は独立モジュール `moripafishing-weather-api` として公開され、`:api` には依存しない。
+
+```kotlin
+interface WeatherControlProvider {
+    fun applyWeather(worldId: String, weatherType: String)
+
+    fun resetWeather(worldId: String)
+}
+```
+
+境界をまたぐ型は `String` のみで、classloader 間の class identity 問題が起きない。
+`weatherType` は `WeatherType` の enum 名（`SUNNY` / `RAINY` / `THUNDERSTORM` / `CLOUDY` 等）で渡される。
+`CLOUDY` の天井はプレイヤー位置を基準に Integration 側で生成・追従させるため、座標やサイズは受け取らない。
+
+:::info
+クライアント側バリア天井は **見た目のみ** で、サーバーのワールドには存在しない。そのため
+草・水・空の色やブロックは一切変化しないが、`ProtocolLib` 等は不要で Paper 標準 API のみで完結する。
+:::
+
+独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
+`MoripaFishingWeather` の名前でビルドして配置すれば Core はそちらを利用する。
+
+## 関連
+
+ワールド生成・境界制御を担う [WorldLifecycle](/docs/integration/world-lifecycle) と同じ
+softdepend + SPI パターンで提供される姉妹 Integration。いずれもワールドへの破壊的操作を
+Core から切り離すためのもの。
