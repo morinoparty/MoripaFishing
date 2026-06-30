@@ -64,6 +64,12 @@ jobs:
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
+      # 統合プラグイン jar をリリース用の分かりやすい名前へ
+      - name: Rename integration JARs
+        run: |
+          mv ./integrations/world-lifecycle/build/libs/world-lifecycle-${{ env.PLUGIN_VERSION }}.jar ./integrations/world-lifecycle/build/libs/MoripaFishingWorldLifecycle_${{ env.PLUGIN_VERSION }}.jar
+          mv ./integrations/weather/build/libs/weather-${{ env.PLUGIN_VERSION }}.jar ./integrations/weather/build/libs/MoripaFishingWeather_${{ env.PLUGIN_VERSION }}.jar
+
       # GitHub Attestations（Linked Artifacts 用）
       - name: Attest Bukkit JAR
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
@@ -75,13 +81,22 @@ jobs:
         with:
           subject-path: './api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar'
 
+      - name: Attest integration JARs
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: |
+            ./integrations/world-lifecycle/build/libs/MoripaFishingWorldLifecycle_${{ env.PLUGIN_VERSION }}.jar
+            ./integrations/weather/build/libs/MoripaFishingWeather_${{ env.PLUGIN_VERSION }}.jar
+
       # SLSA 3 用: アーティファクトのハッシュを生成
       - name: Generate artifact hashes
         id: hash
         run: |
           BUKKIT_JAR="./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar"
           API_JAR="./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar"
-          echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" | base64 -w0)" >> $GITHUB_OUTPUT
+          WORLD_LIFECYCLE_JAR="./integrations/world-lifecycle/build/libs/MoripaFishingWorldLifecycle_${{ env.PLUGIN_VERSION }}.jar"
+          WEATHER_JAR="./integrations/weather/build/libs/MoripaFishingWeather_${{ env.PLUGIN_VERSION }}.jar"
+          echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" "$WORLD_LIFECYCLE_JAR" "$WEATHER_JAR" | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Upload Bukkit JAR
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -95,6 +110,20 @@ jobs:
         with:
           name: api-jar
           path: ./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar
+          retention-days: 1
+
+      - name: Upload WorldLifecycle JAR
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: world-lifecycle-jar
+          path: ./integrations/world-lifecycle/build/libs/MoripaFishingWorldLifecycle_${{ env.PLUGIN_VERSION }}.jar
+          retention-days: 1
+
+      - name: Upload Weather JAR
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: weather-jar
+          path: ./integrations/weather/build/libs/MoripaFishingWeather_${{ env.PLUGIN_VERSION }}.jar
           retention-days: 1
 
   # SLSA 3 provenance 生成（分離された reusable workflow）
@@ -128,6 +157,18 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: api-jar
+          path: ./artifacts
+
+      - name: Download WorldLifecycle JAR
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: world-lifecycle-jar
+          path: ./artifacts
+
+      - name: Download Weather JAR
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: weather-jar
           path: ./artifacts
 
       # Linked Artifacts: Maven Central の Storage Record を作成
@@ -164,6 +205,8 @@ jobs:
           github-draft: false
           files: |
             ./artifacts/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+            ./artifacts/MoripaFishingWorldLifecycle_${{ env.PLUGIN_VERSION }}.jar
+            ./artifacts/MoripaFishingWeather_${{ env.PLUGIN_VERSION }}.jar
           loaders: |
             paper
             purpur
