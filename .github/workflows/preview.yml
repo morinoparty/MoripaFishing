@@ -89,6 +89,8 @@ jobs:
           mv ./api/build/libs/api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
           mv ./integrations/world-lifecycle-api/build/libs/world-lifecycle-api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-world-lifecycle-api-${{ env.COMMIT_SHORT_SHA }}.jar
           mv ./integrations/world-lifecycle/build/libs/world-lifecycle-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-world-lifecycle-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./integrations/weather-api/build/libs/weather-api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-weather-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./integrations/weather/build/libs/weather-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-weather-${{ env.COMMIT_SHORT_SHA }}.jar
           cp -r ./bukkit/build/reports/tests/test/* ./gradle-artifacts/junit/ || echo "No JUnit reports found"
           cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
 
