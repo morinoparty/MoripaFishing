@@ -1,7 +1,6 @@
 package party.morino.moripafishing.api.core.world
 
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
 
 /**
  * ワールドの管理を行うクラス
@@ -27,22 +26,15 @@ interface WorldManager {
     fun getWorld(fishingWorldId: FishingWorldId): FishingWorld
 
     /**
-     * ワールドを作成する
+     * ワールドを作成する。
+     *
+     * カスタムジェネレータでの作成は `MoripaFishingWorldLifecycle` Integration が
+     * 導入されている必要がある。未導入時は `false` を返す。
+     *
      * @param fishingWorldId ワールドID
-     * @return ワールド
+     * @return 作成に成功した場合 `true`
      */
     fun createWorld(fishingWorldId: FishingWorldId): Boolean
-
-    /**
-     * ワールドを作成する
-     * @param fishingWorldId ワールドID
-     * @param generatorData ワールド生成データ
-     * @return ワールド
-     */
-    fun createWorld(
-        fishingWorldId: FishingWorldId,
-        generatorData: GeneratorData,
-    ): Boolean
 
     /**
      * ワールドを削除する

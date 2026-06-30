@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fishing.plugin.morino.party/schema/fish/v1.json",
+  "title": "MoripaFishing Fish Definition",
+  "description": "MoripaFishing における魚 (fish/**/*.json) の定義スキーマ (v1)。",
+  "type": "object",
+  "required": ["id", "itemStack"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "JSON Schema への URL 参照。エディタでの補完・検証に使用されます。"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "魚を一意に識別する ID (例: \"tuna\")。"
+    },
+    "isDisabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "true の場合、この魚は抽選から除外されます。期間限定魚などに使用します。"
+    },
+    "cacheCommand": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "魚がキャッチされた際に実行されるコマンド一覧。"
+    },
+    "displayName": {
+      "type": "object",
+      "description": "ロケールごとの表示名。キーはロケールコード (例: \"en_US\", \"ja_JP\") を使用します。",
+      "additionalProperties": { "type": "string" }
+    },
+    "conditions": {
+      "$ref": "#/$defs/ConditionData"
+    },
+    "size": {
+      "$ref": "#/$defs/FishSize"
+    },
+    "icon": {
+      "type": "string",
+      "description": "図鑑などに使用されるアイコン文字。将来のために予約されています。"
+    },
+    "itemStack": {
+      "$ref": "#/$defs/ItemStack"
+    },
+    "rarity": {
+      "type": "string",
+      "description": "レアリティの ID (例: \"common\", \"rare\", \"epic\", \"legendary\", \"mythic\", \"junk\")。",
+      "default": "common"
+    },
+    "weight": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 10.0,
+      "description": "同一レアリティ内での重み付け抽選に使用される値。"
+    },
+    "worthExpression": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "価値を計算するための式。null の場合はレアリティ側の式が使用されます。"
+    },
+    "lore": {
+      "type": "object",
+      "description": "ロケールごとの説明テキスト。",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "WeatherType": {
+      "type": "string",
+      "enum": ["SUNNY", "CLOUDY", "RAINY", "THUNDERSTORM", "SNOWY", "FOGGY"],
+      "description": "天候の種類。VANILLA モードでは SUNNY / RAINY / THUNDERSTORM のみが出現し得ます。"
+    },
+    "ConditionData": {
+      "type": "object",
+      "description": "魚が出現するための条件。空の配列は「制限なし」を意味します。",
+      "properties": {
+        "weather": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WeatherType" },
+          "default": []
+        },
+        "world": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "対象となる釣りワールド ID の一覧。"
+        },
+        "time": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TimeRange" },
+          "default": []
+        }
+      }
+    },
+    "TimeRange": {
+      "type": "object",
+      "required": ["start", "end"],
+      "properties": {
+        "start": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 95,
+          "description": "開始時刻 (0-95, 15分刻み)。0=00:00, 32=08:00, 64=16:00, 95=23:45。"
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 95,
+          "description": "終了時刻 (0-95, 15分刻み)。"
+        }
+      }
+    },
+    "FishSize": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "最小サイズ (cm または任意単位)。"
+        },
+        "max": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "最大サイズ。min <= max である必要があります。"
+        }
+      }
+    },
+    "ItemStack": {
+      "type": "object",
+      "required": ["material", "itemMeta"],
+      "properties": {
+        "material": {
+          "type": "string",
+          "description": "Bukkit Material の名前 (例: \"COD\", \"FISHING_ROD\")。",
+          "minLength": 1
+        },
+        "itemMeta": { "$ref": "#/$defs/ItemMeta" }
+      }
+    },
+    "ItemMeta": {
+      "type": "object",
+      "properties": {
+        "skullTexture": {
+          "type": ["string", "null"],
+          "default": null,
+          "description": "PLAYER_HEAD の場合のテクスチャ (Base64 エンコード)。"
+        },
+        "customModelData": {
+          "type": "array",
+          "items": { "type": "number" },
+          "default": [],
+          "description": "リソースパック用のカスタムモデルデータ値。"
+        }
+      }
+    }
+  }
+}

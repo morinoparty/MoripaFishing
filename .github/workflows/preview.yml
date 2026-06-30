@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       # Gradle キャッシュの設定（setup-gradle を使用）
       - uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
@@ -81,12 +81,23 @@ jobs:
           report_paths: './**/build/test-results/test/TEST-*.xml'
 
       - name: Prepare Gradle artifacts
+        env:
+          SHA: ${{ env.COMMIT_SHORT_SHA }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
         run: |
           mkdir -p ./gradle-artifacts/jars
           mkdir -p ./gradle-artifacts/junit
           mkdir -p ./gradle-artifacts/detekt
-          mv ./bukkit/build/libs/bukkit-*-all.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
-          mv ./api/build/libs/api-${{ env.COMMIT_SHORT_SHA }}.jar ./gradle-artifacts/jars/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar
+          mv ./bukkit/build/libs/bukkit-*-all.jar "./gradle-artifacts/jars/${PROJECT_NAME}-bukkit-${SHA}.jar"
+          mv ./api/build/libs/api-${SHA}.jar "./gradle-artifacts/jars/${PROJECT_NAME}-api-${SHA}.jar"
+          # 統合モジュールの jar は自動収集する。新しい integration を追加しても
+          # ここを編集せずにアーティファクト・コメント表へ自動的に増える。
+          for jar in ./integrations/*/build/libs/*-${SHA}.jar; do
+            [ -e "$jar" ] || continue
+            mv "$jar" "./gradle-artifacts/jars/${PROJECT_NAME}-$(basename "$jar")"
+          done
+          # PR コメントの表を動的生成するために jar 一覧を残す
+          ls -1 ./gradle-artifacts/jars > ./gradle-artifacts/jars.txt
           cp -r ./bukkit/build/reports/tests/test/* ./gradle-artifacts/junit/ || echo "No JUnit reports found"
           cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
 
@@ -129,7 +140,7 @@ jobs:
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       # Gradle キャッシュの設定（Dokka 生成用）
       - uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
@@ -239,14 +250,39 @@ jobs:
           limit_time=$(date -d "7 days" +%Y-%m-%d)
           echo "LIMIT_TIME=$limit_time" >> $GITHUB_ENV
 
-      - name: Create comment file
+      # jar 一覧 (jars.txt) を取得して表を動的生成するため、ビルド成果物を取り込む
+      - name: Download Gradle artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: gradle-artifacts
+          path: ./gradle-artifacts
+
+      - name: Build JAR table rows
+        id: jar-rows
         env:
           S3_DOWNLOAD_BASE: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/jars"
+          SHA: ${{ env.COMMIT_SHORT_SHA }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
+        run: |
+          {
+            echo "rows<<ROWS_EOF"
+            while read -r f; do
+              [ -n "$f" ] || continue
+              label="${f#${PROJECT_NAME}-}"
+              label="${label%-${SHA}.jar}"
+              echo "| ${label} | [${f}](${S3_DOWNLOAD_BASE}/${f}) |"
+            done < ./gradle-artifacts/jars.txt
+            echo "ROWS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create comment file
+        env:
           JUNIT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
           DETEKT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
           DOCS_PREVIEW_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/docs/index.html"
           DOKKA_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/docs/dokka/index.html"
           LIMIT_TIME: ${{ env.LIMIT_TIME }}
+          JAR_ROWS: ${{ steps.jar-rows.outputs.rows }}
         run: |
           cat << EOF > comment.md
           ## 🚀 Preview of ${{ github.event.repository.name }}
@@ -255,8 +291,7 @@ jobs:
           Available for 7 days (until $LIMIT_TIME)
           | Artifact | Download |
           |----------|----------|
-          | Bukkit | [${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar) |
-          | API | [${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar]($S3_DOWNLOAD_BASE/${{ env.PROJECT_NAME }}-api-${{ env.COMMIT_SHORT_SHA }}.jar) |
+          $JAR_ROWS
 
           > 📜 **Attestation**: \`gh attestation verify <jar-file> --owner morinoparty\`
 

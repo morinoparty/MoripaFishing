@@ -5,7 +5,6 @@ import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Permission
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.internationalization.TranslateManager

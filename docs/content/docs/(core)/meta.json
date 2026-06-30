@@ -1,0 +1,16 @@
+{
+  "title": "Core",
+  "icon": "FishSymbol",
+  "description": "MoripaFishing 本体の導入、コマンド、データ構造、ユーティリティを扱います。",
+  "root": true,
+  "pages": [
+    "index",
+    "setup",
+    "---コマンド---",
+    "...commands",
+    "---フォーマット---",
+    "...format",
+    "---ユーティリティ---",
+    "...utilities"
+  ]
+}

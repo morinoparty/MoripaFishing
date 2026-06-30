@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.ktlint)
-    id("io.gitlab.arturbosch.detekt") version "1.23.8"
+    alias(libs.plugins.detekt)
 }
 
 val version: String by project
@@ -39,9 +39,9 @@ allprojects {
 
     kotlin {
         jvmToolchain {
-            (this).languageVersion.set(JavaLanguageVersion.of(21))
+            (this).languageVersion.set(JavaLanguageVersion.of(25))
         }
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
@@ -61,12 +61,12 @@ allprojects {
             }
         }
         compileKotlin {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+            compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
             compilerOptions.javaParameters = true
             compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_0)
         }
         compileTestKotlin {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+            compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
         }
 
         withType<JavaCompile>().configureEach {
@@ -93,10 +93,6 @@ dokka {
 }
 
 detekt {
-    // Version of detekt that will be used. When unspecified the latest detekt
-    // version found will be used. Override to stay on the same version.
-    toolVersion = "1.23.8"
-
     // The directories where detekt looks for source files.
     // Defaults to `files("src/main/java", "src/test/java", "src/main/kotlin", "src/test/kotlin")`.
     source.setFrom("api/src/main/java", "api/src/main/kotlin", "bukkit/src/main/java", "bukkit/src/main/kotlin")

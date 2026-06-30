@@ -16,6 +16,13 @@ version = project.version.toString()
 
 dependencies {
     implementation(project(":api"))
+    // WorldLifecycle Integration の SPI。
+    // core 自身は shade せず、integration plugin (softdepend) がロードした
+    // `WorldLifecycleProvider` クラスを `join-classpath: true` 経由で参照する。
+    compileOnly(project(":integrations:world-lifecycle-api"))
+    // Weather Integration の SPI。world-lifecycle 同様に core では shade せず、
+    // integration plugin (softdepend) がロードした `WeatherControlProvider` を参照する。
+    compileOnly(project(":integrations:weather-api"))
 
     compileOnly(libs.paper.api)
 
@@ -47,6 +54,11 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
     testImplementation(libs.mock.bukkit)
+    // テスト時のみ、MockBukkit が MoripaFishing を ByteBuddy でプロキシする際に
+    // `WorldLifecycleProvider` / `WeatherControlProvider` の型解決が必要なので含める。
+    // production jar には同梱されない。
+    testImplementation(project(":integrations:world-lifecycle-api"))
+    testImplementation(project(":integrations:weather-api"))
 
     testImplementation(platform("org.junit:junit-bom:6.1.1"))
     testImplementation(libs.bundles.junit.jupiter)
@@ -68,7 +80,7 @@ tasks {
     }
     shadowJar
     runServer {
-        minecraftVersion("1.21.8")
+        minecraftVersion("26.1.2")
         val plugins =
             runPaper.downloadPluginsSpec {
                 // Vault
@@ -93,6 +105,8 @@ sourceSets.main {
             loader = "$group.moripafishing.MoripaFishingLoader"
             dependencies {
                 server("Vault", PaperPluginYaml.Load.BEFORE)
+                server("MoripaFishingWorldLifecycle", PaperPluginYaml.Load.BEFORE, required = false)
+                server("MoripaFishingWeather", PaperPluginYaml.Load.BEFORE, required = false)
             }
         }
         bukkitPluginYaml {
@@ -101,6 +115,7 @@ sourceSets.main {
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
+            softDepend.set(listOf("MoripaFishingWorldLifecycle", "MoripaFishingWeather"))
             dependencies {
                 "Vault"
             }

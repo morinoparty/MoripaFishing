@@ -10,6 +10,16 @@
     "description": "コア関連"
   },
   {
+    "name": "addon",
+    "color": "#F5A623",
+    "description": "Addon関連: 外部プラグインとして分離すべき機能"
+  },
+  {
+    "name": "integration",
+    "color": "#8E6FCE",
+    "description": "Integration関連: MoripaFishingが依存する外部Integrationとして分離すべき機能"
+  },
+  {
     "name": "bug",
     "color": "#FC2C2B",
     "description": "種別: 不具合の修正"

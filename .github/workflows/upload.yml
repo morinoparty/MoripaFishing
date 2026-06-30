@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       # Gradle キャッシュの設定（setup-gradle を使用）
       - uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
@@ -64,6 +64,19 @@ jobs:
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
+      # 統合モジュールの jar をリリース用に自動収集する。新しい integration を追加しても
+      # ここを編集せずにリリースアセットへ自動的に増える。
+      - name: Collect integration JARs
+        env:
+          VER: ${{ env.PLUGIN_VERSION }}
+        run: |
+          mkdir -p ./release-integrations
+          for jar in ./integrations/*/build/libs/*-${VER}.jar; do
+            [ -e "$jar" ] || continue
+            mv "$jar" "./release-integrations/MoripaFishing-$(basename "$jar")"
+          done
+          ls -1 ./release-integrations
+
       # GitHub Attestations（Linked Artifacts 用）
       - name: Attest Bukkit JAR
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
@@ -75,13 +88,18 @@ jobs:
         with:
           subject-path: './api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar'
 
+      - name: Attest integration JARs
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: './release-integrations/*.jar'
+
       # SLSA 3 用: アーティファクトのハッシュを生成
       - name: Generate artifact hashes
         id: hash
         run: |
           BUKKIT_JAR="./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar"
           API_JAR="./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar"
-          echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" | base64 -w0)" >> $GITHUB_OUTPUT
+          echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" ./release-integrations/*.jar | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Upload Bukkit JAR
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -95,6 +113,13 @@ jobs:
         with:
           name: api-jar
           path: ./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar
+          retention-days: 1
+
+      - name: Upload integration JARs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: integration-jars
+          path: ./release-integrations
           retention-days: 1
 
   # SLSA 3 provenance 生成（分離された reusable workflow）
@@ -130,6 +155,12 @@ jobs:
           name: api-jar
           path: ./artifacts
 
+      - name: Download integration JARs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: integration-jars
+          path: ./artifacts/integrations
+
       # Linked Artifacts: Maven Central の Storage Record を作成
       - name: Register Maven Central artifact to Linked Artifacts
         run: |
@@ -164,6 +195,7 @@ jobs:
           github-draft: false
           files: |
             ./artifacts/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+            ./artifacts/integrations/*.jar
           loaders: |
             paper
             purpur

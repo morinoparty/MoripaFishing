@@ -1,4 +1,5 @@
 {
+  "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
   "id": "blue_mackerel_fillet",
   "catchCommands": [],
   "conditions": {
@@ -30,4 +31,4 @@
       "切り身が動いている！"
     ]
   }
-} 
+}

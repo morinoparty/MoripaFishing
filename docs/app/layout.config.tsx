@@ -11,8 +11,7 @@ export function baseOptions(): BaseLayoutProps {
             transparentMode: "top",
         },
         themeSwitch: {
-            enabled: true,
-            mode: "light-dark",
+            enabled: false,
         },
         githubUrl: "https://github.com/morinoparty/MoripaFishing",
         modrinthUrl: "https://modrinth.com/plugin/moripafishing",

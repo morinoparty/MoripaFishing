@@ -1,9 +1,6 @@
 package party.morino.moripafishing.core.world
 
 import org.bukkit.Bukkit
-import org.bukkit.NamespacedKey
-import org.bukkit.WorldCreator
-import org.bukkit.WorldType
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
@@ -14,8 +11,7 @@ import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.generator.GeneratorData
-import party.morino.moripafishing.core.world.biome.ConstBiomeGenerator
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 import party.morino.moripafishing.utils.Utils
 
 @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
@@ -51,15 +47,22 @@ class WorldManagerImpl :
     }
 
     override fun initializeWorlds() {
-        worldIdList.forEach { world ->
-            val res = createWorld(world)
-            if (res == true) {
-                plugin.logger.info("World created! ${world.value}")
-            } else {
+        worldIdList.toList().forEach { world ->
+            // Bukkit ワールドが既に存在する場合は FishingWorldImpl を構築して updateState するのみ。
+            // 存在しない場合は createWorld で生成する (WorldLifecycle integration が必要)。
+            if (Bukkit.getWorld(world.value) != null) {
                 plugin.logger.info("World is found! Skipping ${world.value}")
                 worldList.add(FishingWorldImpl(world))
                 worldList.find { it.getId() == world }?.updateState()
-                worldIdList.add(world)
+                return@forEach
+            }
+            if (createWorld(world)) {
+                plugin.logger.info("World created! ${world.value}")
+            } else {
+                plugin.logger.warning(
+                    "Skipping ${world.value}: Bukkit world is not loaded and creation failed " +
+                        "(WorldLifecycle integration missing or generator invalid).",
+                )
             }
         }
     }
@@ -75,19 +78,22 @@ class WorldManagerImpl :
             world
         }
 
-    override fun createWorld(
+    /**
+     * 指定されたジェネレータデータで Bukkit ワールドを作成する。
+     * コマンド (`/mf world create`) から呼ばれる内部 API。
+     * Integration 未導入時は warning を出して `false` を返す。
+     */
+    fun createWorld(
         fishingWorldId: FishingWorldId,
         generatorData: GeneratorData,
     ): Boolean {
-        if (Bukkit.getWorld(fishingWorldId.value) != null) {
-            return false
-        }
-        val default = listOf("world", "world_nether", "world_the_end")
-        if (default.contains(fishingWorldId.value)) {
-            plugin.logger.warning("World name is not allowed: ${fishingWorldId.value}")
-            return false
-        }
-        val namespacedKey = NamespacedKey(plugin, fishingWorldId.value)
+        val provider =
+            plugin.getWorldLifecycleProvider() ?: run {
+                plugin.logger.warning(
+                    "createWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
+                )
+                return false
+            }
 
         plugin.logger.info("Creating or Loading world ${fishingWorldId.value}")
 
@@ -107,22 +113,10 @@ class WorldManagerImpl :
             )
         }
 
-        val biomeProvider = generatorData.biomeProvider?.let { ConstBiomeGenerator(it) }
-        val creator =
-            WorldCreator(namespacedKey)
-                .generator(generatorData.generator)
-                .let { creator ->
-                    generatorData.generatorSetting?.let { it1 -> creator.generatorSettings(it1) } ?: creator
-                }.let { creator ->
-                    generatorData.type?.let { type -> creator.type(WorldType.valueOf(type)) } ?: creator
-                }.biomeProvider(biomeProvider)
-        val world = Bukkit.createWorld(creator)
-        if (world == null) {
-            plugin.logger.warning("Failed to create world ${fishingWorldId.value}")
+        val created = provider.createBukkitWorld(fishingWorldId.value, generatorData)
+        if (!created) {
             return false
         }
-        // 世界を初期化
-        plugin.logger.info("World ${world.name}")
         val instance = FishingWorldImpl(fishingWorldId)
         worldList.add(instance)
         instance.updateState()
@@ -132,8 +126,21 @@ class WorldManagerImpl :
     }
 
     override fun createWorld(fishingWorldId: FishingWorldId): Boolean {
+        val provider =
+            plugin.getWorldLifecycleProvider() ?: run {
+                plugin.logger.warning(
+                    "createWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
+                )
+                return false
+            }
         val detailConfig = getWorldDetailConfig(fishingWorldId)
-        val generator = detailConfig.generator.toGeneratorData()
+        val generator =
+            provider.getGenerator(detailConfig.generator) ?: run {
+                plugin.logger.warning(
+                    "Generator '${detailConfig.generator}' was not found in the WorldLifecycle integration.",
+                )
+                return false
+            }
         return createWorld(fishingWorldId, generator)
     }
 

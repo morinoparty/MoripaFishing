@@ -1,15 +1,7 @@
 {
-  "title": "MoripaFishing",
   "pages": [
-    "index",
-    "setup",
-    "---コマンド---",
-    "...commands",
-    "---フォーマット---",
-    "...format",
-    "---アドオン---",
-    "...addon",
-    "---ユーティリティ---",
-    "...utilities"
+    "(core)",
+    "integration",
+    "addons"
   ]
 }

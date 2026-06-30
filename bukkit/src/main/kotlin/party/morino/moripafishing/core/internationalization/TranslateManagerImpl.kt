@@ -8,13 +8,15 @@ import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import java.util.Locale
 import java.util.Properties
-import party.morino.moripafishing.api.core.internationalization.TranslateManager
 
-class TranslateManagerImpl : TranslateManager, KoinComponent {
+class TranslateManagerImpl :
+    TranslateManager,
+    KoinComponent {
     private val pluginDirectory: PluginDirectory by inject()
     private val configManager: ConfigManager by inject()
     private val fishManager: FishManager by inject()
@@ -69,8 +71,6 @@ class TranslateManagerImpl : TranslateManager, KoinComponent {
                 myStore.register("moripa_fishing.fish.${fish.id.value}.name", locale, name)
             }
         }
-
-
     }
 
     override fun loadWorldData() {
@@ -91,7 +91,6 @@ class TranslateManagerImpl : TranslateManager, KoinComponent {
     }
 
     override fun reload() {
-
         myStore.defaultLocale(configManager.getConfig().defaultLocale)
         loadFromResources()
         loadFishData()

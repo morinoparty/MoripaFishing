@@ -12,16 +12,17 @@ import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
-import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
+import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
 import party.morino.moripafishing.mocks.config.PluginDirectoryMock
 import party.morino.moripafishing.mocks.internationalization.TranslateManagerMock
 import party.morino.moripafishing.mocks.log.LogManagerMock
@@ -61,6 +62,7 @@ class MoripaFishingTest :
                 single<LogManager> { LogManagerMock() }
                 single<AnglerManager> { AnglerManagerImpl() }
                 single<TranslateManager> { TranslateManagerMock() }
+                single<WeatherProviderRegistry> { WeatherProviderRegistry() }
                 single<ServerMock> { server } // MockBukkitサーバーをKoinに登録
             }
 

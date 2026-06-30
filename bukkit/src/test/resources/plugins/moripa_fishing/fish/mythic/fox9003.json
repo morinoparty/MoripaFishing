@@ -1,4 +1,5 @@
 {
+  "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
   "id": "fox9003",
   "catchCommands": [],
   "conditions": {
@@ -30,4 +31,4 @@
       "「430年後に死ぬキツネ」"
     ]
   }
-} 
+}
