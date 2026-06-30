@@ -16,6 +16,5 @@ class InternalWeatherProvider(
     private val weatherRandomizer: WeatherRandomizer,
     private val currentWeatherSupplier: () -> WeatherType?,
 ) : WeatherProvider {
-    override fun getCurrentWeather(worldId: FishingWorldId): WeatherType =
-        currentWeatherSupplier() ?: weatherRandomizer.drawWeather()
+    override fun getCurrentWeather(worldId: FishingWorldId): WeatherType = currentWeatherSupplier() ?: weatherRandomizer.drawWeather()
 }

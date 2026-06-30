@@ -39,8 +39,7 @@ class GeneratorParser<C> :
     override fun stringSuggestions(
         commandContext: CommandContext<CommandSender?>,
         input: CommandInput,
-    ): Iterable<String> =
-        plugin.getWorldLifecycleProvider()?.listGenerators()?.map { it.id } ?: emptyList()
+    ): Iterable<String> = plugin.getWorldLifecycleProvider()?.listGenerators()?.map { it.id } ?: emptyList()
 
     companion object {
         fun generatorParser(): ParserDescriptor<CommandSender, GeneratorData> =

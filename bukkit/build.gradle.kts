@@ -75,7 +75,7 @@ tasks {
     }
     shadowJar
     runServer {
-        minecraftVersion("1.21.8")
+        minecraftVersion("26.1.2")
         val plugins =
             runPaper.downloadPluginsSpec {
                 // Vault

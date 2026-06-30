@@ -14,6 +14,7 @@ import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
@@ -21,17 +22,16 @@ import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
 import party.morino.moripafishing.api.core.world.weather.WeatherProvider
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
-import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.core.internationalization.TranslateManagerImpl
 import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
+import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
 import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
 import party.morino.moripafishing.listener.moripafishing.PlayerFishingAnnounceListener
@@ -49,7 +49,7 @@ open class MoripaFishing :
     private val _fishManager: FishManager by lazy { GlobalContext.get().get() }
     private val _anglerManager: AnglerManager by lazy { GlobalContext.get().get() }
     private val _logManager: LogManager by lazy { GlobalContext.get().get() }
-    private val _translateManager: TranslateManager by lazy {  GlobalContext.get().get() }
+    private val _translateManager: TranslateManager by lazy { GlobalContext.get().get() }
     private val _weatherProviderRegistry: WeatherProviderRegistry by lazy { GlobalContext.get().get() }
 
     private var disable = false

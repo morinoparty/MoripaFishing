@@ -49,8 +49,9 @@ open class MoripaFishingWorldLifecyclePlugin :
         }
         val defaultIds = listOf("terra", "void", "normal")
         defaultIds.forEach { id ->
-            val resource = this::class.java.getResourceAsStream("/generator/$id.json")
-                ?: throw IllegalStateException("bundled generator resource not found: $id.json")
+            val resource =
+                this::class.java.getResourceAsStream("/generator/$id.json")
+                    ?: throw IllegalStateException("bundled generator resource not found: $id.json")
             val defaultGenerator = json.decodeFromStream<GeneratorData>(resource)
             val file = File(generatorDir, "$id.json")
             if (!file.exists()) {

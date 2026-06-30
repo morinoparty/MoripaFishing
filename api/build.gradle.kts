@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -11,7 +10,7 @@ group = "party.morino"
 version = project.version.toString()
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
     signAllPublications()
 
     coordinates("party.morino", "moripafishing-api", version.toString())
@@ -59,14 +58,14 @@ dependencies {
 
 kotlin {
     jvmToolchain {
-        (this).languageVersion.set(JavaLanguageVersion.of(21))
+        (this).languageVersion.set(JavaLanguageVersion.of(25))
     }
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 tasks {
     compileKotlin {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
         compilerOptions.javaParameters = true
     }
 }

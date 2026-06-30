@@ -23,6 +23,5 @@ class ConstBiomeGenerator(
             .getOrThrow(namespace)
     }
 
-    override fun getBiomes(worldInfo: WorldInfo): List<Biome> =
-        RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).toList()
+    override fun getBiomes(worldInfo: WorldInfo): List<Biome> = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).toList()
 }

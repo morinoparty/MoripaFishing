@@ -51,8 +51,7 @@ class VanillaWeatherProvider(
         }
     }
 
-    override fun getCurrentWeather(worldId: FishingWorldId): WeatherType =
-        snapshot[worldId.value] ?: WeatherType.SUNNY
+    override fun getCurrentWeather(worldId: FishingWorldId): WeatherType = snapshot[worldId.value] ?: WeatherType.SUNNY
 
     @EventHandler
     fun onWeatherChange(event: WeatherChangeEvent) {
