@@ -28,7 +28,7 @@ interface WorldManager {
     /**
      * ワールドを作成する。
      *
-     * カスタムジェネレータでの作成は `MoripaFishingWorldLifecycle` Integration が
+     * カスタムジェネレータでの作成は `MoripaFishing-Integration-WorldLifecycle` Integration が
      * 導入されている必要がある。未導入時は `false` を返す。
      *
      * @param fishingWorldId ワールドID

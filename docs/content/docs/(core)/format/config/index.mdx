@@ -38,8 +38,7 @@ title: コンフィグ
         "receiveDamage": false
     },
     "features": {
-        "enableTeleportOnJoin": true,
-        "enableCatchAnnouncements": true
+        "enableTeleportOnJoin": true
     },
     "defaultLocale": "ja_JP"
 }
@@ -95,7 +94,6 @@ SQLiteを使用する場合は、`host`、`port`、`database`、`username`、`pa
 コア機能（カスタム魚の生成・釣り上げイベント処理）以外のサブ機能の有効/無効を切り替える設定です。
 
 - `enableTeleportOnJoin`: プレイヤー参加時にデフォルト釣りワールドのスポーン地点へ自動テレポートするかどうか（デフォルト: `true`）
-- `enableCatchAnnouncements`: 魚を釣り上げた際にサーバー全体に釣果をブロードキャストするかどうか（デフォルト: `true`）
 
 :::warning[注意]
 この設定はリスナーの登録を制御するため、変更を反映するにはサーバーの再起動が必要です。

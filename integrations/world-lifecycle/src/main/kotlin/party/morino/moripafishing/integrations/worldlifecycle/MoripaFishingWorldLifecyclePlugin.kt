@@ -38,7 +38,7 @@ open class MoripaFishingWorldLifecyclePlugin :
     override fun onEnable() {
         loadGenerators()
         logger.info(
-            "MoripaFishingWorldLifecycle enabled (generators: ${generators.map { it.id }}).",
+            "MoripaFishing-Integration-WorldLifecycle enabled (generators: ${generators.map { it.id }}).",
         )
     }
 

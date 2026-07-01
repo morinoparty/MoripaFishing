@@ -65,17 +65,46 @@ jobs:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
       # 統合モジュールの jar をリリース用に自動収集する。新しい integration を追加しても
-      # ここを編集せずにリリースアセットへ自動的に増える。
+      # ここを編集せずにリリースアセットへ自動的に増える。-api の SPI 専用モジュールは
+      # 配布物ではないため除外する。
       - name: Collect integration JARs
         env:
           VER: ${{ env.PLUGIN_VERSION }}
         run: |
           mkdir -p ./release-integrations
-          for jar in ./integrations/*/build/libs/*-${VER}.jar; do
-            [ -e "$jar" ] || continue
-            mv "$jar" "./release-integrations/MoripaFishing-$(basename "$jar")"
+          for dir in ./integrations/*/; do
+            [ -d "$dir" ] || continue
+            base="$(basename "$dir")"
+            case "$base" in
+              *-api) continue ;;
+            esac
+            for jar in "$dir"build/libs/*-${VER}.jar; do
+              [ -e "$jar" ] || continue
+              mv "$jar" "./release-integrations/MoripaFishing-$(basename "$jar")"
+            done
           done
           ls -1 ./release-integrations
+
+      # アドオンモジュールの jar をリリース用に自動収集する。新しい addon を追加しても
+      # ここを編集せずにリリースアセットへ自動的に増える。-api の SPI 専用モジュールは
+      # 配布物ではないため除外する。
+      - name: Collect Addon JARs
+        env:
+          VER: ${{ env.PLUGIN_VERSION }}
+        run: |
+          mkdir -p ./release-addons
+          for dir in ./addons/*/; do
+            [ -d "$dir" ] || continue
+            base="$(basename "$dir")"
+            case "$base" in
+              *-api) continue ;;
+            esac
+            for jar in "$dir"build/libs/*-${VER}.jar; do
+              [ -e "$jar" ] || continue
+              mv "$jar" "./release-addons/MoripaFishing-$(basename "$jar")"
+            done
+          done
+          ls -1 ./release-addons
 
       # GitHub Attestations（Linked Artifacts 用）
       - name: Attest Bukkit JAR
@@ -93,13 +122,18 @@ jobs:
         with:
           subject-path: './release-integrations/*.jar'
 
+      - name: Attest Addon JARs
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: './release-addons/*.jar'
+
       # SLSA 3 用: アーティファクトのハッシュを生成
       - name: Generate artifact hashes
         id: hash
         run: |
           BUKKIT_JAR="./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar"
           API_JAR="./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar"
-          echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" ./release-integrations/*.jar | base64 -w0)" >> $GITHUB_OUTPUT
+          echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" ./release-integrations/*.jar ./release-addons/*.jar | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Upload Bukkit JAR
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -120,6 +154,13 @@ jobs:
         with:
           name: integration-jars
           path: ./release-integrations
+          retention-days: 1
+
+      - name: Upload Addon JARs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: addon-jars
+          path: ./release-addons
           retention-days: 1
 
   # SLSA 3 provenance 生成（分離された reusable workflow）
@@ -161,6 +202,12 @@ jobs:
           name: integration-jars
           path: ./artifacts/integrations
 
+      - name: Download Addon JARs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: addon-jars
+          path: ./artifacts/addons
+
       # Linked Artifacts: Maven Central の Storage Record を作成
       - name: Register Maven Central artifact to Linked Artifacts
         run: |
@@ -196,6 +243,7 @@ jobs:
           files: |
             ./artifacts/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
             ./artifacts/integrations/*.jar
+            ./artifacts/addons/*.jar
           loaders: |
             paper
             purpur

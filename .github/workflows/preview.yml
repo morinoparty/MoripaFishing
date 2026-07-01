@@ -90,11 +90,19 @@ jobs:
           mkdir -p ./gradle-artifacts/detekt
           mv ./bukkit/build/libs/bukkit-*-all.jar "./gradle-artifacts/jars/${PROJECT_NAME}-bukkit-${SHA}.jar"
           mv ./api/build/libs/api-${SHA}.jar "./gradle-artifacts/jars/${PROJECT_NAME}-api-${SHA}.jar"
-          # 統合モジュールの jar は自動収集する。新しい integration を追加しても
-          # ここを編集せずにアーティファクト・コメント表へ自動的に増える。
-          for jar in ./integrations/*/build/libs/*-${SHA}.jar; do
-            [ -e "$jar" ] || continue
-            mv "$jar" "./gradle-artifacts/jars/${PROJECT_NAME}-$(basename "$jar")"
+          # 統合/アドオンモジュールの jar は自動収集する。新しい integration/addon を追加しても
+          # ここを編集せずにアーティファクト・コメント表へ自動的に増える。-api の SPI 専用モジュールは
+          # 配布物ではないため除外する。
+          for dir in ./integrations/*/ ./addons/*/; do
+            [ -d "$dir" ] || continue
+            base="$(basename "$dir")"
+            case "$base" in
+              *-api) continue ;;
+            esac
+            for jar in "$dir"build/libs/*-${SHA}.jar; do
+              [ -e "$jar" ] || continue
+              mv "$jar" "./gradle-artifacts/jars/${PROJECT_NAME}-$(basename "$jar")"
+            done
           done
           # PR コメントの表を動的生成するために jar 一覧を残す
           ls -1 ./gradle-artifacts/jars > ./gradle-artifacts/jars.txt

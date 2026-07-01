@@ -105,8 +105,8 @@ sourceSets.main {
             loader = "$group.moripafishing.MoripaFishingLoader"
             dependencies {
                 server("Vault", PaperPluginYaml.Load.BEFORE)
-                server("MoripaFishingWorldLifecycle", PaperPluginYaml.Load.BEFORE, required = false)
-                server("MoripaFishingWeather", PaperPluginYaml.Load.BEFORE, required = false)
+                server("MoripaFishing-Integration-WorldLifecycle", PaperPluginYaml.Load.BEFORE, required = false)
+                server("MoripaFishing-Integration-Weather", PaperPluginYaml.Load.BEFORE, required = false)
             }
         }
         bukkitPluginYaml {
@@ -115,7 +115,7 @@ sourceSets.main {
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
-            softDepend.set(listOf("MoripaFishingWorldLifecycle", "MoripaFishingWeather"))
+            softDepend.set(listOf("MoripaFishing-Integration-WorldLifecycle", "MoripaFishing-Integration-Weather"))
             dependencies {
                 "Vault"
             }

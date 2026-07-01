@@ -3,5 +3,5 @@
   "icon": "Puzzle",
   "description": "MoripaFishing Core を利用して機能拡張するアドオン向け情報です。",
   "root": true,
-  "pages": ["api-guide", "fish-manager", "caught-fish"]
+  "pages": ["api-guide", "fish-manager", "caught-fish", "catch-announce"]
 }

@@ -10,11 +10,8 @@ import kotlinx.serialization.Serializable
  *
  * @property enableTeleportOnJoin プレイヤー参加時にデフォルト釣りワールドのスポーン地点へ
  *   自動テレポートするかどうか。`false` にするとテレポートを行わず、バニラの参加動作に委ねる。
- * @property enableCatchAnnouncements 魚を釣り上げた際に、サーバー全体に釣果をブロードキャストするかどうか。
- *   `false` にするとアナウンスを行わない。
  */
 @Serializable
 data class FeaturesConfig(
     val enableTeleportOnJoin: Boolean = true,
-    val enableCatchAnnouncements: Boolean = true,
 )

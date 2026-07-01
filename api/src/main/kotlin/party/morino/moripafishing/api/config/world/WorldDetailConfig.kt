@@ -19,7 +19,7 @@ import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
  * @property spawnLocation スポーン地点の座標
  * @property climateConfig 天気設定（`null` の場合はデフォルト設定を使用）
  * @property generator ワールドのジェネレータ ID
- *   (`MoripaFishingWorldLifecycle` Integration が管理するジェネレータ定義のキー)
+ *   (`MoripaFishing-Integration-WorldLifecycle` Integration が管理するジェネレータ定義のキー)
  */
 @Serializable
 data class WorldDetailConfig(
