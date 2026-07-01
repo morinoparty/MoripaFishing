@@ -19,6 +19,7 @@ adventure = "5.1.1"
 ktlint = "14.2.0"
 mavenPublish = "0.37.0"
 detekt = "2.0.0-alpha.5"
+allure = "2.35.3"
 
 [libraries]
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
@@ -63,6 +64,8 @@ junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform
 
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koinVersion" }
 koin-test-junit5 = { group = "io.insert-koin", name = "koin-test-junit5", version.ref = "koinVersion" }
+
+allure-junit5 = { group = "io.qameta.allure", name = "allure-junit5", version.ref = "allure" }
 
 kyori-adventure-api = {group =  "net.kyori",name = "adventure-api", version.ref = "adventure"}
 kyori-minimessage = {group =  "net.kyori",name = "adventure-text-minimessage", version.ref = "adventure"}
