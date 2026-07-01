@@ -68,7 +68,7 @@ class VanillaWeatherProvider(
     }
 
     /**
-     * 本プロバイダーが破棄されるタイミング (例: `loadConfig` による `weatherMode` 切替) で呼び、
+     * 本プロバイダーが破棄されるタイミング (例: `loadConfig` による `weatherSource` 切替) で呼び、
      * 登録済み Bukkit Listener を解除する。呼び忘れると `/mf reload` で listener が多重化する。
      */
     fun dispose() {

@@ -83,10 +83,20 @@ jobs:
           curl -sL https://github.com/allure-framework/allure2/releases/download/2.32.2/allure-2.32.2.tgz | tar -xz
           echo "$PWD/allure-2.32.2/bin" >> $GITHUB_PATH
 
+      - name: Aggregate Allure results
+        if: success() || failure()
+        run: |
+          mkdir -p ./build/allure-results-aggregated
+          # 各モジュール (bukkit / integrations / addons) の allure-results を1箇所へ集約する。
+          # 新しいモジュールを追加してもここを編集せずレポートへ自動的に含まれる。
+          find . -type d -path '*/build/allure-results' -not -path '*/allure-results-aggregated/*' | while read -r dir; do
+            cp -a "$dir/." ./build/allure-results-aggregated/ 2>/dev/null || true
+          done
+
       - name: Generate Allure report
         if: success() || failure()
         continue-on-error: true
-        run: allure generate ./bukkit/build/allure-results -o ./bukkit/build/allure-report --clean
+        run: allure generate ./build/allure-results-aggregated -o ./build/allure-report --clean
 
       - name: Publish test results
         id: publish-test-results
@@ -122,9 +132,32 @@ jobs:
           done
           # PR コメントの表を動的生成するために jar 一覧を残す
           ls -1 ./gradle-artifacts/jars > ./gradle-artifacts/jars.txt
-          cp -r ./bukkit/build/reports/tests/test/* ./gradle-artifacts/junit/ || echo "No JUnit reports found"
+          # 各モジュールの JUnit HTML レポートをモジュール名のサブフォルダへ集約し、入口となる index を生成する。
+          found_junit=false
+          while IFS= read -r report; do
+            module_path="${report#./}"
+            module="${module_path%%/build/reports/tests/test}"
+            module="${module//\//-}"
+            mkdir -p "./gradle-artifacts/junit/${module}"
+            cp -r "${report}/." "./gradle-artifacts/junit/${module}/"
+            found_junit=true
+          done < <(find . -type d -path '*/build/reports/tests/test' -not -path '*/gradle-artifacts/*')
+          if [ "$found_junit" = true ]; then
+            {
+              echo '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>JUnit Reports</title></head><body>'
+              echo '<h1>JUnit Reports</h1><ul>'
+              for dir in ./gradle-artifacts/junit/*/; do
+                [ -d "$dir" ] || continue
+                name="$(basename "$dir")"
+                echo "<li><a href=\"./${name}/index.html\">${name}</a></li>"
+              done
+              echo '</ul></body></html>'
+            } > ./gradle-artifacts/junit/index.html
+          else
+            echo "No JUnit reports found"
+          fi
           cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
-          cp -r ./bukkit/build/allure-report/* ./gradle-artifacts/allure/ || echo "No Allure reports found"
+          cp -r ./build/allure-report/* ./gradle-artifacts/allure/ || echo "No Allure reports found"
 
       # GitHub Attestations で署名
       - name: Attest JAR artifacts

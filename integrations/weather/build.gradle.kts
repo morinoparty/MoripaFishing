@@ -22,6 +22,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.junit.platform.launcher)
+    testImplementation(libs.allure.junit5)
 }
 
 tasks {
@@ -33,6 +34,8 @@ tasks {
     }
     test {
         useJUnitPlatform()
+        // Allure結果の出力先を指定
+        systemProperty("allure.results.directory", "${project.layout.buildDirectory.get().asFile}/allure-results")
     }
 }
 

@@ -1,5 +1,6 @@
 package party.morino.moripafishing.api
 
+import net.kyori.adventure.key.Key
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
@@ -8,8 +9,7 @@ import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
-import party.morino.moripafishing.api.core.world.weather.WeatherProvider
-import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.core.world.weather.WeatherSource
 
 /**
  * MoripaFishingのAPI
@@ -64,24 +64,20 @@ interface MoripaFishingAPI {
     fun getLogManager(): LogManager
 
     /**
-     * 指定ワールドの天候ソースとして外部 `WeatherProvider` を登録する。
+     * 天候ソースとして [WeatherSource] を登録する。
      *
-     * `ClimateConfig.weatherMode` が `EXTERNAL` のワールドに対してのみ効果を持ち、
-     * `INTERNAL` / `VANILLA` モードのワールドでは登録しても参照されない。
+     * `ClimateConfig.weatherSource` が `source.key` と一致するワールドで使用される。
+     * 同じキーで再登録した場合は上書きする。組み込みキー（`moripafishing:internal` /
+     * `moripafishing:vanilla`）を上書きすることも可能。
      *
-     * @param worldId 対象ワールドの ID
-     * @param provider 天候を提供する `WeatherProvider`
+     * @param source 登録する天候ソース
      */
-    fun registerWeatherProvider(
-        worldId: FishingWorldId,
-        provider: WeatherProvider,
-    )
+    fun registerWeatherSource(source: WeatherSource)
 
     /**
-     * 指定ワールドに登録されていた外部 `WeatherProvider` を解除する。
-     * 登録されていない場合は何もしない。
+     * 指定キーの [WeatherSource] を解除する。登録されていない場合は何もしない。
      *
-     * @param worldId 対象ワールドの ID
+     * @param key 解除する天候ソースのキー
      */
-    fun unregisterWeatherProvider(worldId: FishingWorldId)
+    fun unregisterWeatherSource(key: Key)
 }
