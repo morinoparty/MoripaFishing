@@ -5,10 +5,11 @@ title: WorldLifecycle
 # MoripaFishing-Integration-WorldLifecycle
 
 MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integration。
-以下の 2 つの機能を提供します。
+以下の 3 つの機能を提供します。
 
 - 釣りワールドの **境界（WorldBorder）同期**: `WorldDetailConfig.borderCentral` / `borderSize` を Bukkit ワールドに反映
 - カスタム **ジェネレーター** によるワールド作成: `generator/*.json` を元に Terra / void / normal 等のワールドを生成
+- プレイヤー **参加時テレポート**: 参加したプレイヤーを釣りワールドのスポーン地点へ移動
 
 ## 導入
 
@@ -58,6 +59,45 @@ Integration 側の `plugins/MoripaFishing-Integration-WorldLifecycle/generator/*
 | `type` | string? | `WorldType` 名（`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED`） |
 | `biomeProvider` | string? | 固定バイオーム名（例: `minecraft:plains`） |
 | `generatorSetting` | string? | ジェネレーター設定文字列 |
+
+## 参加時テレポート
+
+プレイヤーがサーバーに参加した際、釣りワールドのスポーン地点へ自動でテレポートする。
+もともと Core の `PlayerJoinListener` として実装されていた機能を、バニラや他のスポーン系プラグイン
+（EssentialsSpawn 等）との共存性を高めるために本 Integration へ切り出したもの。
+
+テレポート先のスポーン地点は Core の公開 API
+（`WorldManager.getWorld(id).getWorldDetails().spawnLocation`）から実行時に取得する。
+このため Core 未導入時は何もせず、無害にスキップされる。
+
+設定は `plugins/MoripaFishing-Integration-WorldLifecycle/join-teleport.yml` に配置される
+（初回起動時にデフォルトが生成される）。
+
+```yaml title="join-teleport.yml"
+enabled: true
+worldId: null
+onlyFirstJoin: false
+```
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `enabled` | boolean | 参加時テレポート機能の有効/無効（デフォルト: `true`） |
+| `worldId` | string? | テレポート先の釣りワールドID。`null` の場合は Core のデフォルトワールドを使用 |
+| `onlyFirstJoin` | boolean | `true` の場合、サーバーに初めて参加したプレイヤーにのみテレポートを行う（デフォルト: `false`） |
+
+テレポート実行の直前に [AnglerJoinTeleportEvent](#イベント) が発火する。
+このイベントをキャンセルするとテレポートは行われず、`destination` を差し替えると移動先を変更できる。
+
+## イベント
+
+本 Integration およびワールドライフサイクルに関連して、Core は以下の Bukkit イベントを発火する。
+いずれも `:api`（`moripafishing-api`）に含まれ、外部プラグインから購読できる。
+
+| イベント | パッケージ | Cancellable | 発火タイミング |
+|---|---|---|---|
+| `AnglerJoinTeleportEvent` | `party.morino.moripafishing.event.angler` | ✔ | 参加時テレポートの実行直前（本 Integration が発火） |
+| `FishingWorldCreateEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドの作成完了後（Core が発火） |
+| `FishingWorldDeleteEvent` | `party.morino.moripafishing.event.world` | ✔ | 釣りワールドの削除直前（Core が発火。キャンセルで削除中止） |
 
 ## SPI
 

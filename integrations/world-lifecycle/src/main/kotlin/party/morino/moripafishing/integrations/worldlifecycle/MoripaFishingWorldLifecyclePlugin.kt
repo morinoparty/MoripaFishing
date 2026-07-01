@@ -1,5 +1,7 @@
 package party.morino.moripafishing.integrations.worldlifecycle
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -33,13 +35,48 @@ open class MoripaFishingWorldLifecyclePlugin :
             prettyPrint = true
         }
 
+    // 未知キーを無視する寛容な YAML。ジェネレーター用 JSON (ignoreUnknownKeys) と方針を揃える。
+    private val yaml = Yaml(configuration = YamlConfiguration(strictMode = false))
+
     private val generators = mutableListOf<GeneratorData>()
 
     override fun onEnable() {
         loadGenerators()
+        registerJoinTeleport()
         logger.info(
             "MoripaFishing-Integration-WorldLifecycle enabled (generators: ${generators.map { it.id }}).",
         )
+    }
+
+    /**
+     * 参加時テレポート機能を設定に応じて登録する。
+     * コア (`MoripaFishing`) はテレポート先スポーンの参照にのみ必要で、実行時に解決するため、
+     * コア未導入でも本 Integration 自体は無害にロードされる。
+     */
+    private fun registerJoinTeleport() {
+        val config = loadJoinTeleportConfig()
+        if (!config.enabled) {
+            return
+        }
+        server.pluginManager.registerEvents(JoinTeleportListener(config), this)
+    }
+
+    private fun loadJoinTeleportConfig(): JoinTeleportConfig {
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs()
+        }
+        val file = File(dataFolder, "join-teleport.yml")
+        if (!file.exists()) {
+            file.writeText(yaml.encodeToString(JoinTeleportConfig.serializer(), JoinTeleportConfig()))
+            return JoinTeleportConfig()
+        }
+        return runCatching {
+            yaml.decodeFromString(JoinTeleportConfig.serializer(), file.readText())
+        }.getOrElse { error ->
+            // 設定が壊れていても Integration 全体の enable を失敗させず、既定値で継続する。
+            logger.warning("Failed to parse join-teleport.yml (${error.message}); falling back to defaults.")
+            JoinTeleportConfig()
+        }
     }
 
     private fun loadGenerators() {
