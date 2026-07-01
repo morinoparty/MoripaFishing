@@ -64,6 +64,7 @@ dependencies {
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
     testImplementation(libs.junit.platform.launcher)
+    testImplementation(libs.allure.junit5)
 }
 
 tasks {
@@ -72,6 +73,8 @@ tasks {
     }
     test {
         useJUnitPlatform()
+        // Allure結果の出力先を指定
+        systemProperty("allure.results.directory", "${project.layout.buildDirectory.get().asFile}/allure-results")
         testLogging {
             showStandardStreams = true
             events("passed", "skipped", "failed")

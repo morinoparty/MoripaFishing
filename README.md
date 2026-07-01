@@ -1,71 +1,104 @@
-# 🎣 MoripaFishing - Minecraft Fishing Plugin 🎣
+# MoripaFishing
 
-A plugin that provides a richer and more customizable fishing experience on Minecraft servers. 🐟✨
+A fishing plugin for Minecraft servers. Fish, rarities, weather, time of day, and world conditions are all defined via JSON, letting server admins build their own custom fishing experience.
 
-## 🌟 Abstract
+## Features
 
-MoripaFishing is a Minecraft plugin that allows server administrators to freely configure their own fish, rarities, and fishing conditions (world, biome, weather, etc.). It manages player (Angler) fishing records and provides an extensible API.
+- **Custom fish definitions**: Configure name, description, rarity, and catch conditions (world, biome, weather, time of day, etc.) in JSON
+- **Custom rarities**: Define any tier (Common, Rare, Epic, Legendary, ...) with its own color and catch probability
+- **Conditional fishing**: Restrict fish to specific worlds, biomes, weather, or time periods
+- **Extensible API**: Extend functionality from external plugins (Integrations / Addons) via the `api` module
+- **Admin commands**: Manage weather and world settings (`/mf weather`, `/mf world`, etc.)
 
-## ⚙️ Main Features
+See the [documentation site](https://fishing.plugin.morino.party/category/-コマンド/) for the full command list.
 
-*   **🐠 Custom Fish Definition:** Freely configure names, descriptions, rarities, and fishing conditions (world, biome, weather, time of day, etc.) in JSON files.
-*   **💎 Custom Rarity:** Create your own rarity tiers (e.g., Common, Rare, Epic, Legendary, Mythic) with custom colors and probabilities.
-*   **🌍 Condition-Based Fishing:** Set fish that can only be caught in specific worlds, biomes, weather conditions, or time periods.
-*   **🎣 Player Records:** Track and manage fishing statistics for each player (future expansion).
-*   **🔧 Easy Configuration:** Intuitive configuration through JSON files in the `plugins/MoripaFishing/` directory.
-*   **💻 Developer API:** Integrate and extend functionality through the `api` module.
-*   **🛠️ Admin Commands:** Commands to modify weather and world settings (e.g., `/mf weather`, `/mf world`).
+Release artifacts are signed with GitHub Attestations, so their SLSA provenance can be verified. Run `gh attestation verify <jar-file> --owner morinoparty` to check.
 
-## 📦 Module Structure
+## Modules
 
-*   **`api`**: Provides core interfaces, data models, and events for the plugin. Used by other developers to integrate with MoripaFishing.
-*   **`app`**: The main plugin implementation that runs on Minecraft servers, handling command processing and configuration file loading.
+| Module | Description |
+|--------|-------------|
+| `api` | Public interfaces, models, config schemas, and events |
+| `bukkit` | Main plugin implementation (commands, listeners, managers) |
+| `integrations/weather` | Add-on plugin for weather control |
+| `integrations/world-lifecycle` | Add-on plugin for world generation integration |
+| `addons/catch-announce` | Catch-announcement feature split out as an Addon |
+| `docs` | Documentation site built with Fumadocs (Next.js) |
+| `buildSrc` | Gradle helper tasks and build logic |
 
-## ⌨️ Commands
-[docs-commands](https://fishing.plugin.morino.party/category/-コマンド/)
+## Tech stack
 
-## 👨‍💻 For Developers 🚀
+- **Kotlin** 2.4 / **Java** 25 (Temurin)
+- **Paper API** - Minecraft server API
+- **Cloud** - command framework (Incendo)
+- **Koin** - dependency injection
+- **Arrow** - functional programming
+- **kotlinx.serialization / KAML** - config file serialization
+- **JUnit 5 / MockK / MockBukkit** - testing
+- **Fumadocs** - documentation site (Next.js)
 
-### Environment 🌍
+## Requirements
 
-Install [Task](https://taskfile.dev/installation/) 💻
-Install [Commitizen](https://commitizen.github.io/cz-cli/) 💻
+- **Java** 25 (Temurin recommended)
+- **Gradle** 9.x (wrapper included)
+- **Node.js** 22+ / **pnpm** 10+ (for building the docs)
+- **[Task](https://taskfile.dev/)** (task runner, optional)
+
 ```bash
 sudo snap install task --classic
 ```
 
-### Docs 📚
+## Build & test
 
-Open the docs directory and install the dependencies 🚧.
 ```bash
+# Gradle build
+./gradlew build
+
+# or with Task
+task build
+task test
+task check   # ktlintFormat + detekt + test
+```
+
+## Run a dev server
+
+```bash
+./gradlew runServer
+
+# or with Task
+task run
+```
+
+## Docs development
+
+```bash
+cd docs
+pnpm install
+pnpm dev
+
+# or with Task
 task docs
 ```
 
-### Format 💪
+## Task commands
 
-Format the code 💻.
-```bash
-task format
-```
+| Command | Description |
+|---------|-------------|
+| `task build` | Build all modules |
+| `task test` | Run tests |
+| `task check` | Format + lint + test |
+| `task run` | Start a dev server |
+| `task docs` | Start the docs dev server |
+| `task dokka` | Generate Dokka API docs |
+| `task commit` | Format, then create a commit message (`git-cz`) |
+| `task unlock` | Remove the `session.lock` file |
 
-### Build 🚧
+## License
 
-Build the project 🚀.
-```bash
-task build
-```
+Written in 2025-2026 by Morinoparty developer team. No Rights Reserved.
 
-### Commit 📝
+To the extent possible under law, morinoparty has waived all copyright and related or neighboring rights to MoripaFishing. This work is published from: Japan.
 
-Install cz-emoji 💻
-```bash
-pnpm install --global cz-emoji
-```
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see http://creativecommons.org/publicdomain/zero/1.0/.
 
-Commit the changes 💻.
-```bash
-task commit
-```
-
-
-
+This CC0 dedication applies to the source code only. Non-code assets (images, icons, logos, and other media) are **not** covered and remain under their respective rights unless stated otherwise.

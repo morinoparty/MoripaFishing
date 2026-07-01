@@ -30,7 +30,7 @@ jobs:
     outputs:
       commit_sha: ${{ steps.vars.outputs.commit_sha }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set short git commit SHA
         id: vars
@@ -47,18 +47,19 @@ jobs:
       test_passed: ${{ steps.publish-test-results.outputs.passed }}
       test_skipped: ${{ steps.publish-test-results.outputs.skipped }}
       test_failed: ${{ steps.publish-test-results.outputs.failed }}
+      attestation_url: ${{ steps.attest.outputs.attestation-url }}
     env:
       COMMIT_SHORT_SHA: ${{ needs.setup.outputs.commit_sha }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
         with:
           distribution: 'temurin'
           java-version: '25'
 
       # Gradle キャッシュの設定（setup-gradle を使用）
-      - uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -73,9 +74,20 @@ jobs:
         continue-on-error: true
         run: ./gradlew build
 
+      - name: Install Allure CLI
+        if: success() || failure()
+        run: |
+          curl -sL https://github.com/allure-framework/allure2/releases/download/2.32.2/allure-2.32.2.tgz | tar -xz
+          echo "$PWD/allure-2.32.2/bin" >> $GITHUB_PATH
+
+      - name: Generate Allure report
+        if: success() || failure()
+        continue-on-error: true
+        run: allure generate ./bukkit/build/allure-results -o ./bukkit/build/allure-report --clean
+
       - name: Publish test results
         id: publish-test-results
-        uses: mikepenz/action-junit-report@e08919a3b1fb83a78393dfb775a9c37f17d8eea6 # v6.0.1
+        uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16 # v6.4.2
         if: success() || failure()
         with:
           report_paths: './**/build/test-results/test/TEST-*.xml'
@@ -88,6 +100,7 @@ jobs:
           mkdir -p ./gradle-artifacts/jars
           mkdir -p ./gradle-artifacts/junit
           mkdir -p ./gradle-artifacts/detekt
+          mkdir -p ./gradle-artifacts/allure
           mv ./bukkit/build/libs/bukkit-*-all.jar "./gradle-artifacts/jars/${PROJECT_NAME}-bukkit-${SHA}.jar"
           mv ./api/build/libs/api-${SHA}.jar "./gradle-artifacts/jars/${PROJECT_NAME}-api-${SHA}.jar"
           # 統合/アドオンモジュールの jar は自動収集する。新しい integration/addon を追加しても
@@ -108,15 +121,17 @@ jobs:
           ls -1 ./gradle-artifacts/jars > ./gradle-artifacts/jars.txt
           cp -r ./bukkit/build/reports/tests/test/* ./gradle-artifacts/junit/ || echo "No JUnit reports found"
           cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
+          cp -r ./bukkit/build/allure-report/* ./gradle-artifacts/allure/ || echo "No Allure reports found"
 
       # GitHub Attestations で署名
       - name: Attest JAR artifacts
-        uses: actions/attest-build-provenance@v2
+        id: attest
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
           subject-path: './gradle-artifacts/jars/*.jar'
 
       - name: Upload Gradle artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gradle-artifacts
           path: ./gradle-artifacts
@@ -143,23 +158,23 @@ jobs:
     env:
       COMMIT_SHORT_SHA: ${{ needs.setup.outputs.commit_sha }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
         with:
           distribution: 'temurin'
           java-version: '25'
 
       # Gradle キャッシュの設定（Dokka 生成用）
-      - uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '22'
 
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         name: Install pnpm
         with:
           version: 10
@@ -172,7 +187,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         name: Setup pnpm cache
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -197,7 +212,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload docs artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: docs-artifacts
           path: ./docs/out
@@ -211,7 +226,7 @@ jobs:
       COMMIT_SHORT_SHA: ${{ needs.setup.outputs.commit_sha }}
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: ./artifacts
 
@@ -221,6 +236,7 @@ jobs:
           cp -r ./artifacts/gradle-artifacts/jars ./upload/ || echo "No JARs"
           cp -r ./artifacts/gradle-artifacts/junit ./upload/ || echo "No JUnit reports"
           cp -r ./artifacts/gradle-artifacts/detekt ./upload/ || echo "No Detekt reports"
+          cp -r ./artifacts/gradle-artifacts/allure ./upload/ || echo "No Allure reports"
           mkdir -p ./upload/docs
           mv ./artifacts/docs-artifacts/* ./upload/docs/
 
@@ -236,6 +252,7 @@ jobs:
           [ -d ./upload/jars ] && aws s3 cp ./upload/jars $S3_BASE/jars $S3_OPTS --recursive &
           aws s3 cp ./upload/junit $S3_BASE/junit $S3_OPTS --recursive &
           aws s3 cp ./upload/detekt $S3_BASE/detekt $S3_OPTS --recursive &
+          aws s3 cp ./upload/allure $S3_BASE/allure $S3_OPTS --recursive &
           aws s3 cp ./upload/docs $S3_BASE/docs $S3_OPTS --recursive &
 
           # 全ての並列アップロードを待機
@@ -250,7 +267,7 @@ jobs:
     env:
       COMMIT_SHORT_SHA: ${{ needs.setup.outputs.commit_sha }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get limit time
         id: limit-time
@@ -260,7 +277,7 @@ jobs:
 
       # jar 一覧 (jars.txt) を取得して表を動的生成するため、ビルド成果物を取り込む
       - name: Download Gradle artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: gradle-artifacts
           path: ./gradle-artifacts
@@ -286,9 +303,11 @@ jobs:
       - name: Create comment file
         env:
           JUNIT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
+          ALLURE_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/allure/index.html"
           DETEKT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
           DOCS_PREVIEW_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/docs/index.html"
           DOKKA_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/docs/dokka/index.html"
+          ATTESTATION_URL: "${{ needs.build-gradle.outputs.attestation_url }}"
           LIMIT_TIME: ${{ env.LIMIT_TIME }}
           JAR_ROWS: ${{ steps.jar-rows.outputs.rows }}
         run: |
@@ -301,13 +320,14 @@ jobs:
           |----------|----------|
           $JAR_ROWS
 
-          > 📜 **Attestation**: \`gh attestation verify <jar-file> --owner morinoparty\`
+          > 📜 **Attestation** (SLSA provenance): [Verify on GitHub]($ATTESTATION_URL) or run \`gh attestation verify <jar-file> --owner morinoparty\`
 
           ### 📖 Documentation & Reports
           | Resource | Link |
           |----------|------|
           | 📖 Documentation | [Preview]($DOCS_PREVIEW_URL) |
           | 📖 Dokka API | [Preview]($DOKKA_URL) |
+          | 🧪 Allure Report | [Report]($ALLURE_REPORT_URL) |
           | 🧪 JUnit Report | [Report]($JUNIT_REPORT_URL) |
           | 🔍 Detekt Report | [Report]($DETEKT_REPORT_URL) |
 
