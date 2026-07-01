@@ -10,11 +10,19 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release-drafter
+  cancel-in-progress: false
+
 jobs:
   release-drafter:
     runs-on: ubuntu-latest
     steps:
-      - uses: release-drafter/release-drafter@b1476f6e6eb133afa41ed8589daba6dc69b4d3f5 # v6.1.0
+      # GitHub side sometimes hasn't finished associating the just-merged commit with its
+      # pull request yet when this push event fires, which makes release-drafter skip that
+      # PR for one run. Give it a moment to catch up before drafting.
+      - run: sleep 30
+      - uses: release-drafter/release-drafter@4d75298e00d9e34c483e5ff8c68d0ea1c1940c1e # v7.5.1
         with:
           publish: false
         env:
