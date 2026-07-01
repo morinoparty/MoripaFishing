@@ -35,7 +35,6 @@ import party.morino.moripafishing.core.world.WorldManagerImpl
 import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
 import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
-import party.morino.moripafishing.listener.moripafishing.PlayerFishingAnnounceListener
 import party.morino.moripafishing.utils.coroutines.async
 
 open class MoripaFishing :
@@ -74,12 +73,12 @@ open class MoripaFishing :
     }
 
     /**
-     * `MoripaFishingWorldLifecycle` (softdepend) を検出し、`WorldLifecycleProvider` を実装していれば採用する。
+     * `MoripaFishing-Integration-WorldLifecycle` (softdepend) を検出し、`WorldLifecycleProvider` を実装していれば採用する。
      * 未導入時は `null` のままで、ワールド境界の同期やカスタムジェネレーターでのワールド作成機能は
      * スキップされる。
      */
     private fun resolveWorldLifecycleProvider() {
-        val integrationName = "MoripaFishingWorldLifecycle"
+        val integrationName = "MoripaFishing-Integration-WorldLifecycle"
         val integrationPlugin = Bukkit.getPluginManager().getPlugin(integrationName)
         worldLifecycleProvider =
             when {
@@ -103,12 +102,12 @@ open class MoripaFishing :
     }
 
     /**
-     * `MoripaFishingWeather` (softdepend) を検出し、`WeatherControlProvider` を実装していれば採用する。
+     * `MoripaFishing-Integration-Weather` (softdepend) を検出し、`WeatherControlProvider` を実装していれば採用する。
      * 未導入時は `null` のままで、天候の適用 (ワールド改変) はスキップされる。
      * 天候の決定・参照はコアが行うため、未導入でも釣りの抽選条件には反映され続ける。
      */
     private fun resolveWeatherControlProvider() {
-        val integrationName = "MoripaFishingWeather"
+        val integrationName = "MoripaFishing-Integration-Weather"
         val integrationPlugin = Bukkit.getPluginManager().getPlugin(integrationName)
         weatherControlProvider =
             when {
@@ -205,11 +204,6 @@ open class MoripaFishing :
         if (features.enableTeleportOnJoin) {
             this.server.pluginManager.registerEvents(PlayerJoinListener(), this)
         }
-
-        // サブ機能: 釣果アナウンス
-        if (features.enableCatchAnnouncements) {
-            this.server.pluginManager.registerEvents(PlayerFishingAnnounceListener(), this)
-        }
     }
 
     // API getters - 式本体で簡潔に
@@ -245,7 +239,7 @@ open class MoripaFishing :
      *
      * `MoripaFishingAPI` には公開しない (`WorldLifecycleProvider` は独立モジュールにあり、
      * core は shade していないため)。外部プラグインは
-     * `Bukkit.getPluginManager().getPlugin("MoripaFishingWorldLifecycle") as? WorldLifecycleProvider`
+     * `Bukkit.getPluginManager().getPlugin("MoripaFishing-Integration-WorldLifecycle") as? WorldLifecycleProvider`
      * で直接取得すること。
      */
     fun getWorldLifecycleProvider(): WorldLifecycleProvider? = worldLifecycleProvider

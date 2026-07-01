@@ -9,7 +9,7 @@ import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
  * カスタムジェネレーターでのワールド作成を行う。プロバイダー未登録時は該当機能はスキップされる。
  *
  * 本 SPI は **Integration** パターンとして提供され、通常は別 jar
- * (`MoripaFishingWorldLifecycle` 等) の `JavaPlugin` がこれを実装し、
+ * (`MoripaFishing-Integration-WorldLifecycle` 等) の `JavaPlugin` がこれを実装し、
  * コア側は Bukkit の softdepend で実体を検出して利用する。
  *
  * ### 境界を跨ぐ型について

@@ -41,14 +41,14 @@ tasks {
 sourceSets.main {
     resourceFactory {
         paperPluginYaml {
-            name = "MoripaFishingWorldLifecycle"
+            name = "MoripaFishing-Integration-WorldLifecycle"
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.integrations.worldlifecycle.MoripaFishingWorldLifecyclePlugin"
             apiVersion = "1.20"
         }
         bukkitPluginYaml {
-            name = "MoripaFishingWorldLifecycle"
+            name = "MoripaFishing-Integration-WorldLifecycle"
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.integrations.worldlifecycle.MoripaFishingWorldLifecyclePlugin"

@@ -1,0 +1,52 @@
+---
+title: CatchAnnounce
+---
+
+魚を釣り上げたことをサーバー内にアナウンスする公式 Addon。かつて Core に組み込まれていた
+釣果アナウンス機能（`PlayerFishingAnnounceListener`）を、カスタマイズの幅を広げつつ Core を
+肥大化させないために外部 Addon として切り出したもの。
+
+`AnglerFishCaughtEvent`（`:api`）を購読し、魚が釣れるたびに `config.yml` で指定したフォーマットの
+メッセージをブロードキャストする。メッセージ中の魚名・レアリティ名・ワールド名のプレースホルダーは
+MoripaFishing がグローバルに登録している翻訳を経由して解決されるため、閲覧者ごとにクライアントの
+ロケールに応じた表示になる。
+
+## 導入
+
+1. サーバーの `plugins/` に `MoripaFishing-Addon-CatchAnnounce-<version>.jar` を配置する。
+2. サーバーを起動する。Addon は Core を `softdepend` しているため、Core が導入されていれば Core より後にロードされる。
+3. 初回起動時に `plugins/MoripaFishing-Addon-CatchAnnounce/config.yml` が生成される。
+
+Core が未導入の場合、この Addon は起動時に警告ログを出して自動的に無効化される（サーバー自体は問題なく起動する）。
+
+## config.yml
+
+```yaml title="plugins/MoripaFishing-Addon-CatchAnnounce/config.yml"
+enabled: true
+messageFormat: "<gray>[<yellow>Fishing</yellow>]</gray> <angler> caught <fish_name> (<rarity_name>, <size>cm)!"
+minRarityWeight: null
+broadcastTarget: ALL
+broadcastPermission: "moripafishing.addon.catchannounce.receive"
+```
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `enabled` | boolean | アナウンス機能全体の有効/無効を切り替える（デフォルト: `true`） |
+| `messageFormat` | string | MiniMessage形式のメッセージテンプレート。`<angler>`、`<fish_name>`、`<rarity_name>`、`<size>`、`<world_name>`、`<timestamp>`のプレースホルダーが使用可能 |
+| `minRarityWeight` | number \| null | この値以下の`weight`を持つレアリティの魚のみアナウンスする。レアリティの`weight`は値が小さいほどレアな魚を表す。`null`の場合は全ての釣果をアナウンスする（デフォルト: `null`） |
+| `broadcastTarget` | string | アナウンスの送信先。`ALL`（サーバー全体）、`SAME_WORLD`（つりびとと同じ釣り場ワールドにいるプレイヤーのみ）、`PERMISSION`（`broadcastPermission`の権限を持つプレイヤーのみ）のいずれかを指定する（デフォルト: `ALL`） |
+| `broadcastPermission` | string | `broadcastTarget`が`PERMISSION`のときに参照される権限ノード（デフォルト: `moripafishing.addon.catchannounce.receive`） |
+
+## プレースホルダー
+
+- `<angler>`: 釣ったプレイヤーの名前
+- `<fish_name>`: 魚の表示名（閲覧者のロケールに応じて翻訳される）
+- `<rarity_name>`: レアリティの表示名（閲覧者のロケールに応じて翻訳される）
+- `<size>`: 魚のサイズ
+- `<world_name>`: 釣り場ワールド名（閲覧者のロケールに応じて翻訳される）
+- `<timestamp>`: 釣った日時
+
+:::warning[注意]
+`minRarityWeight`はレアリティの`weight`と比較される。`weight`は値が小さいほどレアな魚を意味するため、
+「レア度の高い釣果だけをアナウンスしたい」場合は小さい値を設定する。
+:::

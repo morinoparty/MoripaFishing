@@ -63,7 +63,7 @@ open class MoripaFishingWeatherPlugin :
     override fun onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this)
         Bukkit.getScheduler().runTaskTimer(this, Runnable { refreshAll() }, REFRESH_TICKS, REFRESH_TICKS)
-        logger.info("MoripaFishingWeather enabled.")
+        logger.info("MoripaFishing-Integration-Weather enabled.")
     }
 
     override fun applyWeather(

@@ -8,7 +8,7 @@ package party.morino.moripafishing.api.core.world.weather.control
  * (天候の決定・参照は引き続きコアが担う)。
  *
  * 本 SPI は **Integration** パターンとして提供され、通常は別 jar
- * (`MoripaFishingWeather` 等) の `JavaPlugin` がこれを実装し、
+ * (`MoripaFishing-Integration-Weather` 等) の `JavaPlugin` がこれを実装し、
  * コア側は Bukkit の softdepend で実体を検出して利用する。
  *
  * ### 境界を跨ぐ型について

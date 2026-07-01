@@ -2,7 +2,7 @@
 title: WorldLifecycle
 ---
 
-# MoripaFishingWorldLifecycle
+# MoripaFishing-Integration-WorldLifecycle
 
 MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integration。
 以下の 2 つの機能を提供します。
@@ -12,12 +12,12 @@ MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integ
 
 ## 導入
 
-1. サーバーの `plugins/` に `MoripaFishingWorldLifecycle-<version>.jar` を配置する。
+1. サーバーの `plugins/` に `MoripaFishing-Integration-WorldLifecycle-<version>.jar` を配置する。
 2. サーバーを起動する。Integration → Core の順でロードされる。
 3. Core のログに以下が出ていれば検出済み。
 
    ```
-   [MoripaFishing] WorldLifecycle integration detected: MoripaFishingWorldLifecycle
+   [MoripaFishing] WorldLifecycle integration detected: MoripaFishing-Integration-WorldLifecycle
    ```
 
 未導入時は Core のログに以下が出て、関連機能は自動的にスキップされる。
@@ -38,7 +38,7 @@ MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integ
 
 ## ジェネレーター定義
 
-Integration 側の `plugins/MoripaFishingWorldLifecycle/generator/*.json` に配置される。
+Integration 側の `plugins/MoripaFishing-Integration-WorldLifecycle/generator/*.json` に配置される。
 初回起動時にバンドル済みの `terra.json` / `void.json` / `normal.json` が展開される。
 
 ```json title="generator/terra.json"
@@ -77,4 +77,4 @@ interface WorldLifecycleProvider {
 境界をまたぐ型は `String` と本モジュールの `GeneratorData` のみで、classloader 間の class identity 問題が起きない。
 
 独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
-`MoripaFishingWorldLifecycle` の名前でビルドして配置すれば Core はそちらを優先する。
+`MoripaFishing-Integration-WorldLifecycle` の名前でビルドして配置すれば Core はそちらを優先する。

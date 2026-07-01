@@ -2,7 +2,7 @@
 title: Weather
 ---
 
-# MoripaFishingWeather
+# MoripaFishing-Integration-Weather
 
 MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integration。
 釣りワールドへの **天候の適用（破壊的処理）** を一手に担う。
@@ -21,12 +21,12 @@ Core は天候の **決定・参照** のみを行い、ワールドの実体を
 
 ## 導入
 
-1. サーバーの `plugins/` に `MoripaFishingWeather-<version>.jar` を配置する。
+1. サーバーの `plugins/` に `MoripaFishing-Integration-Weather-<version>.jar` を配置する。
 2. サーバーを起動する。Integration → Core の順でロードされる。
 3. Core のログに以下が出ていれば検出済み。
 
    ```
-   [MoripaFishing] Weather integration detected: MoripaFishingWeather
+   [MoripaFishing] Weather integration detected: MoripaFishing-Integration-Weather
    ```
 
 未導入時は Core のログに以下が出て、天候の適用は自動的にスキップされる。
@@ -70,7 +70,7 @@ interface WeatherControlProvider {
 :::
 
 独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
-`MoripaFishingWeather` の名前でビルドして配置すれば Core はそちらを利用する。
+`MoripaFishing-Integration-Weather` の名前でビルドして配置すれば Core はそちらを利用する。
 
 ## 関連
 

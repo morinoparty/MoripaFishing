@@ -47,6 +47,9 @@ dependencies {
     implementation(libs.arrow.core)
     implementation(libs.arrow.fx.coroutines)
 
+    // AnglerFishCaughtEvent など公開イベント用の例外的な Bukkit 依存 (実装詳細の持ち込みではない)
+    compileOnly(libs.paper.api)
+
     implementation(libs.koin.core)
 
     implementation(libs.kotlinx.serialization.json)

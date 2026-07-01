@@ -1,6 +1,5 @@
 package party.morino.moripafishing.event.fishing
 
-import io.papermc.paper.event.server.ServerResourcesReloadedEvent.HANDLER_LIST
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList

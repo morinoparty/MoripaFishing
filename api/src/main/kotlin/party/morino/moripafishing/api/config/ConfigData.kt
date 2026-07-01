@@ -14,7 +14,7 @@ import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
  * @param world ワールド関連の設定
  * @param fishing 釣り関連の設定
  * @param spawn スポーン関連の設定
- * @param features サブ機能の有効/無効設定（テレポート、アナウンス等）
+ * @param features サブ機能の有効/無効設定（テレポート等）
  */
 @Serializable
 data class ConfigData(
