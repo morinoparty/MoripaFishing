@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.mockbukkit.mockbukkit.MockBukkit
 import org.mockbukkit.mockbukkit.ServerMock
 import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
+import java.io.File
 
 class MoripaFishingWorldLifecyclePluginTest {
     private lateinit var server: ServerMock
@@ -57,5 +58,11 @@ class MoripaFishingWorldLifecyclePluginTest {
         val found = plugin.getGenerator("custom_test_gen")
         assertNotNull(found)
         assertEquals("NORMAL", found!!.type)
+    }
+
+    @Test
+    fun `creates default join-teleport config on enable`() {
+        val file = File(plugin.dataFolder, "join-teleport.yml")
+        assertTrue(file.exists(), "join-teleport.yml should be created with defaults")
     }
 }

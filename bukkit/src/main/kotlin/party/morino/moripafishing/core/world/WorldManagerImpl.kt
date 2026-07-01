@@ -11,6 +11,8 @@ import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.event.world.FishingWorldCreateEvent
+import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
 import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 import party.morino.moripafishing.utils.Utils
 
@@ -97,6 +99,10 @@ class WorldManagerImpl :
 
         plugin.logger.info("Creating or Loading world ${fishingWorldId.value}")
 
+        // 起動時 (initializeWorlds) の既存ワールド再ロードでは worldIdList に既に含まれる。
+        // 真に新規作成された場合のみ FishingWorldCreateEvent を発火するため、事前に判定しておく。
+        val isNewWorld = fishingWorldId !in worldIdList
+
         val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
         if (!file.exists()) {
             val worldDetailConfig =
@@ -122,6 +128,9 @@ class WorldManagerImpl :
         instance.updateState()
         worldIdList.add(fishingWorldId)
         plugin.logger.info("Current world list: ${worldList.map { it.getId().value }}")
+        if (isNewWorld) {
+            FishingWorldCreateEvent(fishingWorldId).callEvent()
+        }
         return true
     }
 
@@ -146,11 +155,18 @@ class WorldManagerImpl :
 
     override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
         val world = Bukkit.getWorld(fishingWorldId.value) ?: return false
+        val event = FishingWorldDeleteEvent(fishingWorldId)
+        if (!event.callEvent()) {
+            plugin.logger.info("deleteWorld(${fishingWorldId.value}) was cancelled by an event handler.")
+            return false
+        }
         Bukkit.unloadWorld(world, false)
         val worldFile = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
         if (worldFile.exists()) {
             worldFile.delete()
         }
+        worldList.removeIf { it.getId() == fishingWorldId }
+        worldIdList.remove(fishingWorldId)
         return true
     }
 

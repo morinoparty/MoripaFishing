@@ -34,7 +34,6 @@ import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
 import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
-import party.morino.moripafishing.listener.minecraft.PlayerJoinListener
 import party.morino.moripafishing.utils.coroutines.async
 
 open class MoripaFishing :
@@ -197,13 +196,6 @@ open class MoripaFishing :
     private fun loadListeners() {
         // コア機能: 釣りイベント処理は常に有効
         this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
-
-        val features = _configManager.getConfig().features
-
-        // サブ機能: ログイン時の自動テレポート
-        if (features.enableTeleportOnJoin) {
-            this.server.pluginManager.registerEvents(PlayerJoinListener(), this)
-        }
     }
 
     // API getters - 式本体で簡潔に
