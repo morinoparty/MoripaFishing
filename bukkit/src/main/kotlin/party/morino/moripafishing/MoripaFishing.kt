@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import org.koin.core.context.GlobalContext
@@ -20,9 +21,8 @@ import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
-import party.morino.moripafishing.api.core.world.weather.WeatherProvider
+import party.morino.moripafishing.api.core.world.weather.WeatherSource
 import party.morino.moripafishing.api.core.world.weather.control.WeatherControlProvider
-import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
@@ -32,7 +32,9 @@ import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
-import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
+import party.morino.moripafishing.core.world.weather.WeatherSourceRegistry
+import party.morino.moripafishing.core.world.weather.source.InternalWeatherSource
+import party.morino.moripafishing.core.world.weather.source.VanillaWeatherSource
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
 import party.morino.moripafishing.utils.coroutines.async
 
@@ -49,7 +51,7 @@ open class MoripaFishing :
     private val _anglerManager: AnglerManager by lazy { GlobalContext.get().get() }
     private val _logManager: LogManager by lazy { GlobalContext.get().get() }
     private val _translateManager: TranslateManager by lazy { GlobalContext.get().get() }
-    private val _weatherProviderRegistry: WeatherProviderRegistry by lazy { GlobalContext.get().get() }
+    private val _weatherSourceRegistry: WeatherSourceRegistry by lazy { GlobalContext.get().get() }
 
     private var disable = false
 
@@ -64,6 +66,7 @@ open class MoripaFishing :
         setupKoin()
         resolveWorldLifecycleProvider()
         resolveWeatherControlProvider()
+        registerBuiltInWeatherSources()
         initializeManagers()
         loadListeners()
         _translateManager.load()
@@ -130,6 +133,15 @@ open class MoripaFishing :
     }
 
     /**
+     * 組み込みの天候ソース（`moripafishing:internal` / `moripafishing:vanilla`）をレジストリへ登録する。
+     * 外部プラグインは `registerWeatherSource` で自前のソースを追加できる。
+     */
+    private fun registerBuiltInWeatherSources() {
+        _weatherSourceRegistry.register(InternalWeatherSource(_randomizeManager))
+        _weatherSourceRegistry.register(VanillaWeatherSource(this))
+    }
+
+    /**
      * マネージャーの初期化
      */
     private fun initializeManagers() {
@@ -162,7 +174,7 @@ open class MoripaFishing :
                 single<AnglerManager> { AnglerManagerImpl() }
                 single<LogManager> { LogManagerImpl() }
                 single<TranslateManager> { TranslateManagerImpl() }
-                single<WeatherProviderRegistry> { WeatherProviderRegistry() }
+                single<WeatherSourceRegistry> { WeatherSourceRegistry() }
             }
 
         getOrNull() ?: GlobalContext.startKoin {
@@ -215,15 +227,12 @@ open class MoripaFishing :
 
     override fun getLogManager(): LogManager = _logManager
 
-    override fun registerWeatherProvider(
-        worldId: FishingWorldId,
-        provider: WeatherProvider,
-    ) {
-        _weatherProviderRegistry.register(worldId, provider)
+    override fun registerWeatherSource(source: WeatherSource) {
+        _weatherSourceRegistry.register(source)
     }
 
-    override fun unregisterWeatherProvider(worldId: FishingWorldId) {
-        _weatherProviderRegistry.unregister(worldId)
+    override fun unregisterWeatherSource(key: Key) {
+        _weatherSourceRegistry.unregister(key)
     }
 
     /**

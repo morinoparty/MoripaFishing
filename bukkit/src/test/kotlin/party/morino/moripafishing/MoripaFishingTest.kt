@@ -22,7 +22,7 @@ import party.morino.moripafishing.core.angler.AnglerManagerImpl
 import party.morino.moripafishing.core.fish.FishManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
-import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
+import party.morino.moripafishing.core.world.weather.WeatherSourceRegistry
 import party.morino.moripafishing.mocks.config.PluginDirectoryMock
 import party.morino.moripafishing.mocks.internationalization.TranslateManagerMock
 import party.morino.moripafishing.mocks.log.LogManagerMock
@@ -62,7 +62,7 @@ class MoripaFishingTest :
                 single<LogManager> { LogManagerMock() }
                 single<AnglerManager> { AnglerManagerImpl() }
                 single<TranslateManager> { TranslateManagerMock() }
-                single<WeatherProviderRegistry> { WeatherProviderRegistry() }
+                single<WeatherSourceRegistry> { WeatherSourceRegistry() }
                 single<ServerMock> { server } // MockBukkitサーバーをKoinに登録
             }
 

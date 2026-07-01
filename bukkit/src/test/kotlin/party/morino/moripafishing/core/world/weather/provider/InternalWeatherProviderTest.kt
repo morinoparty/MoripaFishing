@@ -1,6 +1,8 @@
 package party.morino.moripafishing.core.world.weather.provider
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
 import party.morino.moripafishing.api.model.world.FishingWorldId
@@ -17,21 +19,22 @@ class InternalWeatherProviderTest {
 
     @Test
     fun `falls back to randomizer when no applied weather is cached`() {
-        val provider =
-            InternalWeatherProvider(
-                weatherRandomizer = FixedRandomizer(WeatherType.CLOUDY),
-                currentWeatherSupplier = { null },
-            )
+        val provider = InternalWeatherProvider(FixedRandomizer(WeatherType.CLOUDY))
         assertEquals(WeatherType.CLOUDY, provider.getCurrentWeather(FishingWorldId("w")))
     }
 
     @Test
     fun `prefers applied cached weather over randomizer`() {
-        val provider =
-            InternalWeatherProvider(
-                weatherRandomizer = FixedRandomizer(WeatherType.CLOUDY),
-                currentWeatherSupplier = { WeatherType.RAINY },
-            )
+        val provider = InternalWeatherProvider(FixedRandomizer(WeatherType.CLOUDY))
+        provider.applyWeather(WeatherType.RAINY)
         assertEquals(WeatherType.RAINY, provider.getCurrentWeather(FishingWorldId("w")))
+    }
+
+    @Test
+    fun `applyWeather reports whether the cached value changed`() {
+        val provider = InternalWeatherProvider(FixedRandomizer(WeatherType.CLOUDY))
+        assertTrue(provider.applyWeather(WeatherType.RAINY))
+        assertFalse(provider.applyWeather(WeatherType.RAINY))
+        assertTrue(provider.applyWeather(WeatherType.THUNDERSTORM))
     }
 }

@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.decodeFromStream
+import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import org.bukkit.GameRule
 import org.bukkit.World
@@ -13,23 +14,23 @@ import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.config.climate.ClimateConfig
-import party.morino.moripafishing.api.config.climate.WeatherMode
 import party.morino.moripafishing.api.config.world.WorldDetailConfig
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.random.weather.WeatherRandomizer
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.weather.WeatherProvider
+import party.morino.moripafishing.api.core.world.weather.WeatherSource
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
-import party.morino.moripafishing.core.world.weather.WeatherProviderRegistry
-import party.morino.moripafishing.core.world.weather.provider.ExternalWeatherProvider
+import party.morino.moripafishing.core.world.weather.WeatherSourceRegistry
 import party.morino.moripafishing.core.world.weather.provider.InternalWeatherProvider
 import party.morino.moripafishing.core.world.weather.provider.VanillaWeatherProvider
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.concurrent.ConcurrentHashMap
 
 @kotlinx.serialization.ExperimentalSerializationApi
 class FishingWorldImpl(
@@ -40,19 +41,9 @@ class FishingWorldImpl(
     private val pluginDirectory: PluginDirectory by inject()
     private val configManager: ConfigManager by inject()
     private val randomizeManager: RandomizeManager by inject()
-    private val weatherProviderRegistry: WeatherProviderRegistry by inject()
+    private val weatherSourceRegistry: WeatherSourceRegistry by inject()
 
     private lateinit var worldDetailConfig: WorldDetailConfig
-
-    /**
-     * INTERNAL モードで MoripaFishing が自ら適用した最新の天候。
-     * VANILLA / EXTERNAL モードではプロバイダーを直接参照するため使用しない。
-     *
-     * 非同期リフレッシュループ (`updateState`) とメインスレッド読み取り
-     * (`FishRandomizerImpl` 等) の双方から触られるので `@Volatile` で可視性を担保する。
-     */
-    @Volatile
-    private var appliedInternalWeather: WeatherType? = null
 
     private val weatherRandomizer: WeatherRandomizer by lazy {
         randomizeManager.getWeatherRandomizer(worldId)
@@ -60,19 +51,72 @@ class FishingWorldImpl(
 
     @Volatile
     private var weatherProvider: WeatherProvider? = null
+
+    @Volatile
+    private var resolvedSource: WeatherSource? = null
     private val weatherProviderLock = Any()
 
     /**
-     * プロバイダーはモードに応じた唯一のインスタンスを保持する必要があるため
-     * (例: `VanillaWeatherProvider` は Bukkit Listener を登録するので二重登録を避ける)、
-     * double-checked locking で初期化を直列化する。
+     * 未登録のためフォールバックしたキーの警告を1度だけ出すための記録。
      */
-    private fun weatherProvider(): WeatherProvider {
-        val cached = weatherProvider
-        if (cached != null) return cached
+    private val warnedMissingSource: MutableSet<Key> = ConcurrentHashMap.newKeySet()
+
+    /**
+     * `ClimateConfig.weatherSource` のキーから `WeatherSource` を解決する。
+     *
+     * プロバイダーはソースごとの唯一のインスタンスを保持する必要があるため
+     * (例: `VanillaWeatherProvider` は Bukkit Listener を登録するので二重登録を避ける)、
+     * double-checked locking で解決を直列化する。
+     *
+     * 設定されたキーが未登録の場合は `moripafishing:internal` にフォールバックしつつ、
+     * 後から外部ソースが登録された際に解決し直せるよう、フォールバック中はキャッシュを
+     * 設定キーに固定しない。
+     */
+    private fun resolveWeatherSource(): WeatherSource {
+        val configKey = currentClimateConfig().weatherSource
+        val cached = resolvedSource
+        if (cached != null && cached.key == configKey) return cached
         return synchronized(weatherProviderLock) {
-            weatherProvider ?: resolveWeatherProvider().also { weatherProvider = it }
+            val current = resolvedSource
+            if (current != null && current.key == configKey) return@synchronized current
+
+            val source = weatherSourceRegistry.get(configKey)
+            if (source != null) {
+                warnedMissingSource.remove(configKey)
+                swapProvider(source)
+                return@synchronized source
+            }
+
+            if (warnedMissingSource.add(configKey)) {
+                plugin.logger.warning(
+                    "[${worldId.value}] weatherSource '$configKey' is not registered; " +
+                        "falling back to '${WeatherSource.INTERNAL}'. " +
+                        "Register it via MoripaFishingAPI.registerWeatherSource.",
+                )
+            }
+            val fallback =
+                current?.takeIf { it.key == WeatherSource.INTERNAL }
+                    ?: weatherSourceRegistry.get(WeatherSource.INTERNAL)
+                    ?: error("Built-in weather source '${WeatherSource.INTERNAL}' is not registered")
+            if (current !== fallback) {
+                swapProvider(fallback)
+            }
+            fallback
         }
+    }
+
+    /**
+     * 解決済みソースとプロバイダーを差し替える。呼び出し側で [weatherProviderLock] を保持していること。
+     */
+    private fun swapProvider(source: WeatherSource) {
+        (weatherProvider as? VanillaWeatherProvider)?.dispose()
+        resolvedSource = source
+        weatherProvider = source.createProvider(worldId)
+    }
+
+    private fun weatherProvider(): WeatherProvider {
+        resolveWeatherSource()
+        return weatherProvider ?: error("Weather provider is not initialized for ${worldId.value}")
     }
 
     init {
@@ -86,11 +130,13 @@ class FishingWorldImpl(
             throw IllegalArgumentException("World detail config file not found: ${file.absolutePath}")
         }
         worldDetailConfig = Utils.json.decodeFromStream<WorldDetailConfig>(file.inputStream())
-        // モードが変わり得るのでプロバイダーキャッシュを無効化する。
+        // ソースが変わり得るのでプロバイダーキャッシュを無効化する。
         // 既存の provider が Bukkit Listener を登録していた場合 (VANILLA) は解除する。
         synchronized(weatherProviderLock) {
             (weatherProvider as? VanillaWeatherProvider)?.dispose()
             weatherProvider = null
+            resolvedSource = null
+            warnedMissingSource.clear()
         }
     }
 
@@ -111,21 +157,23 @@ class FishingWorldImpl(
     /**
      * 天候を設定する。
      *
-     * INTERNAL モードでは内部状態を更新し Bukkit ワールドにも反映する。
-     * VANILLA / EXTERNAL モードでは MoripaFishing がワールドを支配しないため no-op。
+     * ソースがワールド天候を駆動する場合 (`managesWorldWeather == true`、`moripafishing:internal` 相当) は
+     * 内部状態を更新し Bukkit ワールドにも反映する。それ以外のソースでは MoripaFishing がワールドを
+     * 支配しないため no-op。
      */
     override fun setWeather(weatherType: WeatherType) {
-        val mode = currentClimateConfig().weatherMode
-        if (mode != WeatherMode.INTERNAL) {
+        val source = resolveWeatherSource()
+        if (!source.managesWorldWeather) {
             plugin.logger.fine(
-                "[${worldId.value}] setWeather($weatherType) ignored: weatherMode=$mode is not INTERNAL.",
+                "[${worldId.value}] setWeather($weatherType) ignored: weatherSource '${source.key}' does not manage world weather.",
             )
             return
         }
-        if (weatherType == this.appliedInternalWeather) {
+        // 内蔵プロバイダーは適用済み天候をキャッシュする。値が変わらなければ Bukkit への再適用を省く。
+        val provider = weatherProvider
+        if (provider is InternalWeatherProvider && !provider.applyWeather(weatherType)) {
             return
         }
-        this.appliedInternalWeather = weatherType
         plugin.getWeatherControlProvider()?.applyWeather(
             worldId = worldId.value,
             weatherType = weatherType.name,
@@ -234,11 +282,12 @@ class FishingWorldImpl(
         }
 
         val climateConfig = currentClimateConfig()
+        val source = resolveWeatherSource()
 
-        updateGameRule(climateConfig)
+        updateGameRule(climateConfig, source)
 
-        // 天候制御: INTERNAL モード時のみプラグインが天候を決定・適用する
-        if (climateConfig.weatherMode == WeatherMode.INTERNAL) {
+        // 天候制御: ソースがワールド天候を駆動する場合のみプラグインが天候を決定・適用する
+        if (source.managesWorldWeather) {
             updateWeather()
         }
 
@@ -250,17 +299,20 @@ class FishingWorldImpl(
     /**
      * ゲームルールを設定する。
      *
-     * `DO_WEATHER_CYCLE` は VANILLA モードのみ true（バニラ天候を読み取るため）、
-     * INTERNAL / EXTERNAL では false（それぞれ MoripaFishing / 外部プラグインが管理するため、
-     * バニラの自動変化を止める）。
+     * `DO_WEATHER_CYCLE` はソースの `usesVanillaWeatherCycle` に従う
+     * （`moripafishing:vanilla` のみ true。バニラ天候を読み取るため）。
+     * それ以外のソースでは false にして、MoripaFishing または外部プラグインの管理に委ねる。
      */
-    private fun updateGameRule(climateConfig: ClimateConfig) {
+    private fun updateGameRule(
+        climateConfig: ClimateConfig,
+        source: WeatherSource,
+    ) {
         runBlocking {
             withContext(Dispatchers.minecraft) {
                 world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, !climateConfig.enableDayCycle)
                 world.setGameRule(
                     GameRule.DO_WEATHER_CYCLE,
-                    climateConfig.weatherMode == WeatherMode.VANILLA,
+                    source.usesVanillaWeatherCycle,
                 )
             }
         }
@@ -274,12 +326,4 @@ class FishingWorldImpl(
     private fun currentClimateConfig(): ClimateConfig =
         worldDetailConfig.climateConfig
             ?: configManager.getConfig().world.defaultClimateConfig
-
-    private fun resolveWeatherProvider(): WeatherProvider =
-        when (currentClimateConfig().weatherMode) {
-            WeatherMode.INTERNAL ->
-                InternalWeatherProvider(weatherRandomizer) { appliedInternalWeather }
-            WeatherMode.VANILLA -> VanillaWeatherProvider(plugin)
-            WeatherMode.EXTERNAL -> ExternalWeatherProvider(weatherProviderRegistry, plugin.logger)
-        }
 }

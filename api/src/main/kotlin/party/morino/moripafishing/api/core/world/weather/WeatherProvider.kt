@@ -7,7 +7,7 @@ import party.morino.moripafishing.api.model.world.WeatherType
  * 釣りワールドの現在の天候を提供する SPI。
  *
  * MoripaFishing 本体および外部プラグインがこのインターフェースを実装して、
- * 各 `WeatherMode` に対応する天候ソースを差し替え可能にする。
+ * 各 `WeatherSource` に対応する天候ソースを差し替え可能にする。
  *
  * pull 型で、呼び出しごとに最新の天候を返す。
  *
