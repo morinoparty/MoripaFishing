@@ -45,14 +45,14 @@ class FishRandomizerImpl :
         rarity: RarityId,
         fishingWorldId: FishingWorldId,
     ): FishData {
-        // 現在の天気を取得
-        val weatherType = worldManager.getWorld(fishingWorldId).getCurrentWeather()
+        // 現在の天気を取得。未登録ワールドの場合は天候条件なしとして扱う
+        val weatherType = worldManager.getWorld(fishingWorldId)?.getCurrentWeather()
         // 条件に合致する魚データをフィルタリング
         val fishesData =
             fishManager.getFishesWithRarity(rarity).filter {
                 !it.isDisabled &&
                     (it.conditions.world.isEmpty() || it.conditions.world.contains(fishingWorldId)) &&
-                    (it.conditions.weather.isEmpty() || it.conditions.weather.contains(weatherType))
+                    (it.conditions.weather.isEmpty() || (weatherType != null && it.conditions.weather.contains(weatherType)))
             }
         // 重み付け抽選のための合計値を計算
         val total = fishesData.sumOf { it.weight }

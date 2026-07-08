@@ -1,3 +1,5 @@
+package party.morino.moripafishing.core.fish
+
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.minimessage.translation.Argument
@@ -7,7 +9,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.koin.core.component.KoinComponent
-import org.koin.java.KoinJavaComponent.getKoin
+import org.koin.core.component.get
 import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.core.angler.AnglerManager
@@ -20,13 +22,13 @@ import java.util.Locale
  *
  * このクラスは、魚のデータをBukkitのItemStackとして表現し、Minecraft内でアイテムとして扱えるようにする
  */
-class BukkitFishItem : KoinComponent {
+class BukkitFishItem {
     /**
      * 魚アイテムを作成する
      * @param caughtFish 捕獲された魚のデータ
      * @return ItemStack 魚アイテム
      */
-    companion object {
+    companion object : KoinComponent {
         /**
          * 魚からItemStackを作成する
          * @param fish 魚
@@ -37,10 +39,10 @@ class BukkitFishItem : KoinComponent {
             locale: Locale,
         ): ItemStack {
             // Koinから依存関係を取得
-            val fishManager = getKoin().get<FishManager>()
-            val configManager = getKoin().get<ConfigManager>()
-            val anglerManager = getKoin().get<AnglerManager>()
-            val plugin = getKoin().get<MoripaFishing>()
+            val fishManager = get<FishManager>()
+            val configManager = get<ConfigManager>()
+            val anglerManager = get<AnglerManager>()
+            val plugin = get<MoripaFishing>()
 
             // 魚の基本データを取得
             val fishData = fishManager.getFishWithId(caughtFish.fish) ?: throw IllegalArgumentException("Fish not found")
@@ -149,7 +151,7 @@ class BukkitFishItem : KoinComponent {
          */
         fun isBukkitFishItem(item: ItemStack): Boolean {
             // Koinからプラグインインスタンスを取得
-            val plugin = getKoin().get<MoripaFishing>()
+            val plugin = get<MoripaFishing>()
 
             // 永続化データ用のキーを作成
             val key = NamespacedKey(plugin, "moripa_fishing.fish")

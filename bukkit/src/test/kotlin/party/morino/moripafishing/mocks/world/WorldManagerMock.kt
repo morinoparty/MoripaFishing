@@ -52,9 +52,20 @@ class WorldManagerMock :
     override fun getWorldIdList(): List<FishingWorldId> = worldIdList
 
     /**
-     * ワールドを取得する (モック用、未実装)
+     * ワールドが登録されているか判定する (モック用)
      */
-    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld = FishingWorldMock(fishingWorldId)
+    override fun hasWorld(fishingWorldId: FishingWorldId): Boolean = fishingWorldId in worldIdList
+
+    /**
+     * ワールドを取得する (モック用)
+     */
+    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld? =
+        if (fishingWorldId in worldIdList) FishingWorldMock(fishingWorldId) else null
+
+    /**
+     * ロード済みのワールドの一覧を取得する (モック用)
+     */
+    override fun getWorlds(): List<FishingWorld> = worldIdList.map { FishingWorldMock(it) }
 
     /**
      * ワールドを作成する (モック用、常にnull)
@@ -63,6 +74,16 @@ class WorldManagerMock :
         worldIdList.plus(fishingWorldId)
         return true
     }
+
+    override fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generatorId: String,
+    ): Boolean {
+        worldIdList.plus(fishingWorldId)
+        return true
+    }
+
+    override fun getGeneratorIds(): List<String> = emptyList()
 
     override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
         worldIdList.minus(fishingWorldId)

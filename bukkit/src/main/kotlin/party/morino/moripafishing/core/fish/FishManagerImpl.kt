@@ -37,6 +37,13 @@ class FishManagerImpl :
     }
 
     /**
+     * 登録されている魚を解除する
+     * @param id 解除する魚のID
+     * @return 解除した場合 true、登録されていなかった場合 false
+     */
+    override fun unregisterFish(id: FishId): Boolean = fishes.remove(id) != null
+
+    /**
      * 登録されている魚の一覧を取得する
      * @return 魚の一覧
      */

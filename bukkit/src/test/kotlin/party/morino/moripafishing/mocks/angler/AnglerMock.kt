@@ -1,5 +1,6 @@
 package party.morino.moripafishing.mocks.angler
 
+import net.kyori.adventure.audience.Audience
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
@@ -30,6 +31,8 @@ class AnglerMock(
     override fun getWorld(): FishingWorld? = testWorld
 
     override fun getLocation(): LocationData? = testLocation
+
+    override fun getAudience(): Audience = Audience.empty()
 
     /**
      * テスト用: ワールドを設定する

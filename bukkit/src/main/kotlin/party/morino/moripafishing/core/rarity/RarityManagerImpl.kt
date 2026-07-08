@@ -30,6 +30,13 @@ class RarityManagerImpl :
     }
 
     /**
+     * 登録されているレアリティを解除する
+     * @param id 解除するレアリティのID
+     * @return 解除した場合 true、登録されていなかった場合 false
+     */
+    override fun unregisterRarity(id: RarityId): Boolean = rarities.removeIf { it.id == id }
+
+    /**
      * レアリティを取得する
      * @param id レアリティのID
      * @return レアリティ

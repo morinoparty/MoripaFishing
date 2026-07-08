@@ -10,6 +10,8 @@ import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
+import party.morino.moripafishing.core.world.FishingWorldImpl
+import party.morino.moripafishing.event.config.ConfigReloadedEvent
 
 @Command("mf")
 @Permission("moripa_fishing.command.world")
@@ -22,17 +24,18 @@ class DefaultCommand : KoinComponent {
 
     @Command("reload")
     @Permission("moripa_fishing.command.world.default")
-    fun transfer(sender: CommandSender) {
+    fun reload(sender: CommandSender) {
         val n = 5
         // config
         configManager.reload()
         sender.sendRichMessage("<green>[1 / $n] Reloaded root config")
 
         // world
-        worldManager.getWorldIdList().forEach { worldId ->
-            val fishingWorld = worldManager.getWorld(worldId)
-            fishingWorld.loadConfig()
-            fishingWorld.updateState()
+        worldManager.getWorlds().forEach { fishingWorld ->
+            (fishingWorld as? FishingWorldImpl)?.let {
+                it.loadConfig()
+                it.updateState()
+            }
         }
         sender.sendRichMessage("<green>[2 / $n] Reloaded world")
 
@@ -49,5 +52,8 @@ class DefaultCommand : KoinComponent {
         // i18n
         translateManager.reload()
         sender.sendRichMessage("<green>[5 / $n] Reloaded all i18n files")
+
+        // 設定由来の値をキャッシュしているアドオンへ再読み込み完了を通知する
+        ConfigReloadedEvent().callEvent()
     }
 }

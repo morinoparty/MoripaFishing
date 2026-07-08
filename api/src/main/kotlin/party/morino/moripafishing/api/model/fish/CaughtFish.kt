@@ -16,23 +16,18 @@ import java.util.UUID
 /**
  * 釣り上げた魚の情報を表すデータクラス
  * DB保存やAPI返却用の純粋なデータ構造
+ *
+ * @property uniqueId この釣果の一意な識別子
+ * @property fish 魚種のID
+ * @property size 魚のサイズ
+ * @property rarity レアリティのID
+ * @property worth 価値
+ * @property cfd 累積分布関数値
+ * @property angler 釣り人のID
+ * @property world 釣り上げたワールドのID
+ * @property timestamp 捕獲日時 (ISO8601でシリアライズされる)
  */
 @Serializable
-// 魚の捕獲情報を保持するdata class
-// FishId, サイズ, レアリティ, 価値, CFD, 釣り人, ワールド, 捕獲時刻を持つ
-// 釣果履歴やランキング等の用途で利用される
-// UUIDはFishIdで一意に管理する
-// ZonedDateTimeはISO8601(ex. 2025-05-11T00:00:00+09:00)でシリアライズされる
-// AnglerId, FishingWorldId, RarityIdはそれぞれのmodel参照
-// FishIdは魚種の識別子
-// worthは価値、cfdは累積分布関数値
-// timestampは捕獲日時
-// worldは釣り場
-// anglerは釣り人
-// rarityはレアリティ
-// sizeは魚のサイズ
-// fishは魚種ID
-//
 data class CaughtFish(
     @Serializable(with = UUIDSerializer::class)
     val uniqueId: UUID,

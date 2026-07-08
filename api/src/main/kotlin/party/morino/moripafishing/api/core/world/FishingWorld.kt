@@ -35,9 +35,11 @@ interface FishingWorld {
     fun setWeather(weatherType: WeatherType)
 
     /**
-     * 天候タイプを更新する
+     * 現在の天候ソースが決定した天候（[getCurrentWeather]）をワールドへ適用する。
+     * `managesWorldWeather = true` なソースのみ効果があり、内蔵ランダマイザーだけでなく
+     * 外部の managed ソースもプロバイダーの決定がそのまま適用される。
      */
-    fun updateWeather() = setWeather(getCalculatedWeather())
+    fun updateWeather() = setWeather(getCurrentWeather())
 
     /**
      * ワールドのスポーン位置を取得する。
@@ -52,54 +54,39 @@ interface FishingWorld {
     fun setWorldSpawnPosition(location: LocationData)
 
     /**
-     * ワールドの大きさを取得する。
-     * @return Double ワールドの大きさ
+     * ワールドボーダーの大きさを取得する。
+     * @return Double ワールドボーダーの大きさ
      * */
     fun getSize(): Double
 
     /**
-     * ワールドの大きさを設定する。
-     * @param size ワールドの大きさ
+     * ワールドボーダーの大きさを設定する。
+     * @param size ワールドボーダーの大きさ
      */
     fun setSize(size: Double)
 
     /**
-     * ワールドの中心位置を取得する。
-     * @return LocationData ワールドの中心位置
+     * ワールドの中心位置 (x, z) を取得する。
+     * @return ワールドの中心位置 (x, z)
      */
     fun getCenter(): Pair<Double, Double>
 
     /**
-     * ワールドの中心位置を取得する。
-     * @param locationData ワールドの中心位置
+     * ワールドの中心位置 (x, z) を設定する。
+     * @param center ワールドの中心位置 (x, z)
      */
-    fun setCenter(
-        x: Double,
-        z: Double,
-    )
+    fun setCenter(center: Pair<Double, Double>)
 
     /**
-     * ワールドの時間を同期する。
+     * ワールドの時間を現実時間と同期する。
      */
-    fun syncronoizeTime()
-
-    /**
-     * ワールドの設定を更新する。
-     * ワールドの設定は、ワールドの中心位置や半径、天気および時間などの情報を含む。
-     * このメソッドは、ワールドの設定を更新するために使用される。
-     */
-    fun updateState()
+    fun synchronizeTime()
 
     /**
      * ワールドの詳細設定を取得する。
      * @return WorldDetailConfig ワールドの詳細設定
      */
     fun getWorldDetails(): WorldDetailConfig
-
-    /**
-     * ワールドの設定を再読み込みする。
-     */
-    fun loadConfig()
 
     /**
      * ワールド上で天候や特殊効果などの一連の効果が終了した際に呼び出すメソッド

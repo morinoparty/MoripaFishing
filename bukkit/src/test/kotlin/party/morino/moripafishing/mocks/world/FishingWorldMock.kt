@@ -44,26 +44,15 @@ class FishingWorldMock(
 
     override fun getCenter(): Pair<Double, Double> = center
 
-    override fun setCenter(
-        x: Double,
-        z: Double,
-    ) {
-        // モックなので何もしないのだ
+    override fun setCenter(center: Pair<Double, Double>) {
+        // モックなので何もしない
     }
 
-    override fun syncronoizeTime() {
-        // モックなので何もしないのだ
-    }
-
-    override fun updateState() {
-        // モックなので何もしないのだ
+    override fun synchronizeTime() {
+        // モックなので何もしない
     }
 
     override fun getWorldDetails(): WorldDetailConfig = WorldDetailConfig()
-
-    override fun loadConfig() {
-        // モックなので何もしないのだ
-    }
 
     override fun effectFinish() {
         // モックなので何もしないのだ

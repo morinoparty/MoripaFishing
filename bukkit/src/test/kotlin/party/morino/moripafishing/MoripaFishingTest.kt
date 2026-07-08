@@ -84,8 +84,8 @@ class MoripaFishingTest :
      * @param context 拡張機能のコンテキスト
      */
     override fun afterAll(context: ExtensionContext) {
-        // MockBukkitのクリーンアップ
-        MockBukkit.unmock()
+        // プラグインを無効化してから MockBukkit をクリーンアップする
         plugin.onDisable()
+        MockBukkit.unmock()
     }
 }
