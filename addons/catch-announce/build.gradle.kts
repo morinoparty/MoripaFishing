@@ -17,16 +17,14 @@ dependencies {
     // :bukkit には依存しない (実際の外部リポジトリでは compileOnly("party.morino:moripafishing-api:<version>") に相当)。
     compileOnly(project(":api"))
     compileOnly(libs.paper.api)
-    // RarityId (api) が KoinComponent を実装しているため、コンパイル時の型解決に必要。
-    compileOnly(libs.koin.core)
 
-    implementation(libs.bundles.kyori)
+    // Adventure / MiniMessage は Paper が提供するため shade しない。
+    compileOnly(libs.bundles.kyori)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kaml)
 
     testImplementation(project(":api"))
     testImplementation(libs.paper.api)
-    testImplementation(libs.koin.core)
     testImplementation(libs.mock.bukkit)
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
     testImplementation(libs.bundles.junit.jupiter)

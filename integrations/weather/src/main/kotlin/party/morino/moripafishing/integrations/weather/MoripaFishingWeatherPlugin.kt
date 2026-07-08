@@ -10,7 +10,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
-import party.morino.moripafishing.api.core.world.weather.control.WeatherControlProvider
+import party.morino.moripafishing.integrations.weather.api.WeatherControlProvider
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -117,8 +117,14 @@ open class MoripaFishingWeatherPlugin :
                 world.setStorm(true)
                 world.isThundering = false
             }
-            // SUNNY および未対応 (FOGGY / SNOWY 等) は晴れにフォールバックする
+            // SUNNY と、Bukkit 天候での表現を持たない FOGGY / SNOWY は晴れとして適用する
+            "SUNNY", "FOGGY", "SNOWY" -> {
+                world.setStorm(false)
+                world.isThundering = false
+            }
+            // 未知の値は設定ミスや SPI の不整合の可能性があるため、警告した上で晴れに戻す
             else -> {
+                logger.warning("Unknown weather type '$weatherType' for world '${world.name}'. Falling back to clear weather.")
                 world.setStorm(false)
                 world.isThundering = false
             }

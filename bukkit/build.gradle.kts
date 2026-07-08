@@ -42,8 +42,6 @@ dependencies {
 
     implementation(libs.uuid.creator)
 
-    compileOnly(libs.vault.api)
-
     implementation(libs.bundles.kyori)
 
     implementation(libs.exp4j)
@@ -86,8 +84,6 @@ tasks {
         minecraftVersion("26.1.2")
         val plugins =
             runPaper.downloadPluginsSpec {
-                // Vault
-                url("https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar")
                 modrinth("terra", "6.6.5-BETA-bukkit")
             }
         downloadPlugins {
@@ -107,7 +103,6 @@ sourceSets.main {
             bootstrapper = "$group.moripafishing.MoripaFishingBootstrap"
             loader = "$group.moripafishing.MoripaFishingLoader"
             dependencies {
-                server("Vault", PaperPluginYaml.Load.BEFORE)
                 server("MoripaFishing-Integration-WorldLifecycle", PaperPluginYaml.Load.BEFORE, required = false)
                 server("MoripaFishing-Integration-Weather", PaperPluginYaml.Load.BEFORE, required = false)
             }
@@ -119,9 +114,6 @@ sourceSets.main {
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
             softDepend.set(listOf("MoripaFishing-Integration-WorldLifecycle", "MoripaFishing-Integration-Weather"))
-            dependencies {
-                "Vault"
-            }
         }
     }
 }

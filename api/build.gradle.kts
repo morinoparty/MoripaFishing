@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    `java-library`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.maven.publish)
@@ -44,25 +45,18 @@ mavenPublishing {
 }
 
 dependencies {
-    implementation(libs.arrow.core)
-    implementation(libs.arrow.fx.coroutines)
-
     // AnglerFishCaughtEvent など公開イベント用の例外的な Bukkit 依存 (実装詳細の持ち込みではない)
     compileOnly(libs.paper.api)
 
-    implementation(libs.koin.core)
+    // @Serializable モデルとカスタムシリアライザ (Key/Component) が公開 ABI に含まれる
+    api(libs.kotlinx.serialization.json)
+    api(libs.bundles.kyori)
 
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.kaml)
-    implementation(libs.bundles.kyori)
-
     implementation(libs.uuid.creator)
 }
 
 kotlin {
-    jvmToolchain {
-        (this).languageVersion.set(JavaLanguageVersion.of(25))
-    }
     jvmToolchain(25)
 }
 

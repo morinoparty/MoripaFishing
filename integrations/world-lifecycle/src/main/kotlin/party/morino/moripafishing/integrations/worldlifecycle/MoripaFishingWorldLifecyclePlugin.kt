@@ -10,8 +10,8 @@ import org.bukkit.NamespacedKey
 import org.bukkit.WorldCreator
 import org.bukkit.WorldType
 import org.bukkit.plugin.java.JavaPlugin
-import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
 import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
+import party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider
 import party.morino.moripafishing.integrations.worldlifecycle.biome.ConstBiomeGenerator
 import java.io.File
 
