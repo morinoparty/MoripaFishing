@@ -83,27 +83,37 @@ depend:
 
 ## APIの取得
 
-MoripaFishingのプラグインインスタンスは`MoripaFishingAPI`インターフェースを実装しています。
-Bukkitのプラグインマネージャーからインスタンスを取得できます。
+APIの取得口は`MoripaFishingAPIProvider`です。コア（`MoripaFishing`）が有効化時に登録し、無効化時に解除します。
+プラグイン名でのキャスト（`getPlugin("MoripaFishing") as MoripaFishingAPI`）には依存しないでください。
 
 ### Kotlin
 
 ```kotlin
-import party.morino.moripafishing.api.MoripaFishingAPI
+import party.morino.moripafishing.api.MoripaFishingAPIProvider
 
-val api = Bukkit.getPluginManager().getPlugin("MoripaFishing") as? MoripaFishingAPI
-    ?: throw IllegalStateException("MoripaFishing is not loaded")
+// コア未初期化時は IllegalStateException
+val api = MoripaFishingAPIProvider.get()
+
+// null 許容で取得したい場合
+val apiOrNull = MoripaFishingAPIProvider.getOrNull()
 ```
 
 ### Java
 
 ```java
 import party.morino.moripafishing.api.MoripaFishingAPI;
+import party.morino.moripafishing.api.MoripaFishingAPIProvider;
 
-MoripaFishingAPI api = (MoripaFishingAPI) Bukkit.getPluginManager().getPlugin("MoripaFishing");
-if (api == null) {
-    throw new IllegalStateException("MoripaFishing is not loaded");
-}
+MoripaFishingAPI api = MoripaFishingAPIProvider.get();
+```
+
+### ServicesManager 経由の取得
+
+同じインスタンスがBukkitの`ServicesManager`にも登録されているため、そちらから取得することもできます。
+
+```kotlin
+val api = Bukkit.getServicesManager().load(MoripaFishingAPI::class.java)
+    ?: error("MoripaFishing is not loaded")
 ```
 
 ## 利用可能なマネージャー
@@ -118,9 +128,10 @@ APIインスタンスから以下のマネージャーを取得できます。
 | `AnglerManager` | `getAnglerManager()` | つりびと（プレイヤー）データの管理 |
 | `RarityManager` | `getRarityManager()` | レアリティの管理 |
 | `RandomizeManager` | `getRandomizeManager()` | 魚・天候のランダム化 |
-| `WorldLifecycleProvider?` | `getWorldLifecycleProvider()` | ワールド生成・境界管理の Integration (未導入時は `null`) |
 | `LogManager` | `getLogManager()` | ログ出力 |
 | `PluginDirectory` | `getPluginDirectory()` | プラグインディレクトリの取得 |
+
+また、APIインスタンス自体が天候ソースの登録口（`registerWeatherSource`など）を持ちます。詳細は[天候ソースの登録](#天候ソースの登録)を参照してください。
 
 ## 使用例
 
@@ -164,30 +175,88 @@ worldIds.forEach { id ->
 }
 ```
 
-### カスタムジェネレーターを登録する
+### ワールドを作成する
 
-ワールド生成は [`MoripaFishing-Integration-WorldLifecycle` Integration](../integration/world-lifecycle) が提供する。
-未導入環境では `getWorldLifecycleProvider()` が `null` を返すのでチェックが必要。
+ワールド生成の実体は [`MoripaFishing-Integration-WorldLifecycle` Integration](../integration/world-lifecycle) が提供します。
+未導入環境では`createWorld`が`false`を返し、`getGeneratorIds()`は空リストを返します。
 
 ```kotlin
-val worldLifecycle = api.getWorldLifecycleProvider()
-    ?: error("MoripaFishing-Integration-WorldLifecycle integration is not installed")
-worldLifecycle.addGenerator(myCustomGenerator)
+val worldManager = api.getWorldManager()
+val generatorIds = worldManager.getGeneratorIds()
+val created = worldManager.createWorld(FishingWorldId("my_world"), "terra")
 ```
+
+## 天候ソースの登録
+
+アドオンは`WeatherSource`を実装して独自の天候ソースを提供できます。
+登録したキーを設定の[`weatherSource`](/docs/format/config/climate#weathersource)に指定すると、そのワールドの天候決定がアドオンに委ねられます。
+
+```kotlin
+import net.kyori.adventure.key.Key
+import party.morino.moripafishing.api.core.world.weather.WeatherProvider
+import party.morino.moripafishing.api.core.world.weather.WeatherSource
+
+class MyWeatherSource : WeatherSource {
+    override val key: Key = Key.key("myplugin", "realistic")
+
+    // true の場合、コアが決定した天候をワールドに適用し DO_WEATHER_CYCLE を制御する
+    override val managesWorldWeather: Boolean = true
+
+    // true の場合、バニラの天候サイクル (DO_WEATHER_CYCLE) を有効に保つ
+    override val usesVanillaWeatherCycle: Boolean = false
+
+    override fun createProvider(worldId: FishingWorldId): WeatherProvider = MyWeatherProvider(worldId)
+}
+
+api.registerWeatherSource(MyWeatherSource())
+```
+
+`WeatherProvider`はpull型で、`getCurrentWeather`はメインスレッド・非同期スレッドの両方から呼ばれます。
+Bukkit APIを直接読む実装は避け、イベント駆動でキャッシュしたスナップショットを返してください。
+
+### dispose ライフサイクル
+
+`WeatherProvider.dispose()`は、`weatherSource`の切替・設定リロード・ワールド削除・プラグイン無効化などで
+プロバイダーが破棄されるときにコアが必ず呼び出します。BukkitのListenerやスケジューラタスクを
+登録している実装は、ここで解除してください（デフォルトはno-op）。
+
+### レジストリの挙動
+
+- 同じキーで再登録すると上書きされます。組み込みキー（`moripafishing:internal` / `moripafishing:vanilla`）の上書きも可能ですが、警告ログが出力されます
+- 登録元プラグインが無効化されると、そのプラグインが登録したソースは自動的に解除されます
+- 解除・上書きされたソースを使用中のワールドは即座に再解決され、未登録キーは`moripafishing:internal`にフォールバックします
+- `getWeatherSource(key)`で登録済みソースの取得、`getWeatherSourceKeys()`でキー一覧のスナップショットを取得できます
 
 ## イベント
 
-MoripaFishingは、魚が釣れた際にBukkitイベントを発火します。
+MoripaFishingは、釣果・ワールド・天候・設定に関するBukkitイベントを発火します。
+いずれも`moripafishing-api`に含まれ、通常のBukkitリスナーで購読できます。
+
+| イベント | パッケージ | Cancellable | 発火タイミング |
+|---|---|---|---|
+| `AnglerFishCaughtEvent` | `event.fishing` | ✔ | 釣り上げの確定直前。キャンセルするとバニラの釣り上げごと取り消される。`setCaughtFish`で釣果を差し替え可能 |
+| `AnglerFishCaughtResultEvent` | `event.fishing` | ✘ | 釣り上げ処理の完了後。通知・記録などの副作用はこちらを購読する |
+| `AnglerJoinTeleportEvent` | `event.angler` | ✔ | 参加時テレポートの実行直前（WorldLifecycle Integration が発火）。`setDestination`で移動先を変更可能 |
+| `FishingWorldCreateEvent` | `event.world` | ✘ | 釣りワールドの作成完了後 |
+| `FishingWorldDeleteEvent` | `event.world` | ✔ | 釣りワールドの削除直前。キャンセルで削除中止 |
+| `FishingWorldDeletedEvent` | `event.world` | ✘ | 釣りワールドの削除完了後 |
+| `FishingWorldLoadEvent` | `event.world` | ✘ | 釣りワールドのロード完了後（起動時の読み込みと新規作成の両方） |
+| `FishingWorldUnloadEvent` | `event.world` | ✘ | 釣りワールドのアンロード後（削除時・プラグイン無効化時） |
+| `FishingWorldWeatherChangeEvent` | `event.world` | ✘ | 釣りワールドの実効天候の変化後。非同期スレッドから発火する場合がある（`isAsynchronous`で判別） |
+| `ConfigReloadedEvent` | `event.config` | ✘ | `/mf reload`などによる設定再読み込みの完了後。設定由来の値をキャッシュしている場合はここで再取得する |
+
+パッケージはいずれも`party.morino.moripafishing.`配下です（例: `party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent`）。
 
 ### AnglerFishCaughtEvent
 
-つりびとが魚を釣ったときに発生するイベントです。
+つりびとが魚を釣ったときに発生するイベントです。キャンセルや釣果の差し替えができます。
+差し替えた釣果はアイテム化と後続の`AnglerFishCaughtResultEvent`に反映されます。
 
 ```kotlin
 import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
 
 class MyListener : Listener {
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     fun onFishCaught(event: AnglerFishCaughtEvent) {
         val angler = event.getAngler()
         val caughtFish = event.getCaughtFish()
@@ -201,8 +270,29 @@ class MyListener : Listener {
         // つりびとの情報
         val playerName = angler.getName()
 
-        // イベントのキャンセル（魚の取得を無効にする）
+        // イベントのキャンセル（釣り上げ自体を取り消す）
         // event.isCancelled = true
+
+        // 釣果の差し替え
+        // event.setCaughtFish(caughtFish.copy(worth = worth * 2))
+    }
+}
+```
+
+### AnglerFishCaughtResultEvent
+
+釣り上げ処理が完了した後に発生するモニター用途のイベントです。
+`AnglerFishCaughtEvent`がキャンセルされず、釣果のアイテム化まで完了した場合にのみ発火します。
+アナウンスやログ記録などの副作用はこちらを購読してください。
+
+```kotlin
+import party.morino.moripafishing.event.fishing.AnglerFishCaughtResultEvent
+
+class MyListener : Listener {
+    @EventHandler
+    fun onFishCaughtResult(event: AnglerFishCaughtResultEvent) {
+        val caughtFish = event.getCaughtFish()
+        // 確定した釣果に対する通知・記録など
     }
 }
 ```
