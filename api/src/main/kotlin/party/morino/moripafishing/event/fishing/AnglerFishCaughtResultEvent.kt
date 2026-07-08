@@ -1,24 +1,24 @@
 package party.morino.moripafishing.event.fishing
 
+import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.model.fish.CaughtFish
-import party.morino.moripafishing.event.CancellableMoripaFishingEvent
 
 /**
- * このイベントは、釣り人が魚を釣ったときに発生します。
+ * このイベントは、釣り上げ処理が完了した後に発生します。
  *
- * キャンセルするとバニラの釣り上げごと取り消されます。
- * [setCaughtFish] で釣果を差し替えることができ、差し替えた内容がアイテム化と
- * 後続の [AnglerFishCaughtResultEvent] に反映されます。
+ * [AnglerFishCaughtEvent] がキャンセルされず、釣果のアイテム化まで完了した場合にのみ発火する
+ * モニター用途のポストイベントであり、キャンセルはできません。
+ * 通知・記録などの副作用はこちらを購読してください。
  *
  * @param angler 釣りをした釣り人
- * @param caughtFish 釣れた魚（リスナーから変更可能）
+ * @param caughtFish 確定した釣果
  */
-class AnglerFishCaughtEvent(
+class AnglerFishCaughtResultEvent(
     private val angler: Angler,
-    private var caughtFish: CaughtFish,
-) : CancellableMoripaFishingEvent() {
+    private val caughtFish: CaughtFish,
+) : Event() {
     companion object {
         @JvmStatic
         private val HANDLER_LIST: HandlerList = HandlerList()
@@ -35,14 +35,6 @@ class AnglerFishCaughtEvent(
     fun getAngler(): Angler = angler
 
     fun getCaughtFish(): CaughtFish = caughtFish
-
-    /**
-     * 釣果を差し替えます。
-     * @param caughtFish 新しい釣果
-     */
-    fun setCaughtFish(caughtFish: CaughtFish) {
-        this.caughtFish = caughtFish
-    }
 
     override fun getHandlers(): HandlerList = HANDLER_LIST
 }

@@ -1,20 +1,20 @@
 package party.morino.moripafishing.event.world
 
+import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.event.CancellableMoripaFishingEvent
 
 /**
- * このイベントは、釣りワールドが削除される直前に発生します。
+ * このイベントは、釣りワールドがロードされ利用可能になった後に発生します。
  *
- * 実際の削除処理の前に発火するプレイベントであり、キャンセルすると削除は行われません。
- * 削除完了後には [FishingWorldDeletedEvent] が発生します。
+ * サーバー起動時の既存ワールドの読み込みと、ワールド新規作成の両方で発火します。
+ * ポストイベントであり、キャンセルはできません。
  *
- * @param worldId 削除対象の釣りワールドのID
+ * @param worldId ロードされた釣りワールドのID
  */
-class FishingWorldDeleteEvent(
+class FishingWorldLoadEvent(
     private val worldId: FishingWorldId,
-) : CancellableMoripaFishingEvent() {
+) : Event() {
     companion object {
         @JvmStatic
         private val HANDLER_LIST: HandlerList = HandlerList()
