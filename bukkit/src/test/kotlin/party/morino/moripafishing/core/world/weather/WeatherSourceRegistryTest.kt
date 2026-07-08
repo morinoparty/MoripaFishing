@@ -1,13 +1,24 @@
 package party.morino.moripafishing.core.world.weather
 
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
 import net.kyori.adventure.key.Key
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
+import org.koin.core.context.GlobalContext
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
+import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.core.world.weather.WeatherProvider
 import party.morino.moripafishing.api.core.world.weather.WeatherSource
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.core.world.FishingWorldImpl
 
 class WeatherSourceRegistryTest {
     private class StubSource(
@@ -44,5 +55,57 @@ class WeatherSourceRegistryTest {
         val replacement = StubSource(key)
         registry.register(replacement)
         assertSame(replacement, registry.get(key))
+    }
+
+    @Test
+    fun `getKeys returns a snapshot of registered keys`() {
+        val registry = WeatherSourceRegistry()
+        registry.register(StubSource(Key.key("test", "a")))
+        registry.register(StubSource(Key.key("test", "b")))
+        assertEquals(setOf(Key.key("test", "a"), Key.key("test", "b")), registry.getKeys())
+    }
+
+    @Test
+    fun `unregister invalidates worlds resolved to the removed key`() {
+        withKoinWorld { registry, key, fishingWorld ->
+            registry.register(StubSource(key))
+            registry.unregister(key)
+            verify(exactly = 1) { fishingWorld.invalidateWeatherSource(key) }
+        }
+    }
+
+    @Test
+    fun `overwriting a key invalidates worlds resolved to it`() {
+        withKoinWorld { registry, key, fishingWorld ->
+            registry.register(StubSource(key))
+            registry.register(StubSource(key))
+            verify(exactly = 1) { fishingWorld.invalidateWeatherSource(key) }
+        }
+    }
+
+    /**
+     * WorldManager と FishingWorldImpl のモックを Koin に登録した状態でテスト本体を実行する。
+     */
+    private fun withKoinWorld(block: (WeatherSourceRegistry, Key, FishingWorldImpl) -> Unit) {
+        val key = Key.key("test", "source")
+        val worldId = FishingWorldId("mocked_world")
+        val fishingWorld = mockk<FishingWorldImpl>()
+        justRun { fishingWorld.invalidateWeatherSource(any()) }
+        val worldManager = mockk<WorldManager>()
+        every { worldManager.getWorldIdList() } returns listOf(worldId)
+        every { worldManager.getWorld(worldId) } returns fishingWorld
+
+        val alreadyStarted = GlobalContext.getOrNull() != null
+        if (alreadyStarted) {
+            stopKoin()
+        }
+        startKoin {
+            modules(module { single<WorldManager> { worldManager } })
+        }
+        try {
+            block(WeatherSourceRegistry(), key, fishingWorld)
+        } finally {
+            stopKoin()
+        }
     }
 }

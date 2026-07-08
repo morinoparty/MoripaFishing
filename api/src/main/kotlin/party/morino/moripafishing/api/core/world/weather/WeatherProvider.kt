@@ -34,4 +34,14 @@ fun interface WeatherProvider {
      * @return 現在の天候
      */
     fun getCurrentWeather(worldId: FishingWorldId): WeatherType
+
+    /**
+     * このプロバイダーが破棄される際に呼ばれるライフサイクルフック。
+     *
+     * `weatherSource` の切替、設定リロード、ワールド削除、プラグイン無効化などで
+     * プロバイダーが差し替え・破棄されるときにコアが必ず呼び出す。
+     * Bukkit Listener やスケジューラタスクを登録している実装はここで解除すること。
+     * デフォルトは no-op。
+     */
+    fun dispose() {}
 }
