@@ -12,8 +12,6 @@ data class WorldConfig(
         val defaultId:
         @Serializable(with = FishingWorldIdSerializer::class)
         FishingWorldId = FishingWorldId("default"),
-        // スポーン設定
-        val spawnConfig: SpawnConfig = SpawnConfig(),
         // デフォルトのワールドサイズ
         val defaultWorldSize: Double = 100.0,
         // デフォルトの天気設定

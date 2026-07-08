@@ -74,10 +74,9 @@ class TranslateManagerImpl :
     }
 
     override fun loadWorldData() {
-        worldManager.getWorldIdList().forEach { worldId ->
-            val world = worldManager.getWorld(worldId)
+        worldManager.getWorlds().forEach { world ->
             world.getWorldDetails().name.forEach { (locale, name) ->
-                myStore.register("moripa_fishing.world.${worldId.value}.name", locale, name)
+                myStore.register("moripa_fishing.world.${world.getId().value}.name", locale, name)
             }
         }
     }
@@ -90,11 +89,15 @@ class TranslateManagerImpl :
         }
     }
 
+    /**
+     * 翻訳ストアを作り直して再読み込みする。
+     * 既存ストアへの再登録は重複キーで例外になるため、古いストアを
+     * `GlobalTranslator` から外した上で `load()` と同じ手順で構築し直す。
+     */
     override fun reload() {
-        myStore.defaultLocale(configManager.getConfig().defaultLocale)
-        loadFromResources()
-        loadFishData()
-        loadWorldData()
-        loadRarityData()
+        if (::myStore.isInitialized) {
+            GlobalTranslator.translator().removeSource(myStore)
+        }
+        load()
     }
 }
