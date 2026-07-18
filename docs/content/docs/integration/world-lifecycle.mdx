@@ -1,5 +1,6 @@
 ---
 title: WorldLifecycle
+icon: Globe
 ---
 
 # MoripaFishing-Integration-WorldLifecycle
@@ -27,15 +28,37 @@ MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integ
 [MoripaFishing] WorldLifecycle integration not installed; border sync and custom generators are disabled.
 ```
 
+ロード順の宣言は双方向になっています。
+Core 側は `server("MoripaFishing-Integration-WorldLifecycle", Load.BEFORE, required = false)` で Integration を先にロードさせ、
+Integration 側は `server("MoripaFishing", Load.OMIT, required = false)` として順序制約を課さず classpath の共有だけを目的にすることで、
+依存関係の循環を避けています。
+
 ## 未導入時の Core の振る舞い
 
 | 機能 | 未導入時の挙動 |
 |---|---|
 | ボーダー同期（`FishingWorldImpl.updateState`） | スキップ（`fine` ログのみ） |
 | `WorldManager.createWorld(id)` | 警告ログ + `false` を返す |
-| `WorldManager.createWorld(id, generator)` | 警告ログ + `false` を返す |
-| `/mf world create` 系コマンド | 失敗メッセージ |
+| `WorldManager.createWorld(id, generatorId)` | 警告ログ + `false` を返す |
+| `WorldManager.getGeneratorIds()` | 空リストを返す |
+| `/mf world create` 系コマンド | コマンド自体は通るが、ワールド作成に失敗し `Failed to create world <id>.` が返る |
 | 既存ワールドでの釣り | 影響なし（読み取り系は Core 単体で完結） |
+
+公開インターフェース `WorldManager` には `createWorld(fishingWorldId)` と
+ジェネレーター ID を明示する `createWorld(fishingWorldId, generatorId)` の 2 つがあります。
+どちらも内部では Integration の `WorldLifecycleProvider` を解決し、
+未導入であれば警告ログを出して `false` を返します。
+
+## ボーダー同期の有効/無効
+
+境界同期は Integration が導入されているだけでは走りません。
+`WorldDetailConfig.enableBorder` が `true`（デフォルト）のワールドに限り、
+`updateState` のたびに `borderCentral` / `borderSize` が Bukkit ワールドへ反映されます。
+`enableBorder` を `false` にすると、Integration 導入済みでもそのワールドのボーダーはプラグインが触りません。
+他プラグインでワールドボーダーを管理したい場合に利用してください。
+
+なお `applyBorder` は Bukkit スケジューラ経由でメインスレッドへ処理を投げてから `WorldBorder` を更新するため、
+非同期処理から呼び出しても安全です。
 
 ## ジェネレーター定義
 
@@ -46,19 +69,54 @@ Integration 側の `plugins/MoripaFishing-Integration-WorldLifecycle/generator/*
 {
   "id": "terra",
   "generator": "Terra:OVERWORLD",
-  "type": "NORMAL",
+  "type": null,
   "biomeProvider": null,
   "generatorSetting": null
 }
 ```
+
+```json title="generator/void.json"
+{
+  "id": "void",
+  "generator": null,
+  "type": "FLAT",
+  "biomeProvider": null,
+  "generatorSetting": "{\"layers\": [{\"block\": \"air\", \"height\": 1}], \"biome\":\"plains\"}"
+}
+```
+
+`normal.json` は `id` を除く全フィールドが `null` で、Bukkit の既定生成にそのまま任せる定義です。
 
 | フィールド | 型 | 説明 |
 |---|---|---|
 | `id` | string | ジェネレーター ID。`WorldDetailConfig.generator` から参照される |
 | `generator` | string? | `WorldCreator.generator()` に渡される文字列（プラグイン名:ID） |
 | `type` | string? | `WorldType` 名（`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED`） |
-| `biomeProvider` | string? | 固定バイオーム名（例: `minecraft:plains`） |
+| `biomeProvider` | string? | 全座標に同じバイオームを返す固定バイオーム名（例: `minecraft:plains`） |
 | `generatorSetting` | string? | ジェネレーター設定文字列 |
+
+`biomeProvider` を指定すると `ConstBiomeGenerator` が使われ、ワールド全域が単一バイオームになります。
+値は `minecraft:plains` のように名前空間を明記した NamespacedKey 形式で書くことを推奨します。
+名前空間を省略した場合は `minecraft` として解決されますが、
+大文字や空白を含むなど形式として不正な文字列、あるいは存在しないバイオームを指定すると生成時に例外が発生します。
+
+読み込み時は `generator` ディレクトリ内の `*.json` をすべて走査するため、
+バンドル済みの 3 つ以外にも任意の JSON を置くだけでジェネレーターを追加できます。
+
+### ワールド作成時の制約
+
+`createBukkitWorld` は次の場合に何も作らず `false` を返します。
+
+- 同名の Bukkit ワールドが既にロードされている
+- ワールド名が `world` / `world_nether` / `world_the_end` のいずれか（予約名として拒否し、warning を出力）
+
+なお `addGenerator` は `id` の重複チェックを行わず、メモリ上のリストへ追加しつつ同名ファイルを上書きします。
+
+ジェネレーターを指定したワールド作成は `/mf world create <id> <generator>` で行い、
+権限ノードは `moripa_fishing.command.world.create` です。
+`generator` 引数は文字列で受け取り、補完候補は `WorldManager.getGeneratorIds()` から供給されます。
+Integration 未導入時は候補が空になり、実行しても Core が警告ログを出して
+`Failed to create world <id>.` を返します。
 
 ## 参加時テレポート
 
@@ -86,17 +144,29 @@ onlyFirstJoin: false
 | `onlyFirstJoin` | boolean | `true` の場合、サーバーに初めて参加したプレイヤーにのみテレポートを行う（デフォルト: `false`） |
 
 テレポート実行の直前に [AnglerJoinTeleportEvent](#イベント) が発火する。
-このイベントをキャンセルするとテレポートは行われず、`destination` を差し替えると移動先を変更できる。
+イベントは対象を `getAngler(): Angler` として持ち、テレポート先は `getDestination(): LocationData` で参照できる。
+このイベントをキャンセルするとテレポートは行われず、`setDestination` で移動先を差し替えられる。
+
+設定どおりに動かない場合は、次のガードに引っかかっていないか確認してください。
+
+- `worldId` が未登録の場合は `WorldManager.getWorld(id)` が `null` を返すため、何も出力せずスキップされます（設定ミスの典型例）
+- 対象の Bukkit ワールドがまだロードされていない場合も同様にスキップされます
+- 対象プレイヤーに対応する `Angler` が取得できない場合もスキップされます
+- `join-teleport.yml` のパースに失敗した場合は warning を出力したうえで既定値のまま継続し、Integration の有効化自体は失敗しません
+- `enabled` が `false` の場合は、リスナーの登録自体が行われません
+
+また、リスナーは参加のたびに `MoripaFishingAPIProvider.getOrNull()` から API を取得し直すため、
+Core の再読み込みにも追従します。
 
 ## イベント
 
 本 Integration およびワールドライフサイクルに関連して、Core は以下の Bukkit イベントを発火する。
-いずれも `:api`（`moripafishing-api`）に含まれ、外部プラグインから購読できる。
+いずれも `:api` モジュールに含まれ、外部プラグインから購読できる。
 
 | イベント | パッケージ | Cancellable | 発火タイミング |
 |---|---|---|---|
 | `AnglerJoinTeleportEvent` | `party.morino.moripafishing.event.angler` | ✔ | 参加時テレポートの実行直前（本 Integration が発火。`setDestination` で移動先を変更可能） |
-| `FishingWorldCreateEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドの作成完了後（Core が発火） |
+| `FishingWorldCreateEvent` | `party.morino.moripafishing.event.world` | ✘ | 真に新規のワールドを作成し終えた時点（Core が発火） |
 | `FishingWorldDeleteEvent` | `party.morino.moripafishing.event.world` | ✔ | 釣りワールドの削除直前（Core が発火。キャンセルで削除中止） |
 | `FishingWorldDeletedEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドの削除完了後（Core が発火） |
 | `FishingWorldLoadEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドのロード完了後（起動時の読み込みと新規作成の両方で Core が発火） |
@@ -104,10 +174,23 @@ onlyFirstJoin: false
 
 イベントの全体像（釣果・天候・設定リロード関連を含む）は [API利用ガイド](/docs/addons/api-guide#イベント) を参照。
 
+`FishingWorldCreateEvent` は、対象 ID が既存のワールド一覧に含まれていなかった場合にのみ発火します。
+サーバー起動時に既存の釣りワールドを再ロードする際は発火しないため、
+「新しく釣りワールドが増えた」タイミングのフックとして使えます。
+一方 `FishingWorldLoadEvent` は再ロード時にも新規作成時にも発火するため、
+「釣りワールドが利用可能になった」タイミングのフックにはこちらを使ってください。
+
+削除処理では `FishingWorldDeleteEvent` がキャンセルされた場合に加えて、
+`Bukkit.unloadWorld` に失敗した場合も削除は中断され、`deleteWorld` は warning を出して `false` を返します
+（対象ワールドにプレイヤーが残っている場合などが該当します）。
+この場合は `FishingWorldUnloadEvent` も `FishingWorldDeletedEvent` も発火しません。
+
 ## SPI
 
 Integration は `party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider` を実装する。
-SPI は独立モジュールとして Maven Central に公開され、コアの `moripafishing-api` には依存しない。
+SPI は独立モジュール `:integrations:world-lifecycle-api`
+（Maven 座標 `party.morino:moripafishing-world-lifecycle-api`）として Maven Central に公開され、
+Core の `:api` モジュールには依存しない。
 
 ```kotlin title="build.gradle.kts"
 dependencies {

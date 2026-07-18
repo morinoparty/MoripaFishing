@@ -1,21 +1,105 @@
 ---
 title: レアリティ
+icon: Gem
 ---
+
+# レアリティの定義方法
+
+レアリティは、さかなをどのくらいの割合で抽選するか、そして釣り上げたときの価値をどう計算するかをまとめた定義です。
+さかな定義の `rarity` から ID で参照され、表示名は翻訳システムに登録されてゲーム内の表示に使われます。
+
+## 配置場所
+
+レアリティ定義は Core のデータフォルダから読み込まれます。
+
+```text
+plugins/MoripaFishing/rarity/*.json
+```
+
+起動時にディレクトリが無ければ作成され、その中の `*.json` がすべて読み込まれます。
+レアリティ ID は JSON 本体の `id` から決まるため、ファイル名は読み込み対象の判定にしか使われません。慣習としてファイル名を ID と揃えておくと分かりやすくなります。
 
 ## Format
 
 ```json title="plugins/MoripaFishing/rarity/legendary.json"
 {
     "id" : "legendary",
-    "color" : "#ff9800",
-    "cacheCommand" : [
-        "minecraft:execute at <angler> run summon firework_rocket ~ ~ ~ {LifeTime:40,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;2651799],FadeColors:[I;6719955]}],Flight:2}}}}"
-    ],
     "displayName" : {
-        "ja_JP" : "ヌシ",
-        "en_US" : "Legendary"
+        "ja_JP" : "<gold>ヌシ",
+        "en_US" : "<gold>Legendary"
     },
     "weight": 0.4,
     "worthExpression" : "(<length_rate> ^ 2) * 1000 + 500"
 }
 ```
+
+| フィールド | 型 | 既定値 | 説明 |
+|---|---|---|---|
+| `id` | string | `common` | レアリティ ID。さかな定義の `rarity` から参照される |
+| `displayName` | map | `{ "ja_JP": "レアリティ" }` | ロケールごとの表示名。MiniMessage の記法が使える |
+| `weight` | number | `1.0` | 抽選時の相対的な重み。パーセンテージではない |
+| `worthExpression` | string | `"1"` | 価値を求める数式。`<length_rate>` を含められる |
+| `color` | string | `#ffffff` | 現在は読み込まれるだけで、どこからも参照されていない |
+| `cacheCommand` | array | `[]` | 現在は読み込まれるだけで、実行されることはない |
+
+JSON のパースは未知キーを無視する寛容なモードで行われます。キー名を書き間違えてもエラーにはならず、その値が黙って無視されて既定値が使われる点に注意してください。
+
+<Callout type="warn">
+`color` と `cacheCommand` はモデル上に存在しますが、現時点ではプラグイン側の処理から一切参照されていません。
+レアリティごとの色付けは `displayName` に MiniMessage タグを直接書いて表現してください。釣り上げたときにコマンドを実行する仕組みは現時点では存在しません。
+</Callout>
+
+## 表示名と翻訳
+
+`displayName` の各エントリは、`moripa_fishing.rarity.<id>.name` という翻訳キーとしてロケールごとに登録されます。
+そのためレアリティ名も [翻訳](/docs/format/other/translation) の仕組みに乗り、プレイヤーのロケールに応じた表示が行われます。
+値は MiniMessage として解釈されるので、`<gold>` や `<gradient:...>` などのタグで装飾できます。
+
+## weight による抽選
+
+`weight` は確率そのものではなく相対的な重みです。
+抽選時は登録されているすべてのレアリティの `weight` の合計を求め、その合計に対する比率で 1 つが選ばれます。
+
+初期状態のレアリティは合計が 100.0 になるよう設定されているため、結果的に `weight` の値がそのままパーセンテージとして読めるようになっています。
+ただしこれは初期値がそう作られているだけであり、レアリティを追加・削除すると合計が変わって他のレアリティの出現率も一緒に変化します。
+
+## worthExpression による価値の計算
+
+`worthExpression` は、釣り上げたさかなの価値を求める数式を文字列で書いたものです。
+式の中の `<length_rate>` は、そのさかなのサイズを正規分布の累積分布関数に通した値へ置き換えられます。
+つまり同じレアリティでも、そのさかなの中で大きい個体ほど `<length_rate>` が 1 に近づき、価値が高くなります。
+
+置換後の文字列は数式として評価されるため、四則演算や `^` による累乗などが利用できます。
+
+価値の計算では、さかな定義側の `worthExpression` が優先されます。
+レアリティの `worthExpression` はさかな側に指定が無い場合のフォールバックとして使われ、どちらにも存在しない場合は例外が発生します。
+
+## 初期状態のレアリティ
+
+初期状態では次の 6 つが用意されています。
+
+| ID | `weight` | `worthExpression` |
+|---|---|---|
+| `junk` | 1.0 | `1` |
+| `common` | 70.0 | `(<length_rate> ^ 2) * 5 + 5` |
+| `rare` | 22.0 | `(<length_rate> ^ 2) * 10 + 10` |
+| `epic` | 6.5 | `(<length_rate> ^ 2) * 50 + 100` |
+| `legendary` | 0.4 | `(<length_rate> ^ 2) * 1000 + 500` |
+| `mythic` | 0.1 | `(<length_rate> ^ 2) * 2000 + 2000` |
+
+## 再読み込み
+
+レアリティ定義を編集したあとは、次のコマンドで再読み込みできます。
+
+```text
+/mf reload
+```
+
+必要な権限は `moripa_fishing.command.world.default` です。
+このコマンドは設定全体を 5 段階で読み直し、その 3 番目でレアリティをすべて破棄してから再度読み込みます。
+
+## 注意点
+
+- さかな定義の `rarity` に、対応するファイルが存在しない ID を指定すると `Invalid rarity value: <id>` という例外が発生します。
+- 同じ `id` を複数のファイルに書くと、どちらも登録されて抽選対象が重複します。ID は一意にしてください。
+- `weight` を 0 にしたレアリティは抽選されなくなりますが、定義自体は残るため参照は可能です。

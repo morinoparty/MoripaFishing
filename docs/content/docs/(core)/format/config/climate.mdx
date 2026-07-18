@@ -1,9 +1,11 @@
 ---
 title: 天候
+icon: CloudRain
 ---
 
 :::warning[注意]
 この設定は、`config.json`及び、`world/<fishing_world_name>.json`に存在するデータであり、独立して存在するものではありません。
+`config.json`では`world.defaultClimateConfig`、ワールドごとの JSON では`climateConfig`がこの設定に対応します。ワールド側の`climateConfig`が`null`の場合は、`config.json`の`world.defaultClimateConfig`が使用されます。
 :::
 
 ## Format
@@ -23,7 +25,7 @@ title: 天候
     "weather": {
        "weight": {
         "SUNNY": 4,
-        "CLOUDY": 2,
+        "CLOUDY": 1,
         "RAINY": 2,
         "THUNDERSTORM": 1
        },
@@ -46,7 +48,11 @@ title: 天候
 - `moripafishing:internal`: プラグイン内蔵のランダマイザーが天候を決定し、Bukkit ワールドにも適用します。`DO_WEATHER_CYCLE` は `false` になります。
 - `moripafishing:vanilla`: Bukkit のバニラ天候状態 (`hasStorm` / `isThundering`) を読み取り、魚の抽選条件にのみ反映します。`constant.weather` や `weather` の設定は無視され、`DO_WEATHER_CYCLE` は `true` のままになります。バニラ天候は `SUNNY` / `RAINY` / `THUNDERSTORM` の3値しか表現できないため、`CLOUDY` / `FOGGY` / `SNOWY` を条件に持つ魚はこのソースでは出現しません。
 
-外部プラグインは `MoripaFishingAPI.registerWeatherSource` で独自キー（例: `myplugin:realistic`）の `WeatherSource` を登録できます。そのソースを使うには、`weatherSource` にそのキーを指定します。`WeatherSource.managesWorldWeather` が `false` のソースは MoripaFishing 側でワールドの天候を変更せず、魚の抽選条件にのみ反映されます。
+なお `moripafishing:vanilla` では、対象ワールドがまだロードされていない、あるいは天候イベントを一度も受け取っていない間は `SUNNY` として扱われます。
+
+外部プラグインは `MoripaFishingAPI.registerWeatherSource` で独自キー（例: `myplugin:realistic`）の `WeatherSource` を登録し、`MoripaFishingAPI.unregisterWeatherSource` で解除できます。そのソースを使うには、`weatherSource` にそのキーを指定します。`WeatherSource.managesWorldWeather` が `false` のソースは MoripaFishing 側でワールドの天候を変更せず、魚の抽選条件にのみ反映されます。この場合 `FishingWorld.setWeather` や `/mf` による天候変更の操作は無視され、ログに記録されるだけになります。
+
+ゲームルール `DO_WEATHER_CYCLE` は `WeatherSource.usesVanillaWeatherCycle` に従って設定されます。これが `true` になるのは `moripafishing:vanilla` のみで、サードパーティのソースを含むそれ以外のソースでは `false` になります。
 
 ### applyWeatherEffects
 
@@ -90,21 +96,25 @@ title: 天候
 
 天候を固定する場合の設定です。
 
-- `constant.weather`: 固定する天候を指定します。nullの場合は天候が変化します（デフォルト: null）
-- `constant.dayCycle`: 固定する時間を指定します。nullの場合は天候が変化します（デフォルト: null）
+- `constant.weather`: 固定する天候を指定します。nullの場合は`weather`の設定に従って天候が変化します（デフォルト: null）
+- `constant.dayCycle`: 固定する時間を「時」（0〜23）で指定します。nullの場合は現実世界の時刻に同期した時間になります（デフォルト: null）
 
 ### weather
 
 天候が変化する場合の設定です。
 
-- `weather.weight`: 各天気の出現確率を指定します
-- `weather.offset`: 天気の更新タイミングのオフセット（時間）を指定します
-- `weather.interval`: 天気の更新間隔（時間）を指定します
-- `weather.maxInclination`: 天気の変化の最大傾斜（度）を指定します
+- `weather.weight`: 各天候の出現しやすさを整数の重みで指定します。確率（%）ではなく、指定した重みの合計で正規化されて抽選されます。判定はマップに書かれた順に重みを累積していくため、JSON でのキーの並び順が結果の割り当てに影響します。どの重みにも当たらなかった場合は `THUNDERSTORM` にフォールバックします
+- `weather.offset`: 天気予報を生成する際の開始時刻のオフセット（時間）を指定します。現在の天候そのものには影響しません
+- `weather.interval`: 天気予報を何時間刻みでサンプリングするかを指定します。実際の天候が切り替わる間隔は 8 時間で固定されているため、この値を変えても切り替わりの間隔は変わりません
+- `weather.maxInclination`: 天候の内部値を補間する際のキーフレーム間隔を決める値です（間隔は `100 / maxInclination` の小数点以下切り捨て）。値を大きくするほど補間区間が短くなり、天候の振れ幅が急になります
+
+:::info
+`WeatherType` には `SUNNY` / `CLOUDY` / `RAINY` / `THUNDERSTORM` / `SNOWY` / `FOGGY` の6種類があります。デフォルトの `weight` には `SNOWY` と `FOGGY` が含まれていませんが、`weight` に追加すればそれらも抽選の対象になります。
+:::
 
 ### hashPepper
 
-天気予測のハッシュ生成に使用するペッパー文字列を指定します。
+天気予測のハッシュ生成に使用するペッパー文字列を指定します。ハッシュは「ワールドID + hashPepper + 経過ブロック番号」を SHA-256 にかけ、その先頭8桁を用いて計算されるため、同じ設定でもワールドごとに異なる天候になります。この値を変更すると、そのワールドの天候の並び全体が変わります。
 
 ### dayCycle
 

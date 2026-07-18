@@ -1,26 +1,54 @@
 ---
 title: 翻訳
+icon: Languages
 ---
 
 import { TranslateTable } from "@/components/tables/translate-table";
-import { TimeStamp } from "@/components/faker/timestamp";
+
+MoripaFishingの表示文言は、Adventureの`MiniMessageTranslationStore`（キーは`moripafishing:translations`）に登録され、`GlobalTranslator`経由で解決されます。そのため翻訳値にはMiniMessage記法をそのまま書けます。
+
+## 翻訳ファイル
+
+翻訳ファイルは`plugins/MoripaFishing/translation/`に配置します。初回起動時にjar内の`/translate/<locale>.properties`がコピーされ、以降はこのディレクトリのファイルが読み込まれます。ファイルはUTF-8で保存してください。
+
+```bash
+plugins/MoripaFishing/translation/
+├── en_US.properties
+└── ja_JP.properties
+```
+
+読み込まれるロケールは`ja_JP`と`en_US`に固定されています。これ以外の名前のファイルを置いても読み込まれないので注意してください。
+
+なお`config.json`の`defaultLocale`（既定値は`ja_JP`）が翻訳ストアの既定ロケールになり、プレイヤーのロケールに対応する翻訳が無い場合のフォールバック先として使われます。
+
+翻訳は`/mf reload`で再読み込みできます。このコマンドには`moripa_fishing.command.world.default`権限が必要です。
+
+## 自動登録される翻訳キー
+
+以下のキーはpropertiesファイルではなく、各JSON設定の`displayName`や`name`のロケールマップから登録されます。
+
+| キー | 由来 |
+| --- | --- |
+| `moripa_fishing.fish.<fish_id>.name` | 魚設定の`displayName`。魚アイテムの表示名になります |
+| `moripa_fishing.rarity.<rarity_id>.name` | レアリティ設定の`displayName` |
+| `moripa_fishing.world.<world_id>.name` | ワールド設定の`name` |
 
 ## 魚
 
-### lore
-
 ### Params
+
+魚のloreでは、以下のタグをプレースホルダとして利用できます。`<size>`のようなタグ名でも、`<arg:0>`のような位置指定でも参照できます。
 
 <TranslateTable columns={[
     {
         name: "size",
-        description: "魚のサイズ",
-        example: "53.2",
+        description: "魚のサイズ（常に小数点以下2桁）",
+        example: "53.20",
     },
     {
         name: "rarity",
-        description: "魚のレアリティ",
-        example: "<lang:moripa_fishing.rarity.common.name>",
+        description: "魚のレアリティ（翻訳済みの表示名）",
+        example: "コモン",
     },
     {
         name: "angler",
@@ -29,28 +57,43 @@ import { TimeStamp } from "@/components/faker/timestamp";
     },
     {
         name: "world",
-        description: "ワールド名",
-        example: "<lang:moripa_fishing.world.default.name>",
+        description: "ワールド名（翻訳済みの表示名）",
+        example: "つりとぴあ",
     },
     {
         name: "timestamp",
-        description: "タイムスタンプ",
-        example: "2025-05-01 00:00",
+        description: "釣り上げた日時（ZonedDateTimeをそのまま文字列化した値）",
+        example: "2025-05-01T00:00+09:00[Asia/Tokyo]",
     },
 ]} />
 
-### フォーマット
+`<rarity>`と`<world>`には、翻訳済みのComponentが直接埋め込まれます。対応する翻訳が登録されていない場合のみ、`common`のような生のIDがそのまま表示されます。`<timestamp>`は整形されないため、読みやすい日時にしたい場合はloreの書き方で工夫してください。
 
 ### デフォルト
+
+すべての魚に共通して表示される3行です。値は`ja_JP.properties`と`en_US.properties`で定義します。
+
 `moripa_fishing.fish.lore.default.rarity` : レアリティについて
 
 `moripa_fishing.fish.lore.default.size` : サイズについて
 
 `moripa_fishing.fish.lore.default.angler` : つりびとについて
 
+初期状態の`ja_JP.properties`は次のようになっています。
+
+```properties title="ja_JP.properties"
+moripa_fishing.fish.lore.default.rarity=<white><gray>レアリティ: </gray><rarity>
+moripa_fishing.fish.lore.default.size=<white><gray>サイズ: </gray><size> cm
+moripa_fishing.fish.lore.default.angler=<white><gray>釣った人: </gray><angler>
+```
+
+なおloreは常にイタリック装飾が解除された状態で表示されます。
+
 #### 追加
 
 `moripa_fishing.fish.lore.<fish_id>.additional.<index>` : 魚設定の`lore`から追加されます
+
+魚設定の`lore`は全ロケール分が翻訳キーとして登録されますが、実際に表示される行数は`config.json`の`defaultLocale`に対応する`lore`の要素数で決まります。そのため`defaultLocale`のロケールに`lore`を定義していない魚では、他のロケールに定義があっても追加loreは1行も表示されません。ロケールごとに行数を揃えて定義してください。
 
 ### 仕組み
 
@@ -58,18 +101,18 @@ import { TimeStamp } from "@/components/faker/timestamp";
     <summary>仕組み</summary>
 
     `moripa_fishing.fish.lore.default.rarity`は
-    `<gray>レアリティ: </gray> <rarity>`もしくは
-    `<gray>Rarity: </gray> <rarity>`に解釈されます。
+    `<white><gray>レアリティ: </gray><rarity>`もしくは
+    `<white><gray>Rarity: </gray><rarity>`に解釈されます。
 
-    その後`<rarity>`には
-    `<lang:moripa_fishing.rarity.<rarity>.name>`が解釈されます。
-    今回commonであるとして、
-    `<lang:moripa_fishing.rarity.common.name>`が解釈されます。
-
-    `<lang:moripa_fishing.rarity.common.name>`は
-    `コモン`もしくは`Common`に解釈されます。
+    その後`<rarity>`には、
+    `moripa_fishing.rarity.<rarity_id>.name`を
+    プレイヤーのロケールで翻訳した結果が埋め込まれます。
+    今回commonであるとすると、
+    `moripa_fishing.rarity.common.name`が解決され、
+    `コモン`もしくは`Common`になります。
 
     結果として、ja\_JPでは
-    `<gray>レアリティ: </gray> コモン`、
-    `<gray>Rarity: </gray> Common`と表示されます。
+    `<white><gray>レアリティ: </gray>コモン`、
+    en\_USでは
+    `<white><gray>Rarity: </gray>Common`と表示されます。
 </details>

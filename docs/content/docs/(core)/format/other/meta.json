@@ -1,5 +1,6 @@
 {
   "title": "その他",
+  "icon": "Ellipsis",
   "pages": [
     "dir",
     "translation"

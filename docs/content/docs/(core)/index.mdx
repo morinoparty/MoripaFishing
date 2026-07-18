@@ -1,5 +1,7 @@
 ---
 title: はじめに
+icon: BookOpen
+description: MoripaFishing の概要と、Core / Integration / Addon の 3 層構成を説明します。
 ---
 
 このプラグインは、Minecraftサーバーで魚釣りを楽しむためのプラグインです。
@@ -17,8 +19,9 @@ title: はじめに
 
 #### 基本機能
 - ワールドの管理
-- 天候の管理
+- 天候の決定と参照（ワールドへの実際の適用は Weather Integration が担当します）
 - 魚釣りの基本システム
+- 表示文言の国際化（`ja_JP` / `en_US` の翻訳ファイルによる切り替え）
 
 #### 魚関連
 - 魚のサイズなどの記録
@@ -26,7 +29,7 @@ title: はじめに
 
 #### システム関連
 - 釣り上げまでの速度変化のインターフェース提供
-- 釣果の統計データ収集
+- 釣果の統計データ収集（釣果ログはデータベースに永続化されます。既定は SQLite で、MySQL なども利用できます）
 
 ### アドオン側で対応すべき部分
 
@@ -50,10 +53,18 @@ title: はじめに
 MoripaFishing は **Core / Integration / Addon** の 3 層で構成されます。
 
 - **Core**: 魚抽選・釣りイベントなどの最小機能を提供する本体プラグイン
-- **Integration**: Core が `softdepend` で参照する外部プラグイン。導入時に機能が有効になる（例: ワールド境界同期、カスタムジェネレーター）
-- **Addon**: Core に `depend` して Core の API を使い拡張する外部プラグイン
+- **Integration**: Core が `softdepend` で参照するプラグイン。導入したときにだけ機能が有効になります
+- **Addon**: Core に `depend` して Core の API を使い機能を拡張するプラグイン
 
-詳細は [Integration とは](../integration/overview) を参照してください。
+公式 Integration は次の 2 つです。
+
+- [WorldLifecycle](/docs/integration/world-lifecycle): 釣りワールドの境界同期、カスタムジェネレーターによるワールド生成、参加時テレポート
+- [Weather](/docs/integration/weather): Core が決定した天候のワールドへの適用と、`CLOUDY` におけるクライアント側バリア天井の送信
+
+Integration を導入しない限り、Core 単体ではワールドの実体を書き換えません。
+Addon は外部プラグインとして開発できるほか、本リポジトリにも [CatchAnnounce](/docs/addons/catch-announce) が同梱されています。
+
+詳細は [Integration とは](/docs/integration/overview) を参照してください。
 
 ```mermaid
 flowchart BT
@@ -74,7 +85,14 @@ flowchart BT
 
 ## サポート
 
-このプラグインは、Minecraft 1.21.4 以降をサポートしています。
+このプラグインは Paper / Purpur サーバー向けです。Spigot には対応していません。
+対応する Minecraft バージョンや Java、依存プラグインなどの動作要件は [セットアップガイド](/docs/setup) を参照してください。
+
+導入後の使い方は次のページに続きます。
+
+- [セットアップガイド](/docs/setup): 導入手順と初期設定
+- コマンド: ゲーム内から利用できるコマンドの一覧
+- フォーマット: 魚・レアリティ・ワールドなどの定義ファイルの書式
 
 ## 注意
 
