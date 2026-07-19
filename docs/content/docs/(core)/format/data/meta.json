@@ -1,4 +1,10 @@
 {
   "title": "データ",
-  "pages": ["fish", "rarity", "world", "generator"]
+  "icon": "Database",
+  "pages": [
+    "fish",
+    "rarity",
+    "world",
+    "generator"
+  ]
 }

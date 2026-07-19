@@ -1,9 +1,52 @@
 ---
 title: 天気のノイズ
+icon: CloudRain
 ---
 
 import { WeatherNoise } from "@/components/core/weather/weather-noise";
 
 ## 天気のノイズ
 
+`moripafishing:internal` の天候ソースは、乱数をそのまま引くのではなく、時間軸に沿ってなだらかに変化するノイズから天候を決めています。このページでは、そのノイズがどう作られ、どう天候へ変換されるかを説明し、パラメータを変えたときの傾向をシミュレーターで確かめられるようにしています。
+
+設定キーそのものの正式な説明は [天候の設定](/docs/format/config/climate) を参照してください。
+
+## ノイズの作り方
+
+天候は次の 4 段階で決定されます。
+
+1. 基準日時 2023-10-01 00:00（`world.defaultTimeZone` のタイムゾーン）からの経過時間を 8 時間で割り、ステップ番号 `x` を求めます。つまりノイズの 1 ステップは 8 時間分に相当します。
+2. `ワールドID + hashPepper + x` の文字列を SHA-256 でハッシュ化し、その先頭 8 文字を 16 進数として読み取ります。この値を種にした XorShift 乱数から、0 から 100 の整数を得ます。
+3. すべてのステップで乱数を引くと値が飛び跳ねてしまうため、乱数を引くのは `check = floor(100 / maxInclination)` ステップごとの節目だけです。その間のステップは、前後の節目の値を線形補間して埋めます。`maxInclination` は 1 ステップあたりの変化量の上限を意味し、値を大きくすると天候が短い周期で入れ替わり、小さくすると同じ天候が長く続きます。
+4. 得られた 0 から 100 の値を `weight` の合計値に正規化し、`weight` を先頭から累積していって最初に上回った天候を採用します。
+
+同じワールド ID と `hashPepper` であればいつ計算しても同じ結果になるため、天候は再起動をまたいでも再現されます。逆に `hashPepper` を変えると、同じワールドでもまったく別の天候系列になります。
+
+## 適用される条件
+
+このノイズが実際の天候を決めるのは、次の条件をすべて満たす場合だけです。
+
+- `climateConfig.weatherSource` が `moripafishing:internal` であること。`moripafishing:vanilla` の場合はバニラの天候状態を読み取るだけで、ノイズは使われません。`MoripaFishingAPI.registerWeatherSource` で登録した独自ソースを指定した場合も同様です。
+- `climateConfig.constant.weather` が未設定であること。この値を設定するとノイズは完全にバイパスされ、常にその天候が返ります。
+
+また `climateConfig` はワールドごとの設定で上書きでき、ワールド側に指定がなければ `WorldConfig.defaultClimateConfig` にフォールバックします。
+
+現在の天候は `drawWeather`、そこから先の予報は `drawWeatherForecast` で取得します。`WeatherConfig` の `offset` と `interval` は予報の計算にのみ使われる値で、`drawWeather` が参照するノイズの 1 ステップ 8 時間には影響しません。
+
+## 設定に書く天候名
+
+`weight` のキーには列挙型の識別子をそのまま書きます。指定できるのは `SUNNY` / `CLOUDY` / `RAINY` / `THUNDERSTORM` / `SNOWY` / `FOGGY` の 6 種類で、既定値は `SUNNY: 4`、`CLOUDY: 1`、`RAINY: 2`、`THUNDERSTORM: 1` です。
+
+:::warning[注意]
+`RAIN` や `THUNDER`、および「雨」「雷」といった日本語の表示名では設定を読み込めません。正しい識別子は `RAINY` と `THUNDERSTORM` です。
+:::
+
+## シミュレーター
+
+`世界` にはワールド ID (`FishingWorldId`)、`pepper` には `climateConfig.hashPepper`（既定値は `pepper`）に相当する値を入力します。`サイズ` は描画するステップ数で、1 ステップが 8 時間なので 1 年分はおよそ 1095 ステップです。
+
 <WeatherNoise />
+
+:::info
+シミュレーターはあくまで傾向をつかむためのもので、プラグインの計算と完全には一致しません。扱えるのは晴れ・曇り・雨・雷の 4 種類のみで `SNOWY` / `FOGGY` は検証できず、`maxInclination` は 30 に固定されています。また補間の計算はプラグイン側が整数除算、シミュレーター側が浮動小数のため、同じ入力でも節目の間の値がずれることがあります。
+:::

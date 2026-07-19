@@ -1,29 +1,58 @@
 ---
 title: FishManager
+icon: Fish
 ---
 
 [Dokka APIリファレンス](https://fishing.plugin.morino.party/dokka/api/party.morino.moripafishing.api.core.fish/-fish-manager/index.html)
 
 FishManagerは、魚データの登録・取得を行うマネージャーです。
+アドオンからは`MoripaFishingAPI#getFishManager()`でインスタンスを取得できます。APIの取得方法は[API利用ガイド](/docs/addons/api-guide)を参照してください。
 
 ## 主なメソッド
 
-| メソッド | 説明 |
-|---|---|
-| `getFish()` | 登録されている全ての魚を取得する |
-| `getFishWithId(id)` | IDから魚を取得する |
-| `getFishesWithRarity(rarity)` | レアリティで魚を絞り込む |
-| `registerFish(fish)` | 魚を登録する |
+| メソッド | 戻り値 | 説明 |
+|---|---|---|
+| `getFish()` | `List<FishData>` | 登録されている全ての魚を取得する |
+| `getFishWithId(id)` | `FishData?` | IDから魚を取得する。未登録の場合は`null` |
+| `getFishesWithRarity(rarity)` | `List<FishData>` | レアリティで魚を絞り込む |
+| `registerFish(fish)` | `Unit` | 魚を登録する |
+| `loadFishes()` | `Unit` | 設定ディレクトリのJSONから魚を読み込む |
+| `unloadFishes()` | `Unit` | 読み込み済みの魚を全て破棄する |
+
+取得・登録で扱う型は`FishData`です。ページ後半に登場する`Fish`は抽選済みのサイズなどを含む別の型なので、混同しないよう注意してください。`FishData`のスキーマは[魚データの形式](/docs/format/data/fish)を参照してください。
+
+## 読み込みのライフサイクル
+
+FishManagerは初期化時に`loadFishes()`を実行し、設定ディレクトリ配下のJSONを読み込みます。
+`/mf reload`コマンドは`unloadFishes()`のあとに`loadFishes()`を呼び直すため、その時点で保持している魚データは一度すべて破棄されます。
+
+`registerFish(fish)`はメモリ上のマップへ追加するだけで、JSONファイルへは保存されません。
+そのため、アドオンからプログラム的に登録した魚は`/mf reload`やサーバー再起動で失われます。恒久的に追加したい場合はJSONファイルとして配置するか、リロードのたびに登録し直す必要があります。
+また、既に存在する`FishId`で登録すると、そのIDの魚は上書きされます。
 
 ## 魚の抽選の流れ
 
 釣りイベントが発生すると、以下の手順で魚が決定されます。
 
 1. **レアリティ抽選** — 各レアリティの`weight`に基づいて重み付き抽選
-2. **魚種抽選** — 選ばれたレアリティ・天候・ワールド条件に合う魚から抽選
-3. **サイズ決定** — 正規分布に基づき、`min`〜`max`の範囲でサイズを生成
+2. **魚種抽選** — 選ばれたレアリティの魚のうち、`isDisabled`が`false`で、かつ`conditions.world`と`conditions.weather`を満たすものだけを候補とし、`FishData.weight`に基づく重み付き抽選を行う
+3. **サイズ決定** — 平均を`(min + max) / 2`、標準偏差を`(max - min) / 6.0`とする正規分布からサイズを生成し、`min`〜`max`の範囲に丸める
 4. **Fishオブジェクト生成** — `FishBuilder`で最終的な`Fish`オブジェクトを構築
+
+`conditions.world`と`conditions.weather`はどちらも空リストであれば「条件なし」として扱われ、その項目では絞り込まれません。
+
+## FishRandomizer
+
+抽選そのものは`FishRandomizer`が担当しています。`MoripaFishingAPI#getRandomizeManager()`から`getFishRandomizer()`を呼ぶことで取得でき、アドオンから任意のタイミングで抽選を実行できます。
+
+| メソッド | 説明 |
+|---|---|
+| `selectRandomFish(fishingWorldId)` | レアリティ抽選から魚の生成までを一括で行う |
+| `selectRandomFishByRarity(rarity, fishingWorldId)` | レアリティを指定して魚を抽選する |
+| `selectRandomFishByFishData(fishData)` | 魚種を指定してサイズだけを抽選する |
+| `drawRandomRarity()` | レアリティのみを抽選する |
 
 :::warning[注意]
 釣れる魚は釣り場（ワールド）と天候条件によって変わります。
+また、`FishData.conditions.time`（`TimeRange`）はデータ形式としては定義されているものの、現在の抽選処理では参照されていません。時間帯による出現制御を前提とした実装は行わないでください。
 :::

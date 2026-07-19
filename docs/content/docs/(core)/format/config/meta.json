@@ -1,4 +1,8 @@
 {
   "title": "config.json",
-  "pages": ["index", "climate"]
+  "icon": "Settings",
+  "pages": [
+    "index",
+    "climate"
+  ]
 }

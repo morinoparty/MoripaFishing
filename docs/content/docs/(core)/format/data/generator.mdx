@@ -1,45 +1,93 @@
 ---
 title: ワールドジェネレーター
+icon: Globe
 ---
 
 # ワールドジェネレーターの指定方法
 
-FishingWorldの生成時に、カスタムワールドジェネレーター（例: void, Terra など）を指定できるようになりました。
+釣りワールドを作成するときに、どのようなワールドを生成するかをジェネレーター定義で指定できます。
+ジェネレーター定義は ID 付きの JSON ファイルとして管理され、ワールド設定やコマンドからその ID を指定して利用します。
 
-## 概要
+## 前提条件
 
-MoripaFishingでは、釣り専用ワールドを作成する際に、バニラのワールドだけでなく、VoidやTerraなどのカスタムジェネレーターを利用することができます。
+カスタムジェネレーターは [WorldLifecycle Integration](/docs/integration/world-lifecycle) が提供する機能です。
+Integration を導入していない場合、Core は起動時に `WorldLifecycle integration not installed; border sync and custom generators are disabled.` と出力し、ワールド生成そのものが失敗します。
+コマンド引数のパースも `WorldLifecycle integration is not installed.` で失敗するため、ワールドを新規作成する場合は必ず Integration を導入してください。
 
-## サポートされるジェネレーター例
-- **Vanilla**（デフォルト）
-- **Void**（何も生成しない空のワールド）
-- **Terra**（Terraプラグインによる地形生成）
-- その他、プラグインで追加されたジェネレーター
+## 配置場所
 
-## 設定例
+ジェネレーター定義は Integration のデータフォルダから読み書きされます。
 
-```json title="plugins/MoripaFishing/generator/terra.json"
+```text
+plugins/MoripaFishing-Integration-WorldLifecycle/generator/*.json
+```
+
+起動時にディレクトリが無ければ作成され、バンドル済みの `terra.json` / `void.json` / `normal.json` がファイル未存在の場合にのみ書き出されます。
+既存ファイルは上書きされません。その後ディレクトリ内の `*.json` をすべて読み込むため、任意の ID のファイルを置けばジェネレーターを追加できます。
+
+## Format
+
+```json title="plugins/MoripaFishing-Integration-WorldLifecycle/generator/terra.json"
 {
   "id": "terra",
   "generator": "Terra:OVERWORLD",
   "type": null,
   "biomeProvider": null,
-  "generatorSetting" : null
+  "generatorSetting": null
 }
 ```
 
+| フィールド | 型 | 既定値 | 説明 |
+|---|---|---|---|
+| `id` | string | 必須 | ジェネレーター ID。ワールド設定やコマンドから参照される |
+| `generator` | string? | `null` | `WorldCreator.generator()` に渡す文字列。プラグイン提供のジェネレーターを `プラグイン名:ID` の形式で指定する |
+| `type` | string? | `null` | Bukkit の `WorldType` 名。`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED` のいずれか |
+| `biomeProvider` | string? | `null` | 名前空間付きバイオームキー（例: `minecraft:plains`）。指定するとワールド全体が単一バイオームに固定される |
+| `generatorSetting` | string? | `null` | `WorldCreator.generatorSettings()` に渡す JSON 文字列。`FLAT` の層構成などを指定する |
+
+JSON のパースは未知キーを無視する寛容なモードで行われるため、定義に無いキーを書いても読み込みは失敗しません。
+
 ## Preset
 
-デフォルトでは、void, terra, normalの3つのジェネレーターが用意されています。
+初期状態では次の 3 つが用意されています。
+
+| ID | 内容 |
+|---|---|
+| `normal` | すべてのフィールドが `null` で、バニラ相当の通常ワールドを生成する |
+| `void` | `type` が `FLAT`、`generatorSetting` で空気 1 層のスーパーフラットを指定した、実質的に何も無いワールド |
+| `terra` | `generator` に `Terra:OVERWORLD` を指定し、Terra プラグインに地形生成を委ねる |
+
+`void` の定義は次のとおりです。`type` でワールドの種類を、`generatorSetting` でその種類固有の設定を指定する例になっています。
+
+```json title="plugins/MoripaFishing-Integration-WorldLifecycle/generator/void.json"
+{
+  "id": "void",
+  "generator": null,
+  "type": "FLAT",
+  "biomeProvider": null,
+  "generatorSetting": "{\"layers\": [{\"block\": \"air\", \"height\": 1}], \"biome\":\"plains\"}"
+}
+```
+
+## ジェネレーターの指定方法
+
+ワールド設定 [`WorldDetailConfig`](/docs/format/data/world) の `generator` にジェネレーター ID を指定します。既定値は `void` です。
+
+コマンドからワールドを作成する場合は、生成時にジェネレーターを引数で指定します。
+
+```text
+/mf world create <id> <generator>
+```
+
+必要な権限は `moripa_fishing.command.world.create` です。
+`<generator>` には登録済みのジェネレーター ID がタブ補完され、未知の ID を指定すると `<id> not found` で失敗します。
+
+また、`WorldLifecycleProvider.addGenerator` を使うと、実行時にジェネレーター定義を追加して JSON ファイルへ保存できます。
 
 ## 注意点
-- 指定したジェネレーターがサーバーにインストールされていない場合、ワールド生成に失敗します。
-- プラグインベースのジェネレーターを利用する場合は、事前に該当プラグインを導入してください。
-- generator名は大文字・小文字を区別する場合があります。
 
-## 関連Issue
-- [#44 Support for custom world generators (void, terra, etc.) in FishingWorld creation](https://github.com/morinoparty/MoripaFishing/issues/44)
-
----
-
-この機能により、より柔軟なワールド構成が可能になります。サーバーの用途や雰囲気に合わせて最適なジェネレーターを選択してください。
+- ジェネレーター ID の照合は完全一致で行われるため、常に大文字・小文字を区別します。
+- `type` は `WorldType` の名前としてそのまま解決されるので大文字で記述する必要があり、不正な値を指定すると例外になります。
+- `biomeProvider` に解決できないバイオームキーを指定すると `IllegalArgumentException` が発生します。
+- `generator` で指定したプラグインがサーバーに導入されていない場合、ワールド生成に失敗します。
+- `world` / `world_nether` / `world_the_end` は予約名として拒否されます。既に同名のワールドが存在する場合も生成に失敗します。

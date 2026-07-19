@@ -1,5 +1,6 @@
 ---
 title: Weather
+icon: CloudRain
 ---
 
 # MoripaFishing-Integration-Weather
@@ -10,18 +11,46 @@ MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integ
 Core は天候の **決定・参照** のみを行い、ワールドの実体を改変する処理は本 Integration に委譲される。
 これにより、Integration を導入しない限り Core 単体ではワールドを書き換えない安全な構成になる。
 
+天候の決定は `WeatherSource` / `WeatherProvider` が担い、`FishingWorld.setWeather` は
+プロバイダーの決定が次に変わるまで有効な **手動上書き** として扱われる。上書きされた実効天候も
+魚の抽選条件に反映され、`applyWeatherEffects` が有効であれば本 Integration 経由でワールドにも適用される。
+
 提供する処理は次のとおり。
 
 - `WeatherType` に応じた **天候の適用**: `World.setStorm` / `isThundering` の切り替え
-- `CLOUDY` の **クライアント側バリア天井**: 各プレイヤーの頭上 (y=200) に Paper の
+- `CLOUDY` の **クライアント側バリア天井**: 各プレイヤーの頭上に Paper の
   `Player.sendMultiBlockChange` で **見た目だけのバリア** を送り、「屋根の下」と判定させて
   雨粒だけを止める。空は暗いまま曇り空になり、嵐 (`setStorm(true)`) も併用する。
-  **実ブロックもバイオームも一切変更しない**ため、草・水・空の色は変化しない。天井はプレイヤーに
-  追従するパッチとして定期再送され、移動やチャンク再読込にも追従する。`RAINY` とも両立する。
+  **実ブロックもバイオームも一切変更しない**ため、草・水・空の色は変化しない。
+
+## 天候ごとの適用内容
+
+| `weatherType` | `setStorm` | `isThundering` | バリア天井 |
+|---|---|---|---|
+| `THUNDERSTORM` | `true` | `true` | なし |
+| `RAINY` | `true` | `false` | なし |
+| `CLOUDY` | `true` | `false` | あり |
+| `SUNNY` およびその他（`SNOWY` / `FOGGY` 等） | `false` | `false` | なし |
+
+`SUNNY` はそのまま晴れとして適用され、Bukkit の天候表現を持たない `FOGGY` / `SNOWY` も明示的に晴れへ
+フォールバックする。これら以外の未知の値が渡された場合は、警告ログを出したうえで晴れに戻す。
+
+## バリア天井の挙動
+
+天井の高さは y=200 を基準とし、ワールドが低い場合は `maxHeight - 1` に丸められる。
+バリアはプレイヤーを中心とした水平半径 12 ブロックのパッチとして送られ、20 tick（1 秒）ごとに
+再送されるため、移動やチャンク再読込にも追従する。パッチが移動して外れたセルには本来のブロックが
+送り直される。
+
+天井が送られるのは **`CLOUDY` を適用中のワールドにいるプレイヤーだけ** で、`RAINY` や
+`THUNDERSTORM` には天井を併用しない。別の天候へ切り替わったり、プレイヤーが `CLOUDY` 以外の
+ワールドへ移動したりした時点で天井は取り消される。退出したプレイヤーのパッチ状態は
+`PlayerQuitEvent` で破棄される。
 
 ## 導入
 
-1. サーバーの `plugins/` に `MoripaFishing-Integration-Weather-<version>.jar` を配置する。
+1. サーバーの `plugins/` にリリースの `MoripaFishing-weather-<version>.jar` を配置する。
+   （プラグイン名は `MoripaFishing-Integration-Weather`、ビルド成果物は `weather-<version>.jar`）
 2. サーバーを起動する。Integration → Core の順でロードされる。
 3. Core のログに以下が出ていれば検出済み。
 
@@ -39,18 +68,46 @@ Core は天候の **決定・参照** のみを行い、ワールドの実体を
 
 | 機能 | 未導入時の挙動 |
 |---|---|
-| 天候の適用（`FishingWorldImpl.setWeather`、`moripafishing:internal` ソース） | スキップ（`fine` ログのみ） |
-| 天候のリセット（`FishingWorldImpl.effectFinish`） | スキップ |
-| 天候の決定（`WeatherRandomizer`）・参照（`getCurrentWeather`） | 影響なし（Core 単体で完結） |
+| 天候の適用（`FishingWorldImpl` の実効天候適用、`moripafishing:internal` ソース） | スキップ（`fine` ログのみ） |
+| 天候のリセット（`FishingWorldImpl.effectFinish`） | ワールド改変のみスキップ（`INFO` ログは出力される） |
+| 天候の決定（`WeatherProvider`）・参照（`getCurrentWeather`） | 影響なし（Core 単体で完結） |
+| `FishingWorldWeatherChangeEvent` の発火 | 影響なし（実効天候の変化時に常に発火） |
 | 魚の抽選条件への天候反映 | 影響なし |
 
 天候は Core が決定・追跡し続けるため、Integration が無くても釣りの抽選条件には天候が反映される。
 実際にワールドの嵐やバリアが現れるのは Integration 導入時のみ。
 
+## Integration が呼ばれない条件
+
+Integration を導入していても、次の場合は `applyWeather` が呼ばれない、あるいは何も起きない。
+
+- ワールドの `weatherSource` が `managesWorldWeather = false` のソース（`moripafishing:vanilla` や
+  読み取り専用の外部ソース）の場合、`FishingWorld.setWeather` は `fine` ログを出して早期 return する。
+  MoripaFishing がワールド天候を支配しない設定では、Integration があってもワールドは改変されない。
+- ワールドの `applyWeatherEffects` が `false` の場合、天候は魚の抽選条件にのみ使われ、
+  Integration への適用要求は行われない。
+- Core は最後に適用した実効天候を保持しており、値が変わらない限り再適用を省略する。この重複抑制は
+  `WeatherProvider` の実装に依存せず、どのソースでも同じように働く。
+- 対象ワールドが Bukkit にロードされていない（`Bukkit.getWorld` が `null`）場合、Integration 側は
+  黙って何もしない。
+
+`weatherSource` と `applyWeatherEffects` の設定方法は [天候の設定](/docs/format/config/climate) を参照してほしい。
+
+なお `applyWeather` / `resetWeather` は Core の非同期リフレッシュループからも呼ばれるため、
+Integration 内部では常に `BukkitScheduler.runTask` でメインスレッドへ委譲してからワールドを改変する。
+
+本 Integration はコマンド・権限ノード・設定ファイルを一切持たない。単体でロードしても副作用はなく、
+起動時に次のログを出すのみ。
+
+```
+[MoripaFishing-Integration-Weather] MoripaFishing-Integration-Weather enabled.
+```
+
 ## SPI
 
 Integration は `party.morino.moripafishing.integrations.weather.api.WeatherControlProvider` を実装する。
-SPI は独立モジュールとして Maven Central に公開され、コアの `moripafishing-api` には依存しない。
+SPI は独立モジュール `:integrations:weather-api` として切り出され、`:api`（`moripafishing-api`）にも
+Bukkit にも依存しない。Maven Central には `party.morino:moripafishing-weather-api` として公開される。
 
 ```kotlin title="build.gradle.kts"
 dependencies {
@@ -77,6 +134,18 @@ interface WeatherControlProvider {
 
 独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
 `MoripaFishing-Integration-Weather` の名前でビルドして配置すれば Core はそちらを利用する。
+
+Core は `PluginManager.getPlugin("MoripaFishing-Integration-Weather")` で得たインスタンスが
+`WeatherControlProvider` にキャストできる場合にのみ採用する。同名のプラグインが存在しても SPI を
+実装していなければ次の警告を出して provider は `null` のままになる。
+
+```
+[MoripaFishing] MoripaFishing-Integration-Weather is installed but does not implement WeatherControlProvider.
+```
+
+Core 側は `paper-plugin.yml` でこのプラグインを `load: BEFORE` / `required: false` /
+`join-classpath: true` として宣言している。Integration が Core より先にロードされ、かつ SPI の型を
+同一の classloader で共有できるのはこの宣言によるもの。
 
 ## 関連
 

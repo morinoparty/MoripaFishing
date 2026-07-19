@@ -1,5 +1,6 @@
 ---
 title: API利用ガイド
+icon: Code
 ---
 
 # API利用ガイド（アドオン開発者向け）
@@ -51,6 +52,17 @@ dependencies {
 </dependencies>
 ```
 
+### Integration の SPI アーティファクト
+
+Integration が公開する SPI は、コア API とは別のアーティファクトとして切り出されています。
+ワールド生成や天候適用の Integration をアドオンから直接操作する場合のみ追加してください。
+
+| アーティファクト | 内容 |
+|---|---|
+| `party.morino:moripafishing-api` | `MoripaFishingAPI` とモデル・イベント |
+| `party.morino:moripafishing-world-lifecycle-api` | `WorldLifecycleProvider` / `GeneratorData` |
+| `party.morino:moripafishing-weather-api` | `WeatherControlProvider` |
+
 ### SNAPSHOTビルド（JitPack）
 
 開発中のブランチのAPIを利用したい場合は、[JitPack](https://jitpack.io/#morinoparty/MoripaFishing)経由で`<branch>-SNAPSHOT`またはコミットハッシュを指定できます。
@@ -70,15 +82,42 @@ dependencies {
 
 :::warning[注意]
 SNAPSHOTビルドやコミットハッシュ指定は開発中のため不安定です。本番環境ではリリースタグのバージョンを使用してください。
+なお `jitpack.yml` は `publishToMavenLocal` でビルドしており、公開される artifactId はサブプロジェクト名ではなく
+`moripafishing-api` です。解決に失敗する場合は [JitPack のビルドログ](https://jitpack.io/#morinoparty/MoripaFishing)で
+実際に公開された座標を確認してください。
 :::
 
-### plugin.yml の設定
+### プラグイン定義ファイルの設定
 
-プラグインの`plugin.yml`に依存関係を追加してください。
+MoripaFishing 本体は Paper プラグイン形式で読み込まれるため、アドオン側も `paper-plugin.yml` で
+依存を宣言するのが基本です。リポジトリ内の参照アドオン `MoripaFishing-Addon-CatchAnnounce` は、
+`paper-plugin.yml` と互換用の `plugin.yml` の両方を出力しています。
+
+```yaml title="paper-plugin.yml"
+dependencies:
+  server:
+    MoripaFishing:
+      load: BEFORE
+      required: false
+```
 
 ```yaml title="plugin.yml"
-depend:
+softdepend:
   - MoripaFishing
+```
+
+依存を `required: false` / `softdepend` にしておくと、コア未導入のサーバーでもアドオンの読み込み自体は
+失敗しません。その代わり、有効化時にコアの存在を確認して自分を無効化する処理を入れてください。
+
+```kotlin
+override fun onEnable() {
+    if (MoripaFishingAPIProvider.getOrNull() == null) {
+        logger.warning("MoripaFishing is not installed; disabling this addon.")
+        server.pluginManager.disablePlugin(this)
+        return
+    }
+    // 以降で API を利用する初期化を行う
+}
 ```
 
 ## APIの取得
@@ -104,7 +143,8 @@ val apiOrNull = MoripaFishingAPIProvider.getOrNull()
 import party.morino.moripafishing.api.MoripaFishingAPI;
 import party.morino.moripafishing.api.MoripaFishingAPIProvider;
 
-MoripaFishingAPI api = MoripaFishingAPIProvider.get();
+// Kotlin の object のため、Java からは INSTANCE 経由で呼び出します
+MoripaFishingAPI api = MoripaFishingAPIProvider.INSTANCE.get();
 ```
 
 ### ServicesManager 経由の取得
@@ -131,6 +171,12 @@ APIインスタンスから以下のマネージャーを取得できます。
 | `LogManager` | `getLogManager()` | ログ出力 |
 | `PluginDirectory` | `getPluginDirectory()` | プラグインディレクトリの取得 |
 
+主なマネージャーのメソッドは次のとおりです。
+
+- `FishManager`: `getFish()` / `getFishWithId(id)` / `getFishesWithRarity(rarity)` / `registerFish(fish)` / `unregisterFish(id)` / `loadFishes()` / `unloadFishes()`
+- `WorldManager`: `getDefaultWorldId()` / `getWorldIdList()` / `hasWorld(id)` / `getWorld(id)` / `getWorlds()` / `createWorld(id)` / `getGeneratorIds()` / `deleteWorld(id)`
+- `AnglerManager`: `getAnglerByMinecraftUniqueId(uuid)` / `getAnglerByAnglerUniqueId(anglerId)` / `getOnlineAnglers()`
+
 また、APIインスタンス自体が天候ソースの登録口（`registerWeatherSource`など）を持ちます。詳細は[天候ソースの登録](#天候ソースの登録)を参照してください。
 
 ## 使用例
@@ -141,7 +187,9 @@ APIインスタンスから以下のマネージャーを取得できます。
 val fishManager = api.getFishManager()
 val allFish = fishManager.getFish()
 allFish.forEach { fish ->
-    println("${fish.id}: ${fish.displayName}")
+    // displayName は Map<Locale, String> なので、ロケールを指定して取り出す
+    val name = fish.displayName[Locale.JAPAN] ?: fish.id.value
+    println("${fish.id.value}: $name")
 }
 ```
 
@@ -160,24 +208,26 @@ val anglerManager = api.getAnglerManager()
 val angler = anglerManager.getAnglerByMinecraftUniqueId(player.uniqueId)
 angler?.let {
     println("Name: ${it.getName()}")
-    println("World: ${it.getWorld()?.getId()}")
+    println("World: ${it.getWorld()?.getId()?.value}")
 }
 ```
 
 ### ワールドの一覧を取得する
 
+`getWorld`はロードされていないワールドや未登録のIDに対して`null`を返します。
+ロード済みのワールドだけを直接まとめて取得したい場合は`getWorlds()`を使ってください。
+
 ```kotlin
 val worldManager = api.getWorldManager()
-val worldIds = worldManager.getWorldIdList()
-worldIds.forEach { id ->
-    val world = worldManager.getWorld(id)
-    println("World: $id")
+worldManager.getWorldIdList().forEach { id ->
+    val world = worldManager.getWorld(id) ?: return@forEach
+    println("World: ${world.getId().value} / ${world.getCurrentWeather()}")
 }
 ```
 
 ### ワールドを作成する
 
-ワールド生成の実体は [`MoripaFishing-Integration-WorldLifecycle` Integration](../integration/world-lifecycle) が提供します。
+ワールド生成の実体は [`MoripaFishing-Integration-WorldLifecycle` Integration](/docs/integration/world-lifecycle) が提供します。
 未導入環境では`createWorld`が`false`を返し、`getGeneratorIds()`は空リストを返します。
 
 ```kotlin
@@ -185,6 +235,46 @@ val worldManager = api.getWorldManager()
 val generatorIds = worldManager.getGeneratorIds()
 val created = worldManager.createWorld(FishingWorldId("my_world"), "terra")
 ```
+
+### ジェネレーターを登録する
+
+`WorldLifecycleProvider` は独立した SPI モジュール（`moripafishing-world-lifecycle-api`）にあり、
+`MoripaFishingAPI` には公開されていません。ジェネレーターを追加したい場合は、
+Integration プラグインを直接キャストして取得してください。
+
+```kotlin
+import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
+import party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider
+
+val worldLifecycle =
+    Bukkit.getPluginManager().getPlugin("MoripaFishing-Integration-WorldLifecycle") as? WorldLifecycleProvider
+        ?: error("MoripaFishing-Integration-WorldLifecycle integration is not installed")
+
+worldLifecycle.addGenerator(
+    GeneratorData(
+        id = "my-generator",
+        generator = "MyGeneratorPlugin:default",
+        type = "NORMAL",
+    ),
+)
+```
+
+`addGenerator` が受け取るのは任意のジェネレーターオブジェクトではなく、値型の `GeneratorData` です。
+この SPI は `api` モジュールに依存せず、ワールドIDやジェネレーターIDを `String` でやり取りします。
+Integration とアドオンが別々の classloader に読み込まれても型の同一性が壊れないようにするためです。
+
+`WorldLifecycleProvider` が公開しているメソッドは次のとおりです。
+
+| メソッド | 説明 |
+|---|---|
+| `applyBorder(worldId, centerX, centerZ, size)` | ワールド境界を適用する |
+| `createBukkitWorld(worldId, generatorData)` | Bukkit のワールドを生成する |
+| `getGenerator(id)` | 登録済みジェネレーターを取得する（未登録なら `null`） |
+| `listGenerators()` | 登録済みジェネレーターの一覧を取得する |
+| `addGenerator(generator)` | ジェネレーターを登録する |
+
+天候適用の `WeatherControlProvider`（`moripafishing-weather-api`）も同様に `MoripaFishingAPI` には
+公開されておらず、`MoripaFishing-Integration-Weather` プラグインを直接キャストして取得します。
 
 ## 天候ソースの登録
 
@@ -209,6 +299,9 @@ class MyWeatherSource : WeatherSource {
 }
 
 api.registerWeatherSource(MyWeatherSource())
+
+// 解除する場合
+api.unregisterWeatherSource(Key.key("myplugin", "realistic"))
 ```
 
 `WeatherProvider`はpull型で、`getCurrentWeather`はメインスレッド・非同期スレッドの両方から呼ばれます。
@@ -310,6 +403,55 @@ class MyListener : Listener {
 | `angler` | `AnglerId` | つりびとID |
 | `world` | `FishingWorldId` | 釣り場ワールドID |
 | `timestamp` | `ZonedDateTime` | 釣った日時 |
+
+`FishId` / `RarityId` / `FishingWorldId` はいずれも `value: String` を持つ単純な値型で、
+`kotlinx.serialization` に対応しています。表示名は `toTranslateKey()` が返す翻訳キーから解決してください。
+
+### ワールド関連のイベント
+
+釣り場ワールドの作成・削除・ロード・アンロード・天候変化に対応するイベントです。
+いずれも `getWorldId()` で対象の `FishingWorldId` を取得できます。`FishingWorldDeleteEvent` だけが
+`Cancellable` を実装しており、削除を中止できます。
+
+```kotlin
+import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
+
+@EventHandler
+fun onWorldDelete(event: FishingWorldDeleteEvent) {
+    if (event.getWorldId().value == "protected_world") {
+        event.isCancelled = true
+    }
+}
+```
+
+`FishingWorldWeatherChangeEvent` は `getOldWeather()` と `getNewWeather()` で変化前後の
+`WeatherType` を取得できます。非同期スレッドから発火する場合があるため、Bukkit API を触る処理は
+メインスレッドへスケジュールしてください。
+
+### AnglerJoinTeleportEvent
+
+つりびとが参加して釣り場ワールドへテレポートする直前に発火します。`Cancellable` であるため
+テレポート自体を中止できるほか、`setDestination(LocationData)` で行き先を差し替えることもできます。
+
+```kotlin
+import party.morino.moripafishing.event.angler.AnglerJoinTeleportEvent
+
+@EventHandler
+fun onJoinTeleport(event: AnglerJoinTeleportEvent) {
+    val angler = event.getAngler()
+
+    // 行き先を変更する
+    event.setDestination(event.getDestination().copy(x = 100.0, z = 100.0))
+
+    // テレポート自体を中止する
+    // event.isCancelled = true
+}
+```
+
+### ConfigReloadedEvent
+
+`/mf reload` などで設定が再読み込みされた直後に発火します。設定由来の値をキャッシュしている
+アドオンは、このイベントで再取得してください。
 
 ## Dokka APIリファレンス
 

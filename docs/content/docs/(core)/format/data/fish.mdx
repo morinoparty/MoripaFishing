@@ -1,25 +1,30 @@
 ---
 title: さかな
+icon: Fish
 ---
 
 import { FishMaker } from '@/components/core/fish/fish-maker';
 
 ## Format
 
-```json title="plugins/MoripaFishing/fish/test-common.json"
+魚は 1 匹につき 1 つの JSON ファイルとして定義します。
+`$schema` を先頭に書いておくと、対応エディタで補完と検証が効くようになります。
+
+```json title="plugins/MoripaFishing/fish/mythic/sacabambaspis.json"
 {
+  "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
   "id": "sacabambaspis",
   "isDisabled": false,
-  "catchCommands": [],
+  "cacheCommand": [],
   "conditions": {
     "weather": [],
-    "world": []
+    "world": [],
+    "time": []
   },
   "displayName": {
     "en_US": "<gradient:#7f0000:#ad1457>Sacabambaspis",
     "ja_JP": "<gradient:#7f0000:#ad1457>サカバンバスピス"
   },
-  "icon": "",
   "itemStack": {
     "material": "COD",
     "itemMeta": {
@@ -32,6 +37,7 @@ import { FishMaker } from '@/components/core/fish/fish-maker';
   },
   "rarity": "mythic",
   "weight": 10.0,
+  "worthExpression": null,
   "lore": {
     "en_US": [
       "Extinct genus of jawless fish that lived in the Ordovician period",
@@ -44,3 +50,78 @@ import { FishMaker } from '@/components/core/fish/fish-maker';
   }
 }
 ```
+
+## ファイルの配置
+
+魚のファイルは `plugins/MoripaFishing/fish/` 直下か、その 1 階層下のディレクトリだけが読み込み対象です。
+読み込みの際に、そのファイルは `fish/<レアリティ ID>/<ファイル名>.json` へ自動的に移動されます。
+そのため最初はどこに置いても構いませんが、起動後は上の例のようにレアリティごとのディレクトリに整理された状態になります。
+
+## フィールド
+
+| キー | 既定値 | 説明 |
+| --- | --- | --- |
+| `id` | 必須 | 魚を一意に識別する ID です。 |
+| `itemStack` | 必須 | 釣り上げたときに渡されるアイテムの定義です。 |
+| `conditions` | 必須 | 出現条件です。制限しない場合も空のオブジェクトとして書きます。 |
+| `isDisabled` | `false` | `true` にすると抽選対象から外れます。期間限定の魚を一時的に止める用途を想定しています。 |
+| `rarity` | `"common"` | 所属するレアリティの ID です。 |
+| `weight` | `10.0` | 同一レアリティ内での重み付け抽選に使う重みです。 |
+| `size` | `min: 20.0` / `max: 40.0` | サイズの範囲です。 |
+| `worthExpression` | `null` | 価値の計算式です。`null` のときはレアリティ側の式が使われます。 |
+| `displayName` | `ja_JP` の「さかな」 | ロケールごとの表示名です。 |
+| `lore` | 空 | ロケールごとの説明文です。 |
+| `cacheCommand` | `[]` | 釣り上げたときに実行するコマンドの一覧です。魚側の指定は現時点では未実装で、レアリティ側の `cacheCommand` のみが動作します。 |
+| `icon` | `U+E060` | 図鑑表示のために予約されているアイコン文字です。私用領域の文字が既定値で、現在は使用されていません。 |
+
+## 出現条件
+
+`conditions` の各配列は、空にすると「制限なし」として扱われます。
+
+- `weather` には `SUNNY` / `CLOUDY` / `RAINY` / `THUNDERSTORM` / `SNOWY` / `FOGGY` を指定できます。ここに含まれる天候のときだけ抽選対象になります。
+- `world` には対象とする釣りワールドの ID を並べます。
+- `time` には `{ "start": 80, "end": 16 }` のような時間帯を並べます。値は 0 から 95 までの 15 分刻みで、0 が 00:00、32 が 08:00、64 が 16:00、95 が 23:45 に対応します。ただし現在の抽選処理は `world` と `weather` しか参照していないため、`time` は定義できても動作しません。
+
+抽選はレアリティを決めたあとに行われ、条件を満たした魚の `weight` の合計に対して重み付き抽選が実行されます。
+
+## 表示名と説明文
+
+`displayName` と `lore` のキーはロケールコードです。
+`_` は内部で `-` に置き換えられて解釈されるため、`ja_JP` と `ja` のどちらの書き方でも問題ありません。
+
+値には MiniMessage の記法をそのまま書けます。
+上の例の `<gradient:#7f0000:#ad1457>` のように、グラデーションや色指定を使って表示を装飾できます。
+
+## アイテムの指定
+
+`itemStack.material` には Bukkit のマテリアル名を指定します。
+`itemMeta` では次の 2 つを指定できます。
+
+- `customModelData`: リソースパックのモデルを切り替えるための値の一覧です。
+- `skullTexture`: `material` が `PLAYER_HEAD` のときに使う Base64 のテクスチャ文字列です。
+
+```json title="plugins/MoripaFishing/fish/mythic/fox9003.json"
+{
+  "itemStack": {
+    "material": "PLAYER_HEAD",
+    "itemMeta": {
+      "skullTexture": "ewogICJ0aW1lc3RhbXAiIDogMTU4ODI2MTM1Njk5MSwK..."
+    }
+  }
+}
+```
+
+## サイズと価値
+
+`size` は単純な一様乱数の範囲ではなく、正規分布として扱われます。
+`min` と `max` の中央を平均、`(max - min) / 6` を標準偏差として、釣れたサイズの累積分布関数の値が計算されます。
+
+この値が価値の計算式の `<length_rate>` に代入され、式が評価されて価値が決まります。
+つまり `<length_rate>` は 0 から 1 の値で、その魚のなかで大物であるほど 1 に近づきます。
+
+使われる式は魚の `worthExpression` で、これが `null` の場合はレアリティ側の `worthExpression` にフォールバックします。
+どちらにも定義がない場合はエラーになります。
+
+実際にどの程度の価値になるかは、次のツールで試せます。
+
+<FishMaker />

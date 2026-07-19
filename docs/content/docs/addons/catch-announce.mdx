@@ -1,5 +1,6 @@
 ---
 title: CatchAnnounce
+icon: Megaphone
 ---
 
 魚を釣り上げたことをサーバー内にアナウンスする公式 Addon。かつて Core に組み込まれていた
@@ -8,43 +9,63 @@ title: CatchAnnounce
 
 `AnglerFishCaughtResultEvent`（`moripafishing-api`）を購読し、釣り上げが確定するたびに `config.yml` で指定したフォーマットの
 メッセージをブロードキャストする。メッセージ中の魚名・レアリティ名・ワールド名のプレースホルダーは
-MoripaFishing がグローバルに登録している翻訳を経由して解決されるため、閲覧者ごとにクライアントの
-ロケールに応じた表示になる。
+翻訳可能コンポーネントとして展開されるため、サーバーに翻訳が登録されていれば閲覧者ごとに
+クライアントのロケールに応じた表示になる。
 
 ## 導入
 
-1. サーバーの `plugins/` に `MoripaFishing-Addon-CatchAnnounce-<version>.jar` を配置する。
-2. サーバーを起動する。Addon は Core を `softdepend` しているため、Core が導入されていれば Core より後にロードされる。
+1. サーバーの `plugins/` に `catch-announce-<version>.jar` を配置する（`MoripaFishing-Addon-CatchAnnounce` は
+   プラグイン名であってファイル名ではない）。
+2. サーバーを起動する。Paper では `MoripaFishing` を任意依存（`Load.BEFORE`）として宣言しているため、
+   Core が導入されていれば Core より後にロードされる。Bukkit 互換の `plugin.yml` では `softdepend` として宣言されている。
 3. 初回起動時に `plugins/MoripaFishing-Addon-CatchAnnounce/config.yml` が生成される。
 
 Core が未導入の場合、この Addon は起動時に警告ログを出して自動的に無効化される（サーバー自体は問題なく起動する）。
 
 ## config.yml
 
+初回起動時には、既定値をそのまま書き出した次の内容が生成される。
+
 ```yaml title="plugins/MoripaFishing-Addon-CatchAnnounce/config.yml"
 enabled: true
-messageFormat: "<gray>[<yellow>Fishing</yellow>]</gray> <angler> caught <fish_name> (<rarity_name>, <size>cm)!"
+messageFormat: "<gray>[<gold>釣果</gold>]</gray> <angler> が <fish_name> <gray>(<rarity_name>, <size>cm)</gray> を釣り上げたのだ！"
 minRarityWeight: null
 broadcastTarget: ALL
 broadcastPermission: "moripafishing.addon.catchannounce.receive"
 ```
 
+`config.yml` は起動時に一度だけ読み込まれる。この Addon はコマンドを一切登録しないため、
+設定を変更した場合はサーバーの再起動（またはプラグインのリロード）が必要になる。
+YAML として不正な内容になっている場合は読み込みに失敗し、Addon の有効化そのものが失敗する。
+
 | フィールド | 型 | 説明 |
 |---|---|---|
 | `enabled` | boolean | アナウンス機能全体の有効/無効を切り替える（デフォルト: `true`） |
 | `messageFormat` | string | MiniMessage形式のメッセージテンプレート。`<angler>`、`<fish_name>`、`<rarity_name>`、`<size>`、`<world_name>`、`<timestamp>`のプレースホルダーが使用可能 |
-| `minRarityWeight` | number \| null | この値以下の`weight`を持つレアリティの魚のみアナウンスする。レアリティの`weight`は値が小さいほどレアな魚を表す。`null`の場合は全ての釣果をアナウンスする（デフォルト: `null`） |
-| `broadcastTarget` | string | アナウンスの送信先。`ALL`（サーバー全体）、`SAME_WORLD`（つりびとと同じ釣り場ワールドにいるプレイヤーのみ）、`PERMISSION`（`broadcastPermission`の権限を持つプレイヤーのみ）のいずれかを指定する（デフォルト: `ALL`） |
+| `minRarityWeight` | number (小数可) \| null | この値以下の`weight`を持つレアリティの魚のみアナウンスする。`weight`がこの値と等しい場合もアナウンスされる。レアリティの`weight`は値が小さいほどレアな魚を表す。`null`の場合は全ての釣果をアナウンスする（デフォルト: `null`） |
+| `broadcastTarget` | string | アナウンスの送信先。`ALL`（サーバー全体）、`SAME_WORLD`（同じ釣り場ワールドに滞在しているつりびとのみ）、`PERMISSION`（`broadcastPermission`の権限を持つプレイヤーのみ）のいずれかを指定する（デフォルト: `ALL`） |
 | `broadcastPermission` | string | `broadcastTarget`が`PERMISSION`のときに参照される権限ノード（デフォルト: `moripafishing.addon.catchannounce.receive`） |
+
+`enabled` を `false` にしてもリスナーの登録自体は行われ、イベントを受け取った時点で処理を打ち切る動作になる。
+
+`SAME_WORLD` の送信先は、Core の `AnglerManager` が管理しているオンラインのつりびとのうち、
+釣果が発生したワールドに滞在している者に限られる。つりびととして管理されていないプレイヤーには届かず、
+Core の API を取得できなかった場合は何も送信されない。
+
+`broadcastPermission` の権限ノードは `plugin.yml` に宣言されていないため、既定では OP にも継承されない。
+LuckPerms などの権限プラグインで明示的に付与する必要がある。
 
 ## プレースホルダー
 
 - `<angler>`: 釣ったプレイヤーの名前
-- `<fish_name>`: 魚の表示名（閲覧者のロケールに応じて翻訳される）
-- `<rarity_name>`: レアリティの表示名（閲覧者のロケールに応じて翻訳される）
-- `<size>`: 魚のサイズ
-- `<world_name>`: 釣り場ワールド名（閲覧者のロケールに応じて翻訳される）
-- `<timestamp>`: 釣った日時
+- `<fish_name>`: 魚の表示名。翻訳キー `moripa_fishing.fish.<魚ID>.name` として展開される
+- `<rarity_name>`: レアリティの表示名。翻訳キー `moripa_fishing.rarity.<レアリティID>.name` として展開される
+- `<size>`: 魚のサイズ。小数第2位までの数値文字列で、単位は含まれないためテンプレート側で `cm` などを記述する
+- `<world_name>`: 釣り場ワールド名。翻訳キー `moripa_fishing.world.<ワールドID>.name` として展開される
+- `<timestamp>`: 釣った日時。ISO 8601 形式の文字列がそのまま入り、整形やロケール対応は行われない
+
+翻訳が登録されていないキーは、翻訳されずにキー文字列がそのまま表示される。
+メッセージ全体は MiniMessage として解釈されるため、色や装飾に加えて hover / click などのタグも利用できる。
 
 :::warning[注意]
 `minRarityWeight`はレアリティの`weight`と比較される。`weight`は値が小さいほどレアな魚を意味するため、

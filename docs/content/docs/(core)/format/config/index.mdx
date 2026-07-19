@@ -1,6 +1,11 @@
 ---
 title: コンフィグ
+icon: FileCog
 ---
+
+`config.json`はプラグインのルートディレクトリ（`plugins/MoripaFishing/`）に配置されます。
+起動時にファイルが存在しないか空の場合は、すべての項目を既定値で埋めたファイルが自動生成されます。
+読み込み時に未知のキーは無視されるため、古い設定キーが残っていてもエラーにはなりません。
 
 ## Format
 
@@ -9,7 +14,30 @@ title: コンフィグ
     "world": {
         "defaultId": "default",
         "defaultWorldSize": 100.0,
-        "defaultClimateConfig": null,
+        "defaultClimateConfig": {
+            "weatherSource": "moripafishing:internal",
+            "applyWeatherEffects": true,
+            "enableDayCycle": true,
+            "constant": {
+                "weather": null,
+                "dayCycle": null
+            },
+            "dayCycle": {
+                "offset": 0
+            },
+            "weather": {
+                "weight": {
+                    "SUNNY": 4,
+                    "CLOUDY": 1,
+                    "RAINY": 2,
+                    "THUNDERSTORM": 1
+                },
+                "offset": 0,
+                "interval": 8,
+                "maxInclination": 30
+            },
+            "hashPepper": "pepper"
+        },
         "refreshInterval": 60,
         "defaultTimeZone": "Asia/Tokyo"
     },
@@ -25,11 +53,38 @@ title: コンフィグ
 
 - `defaultId`: デフォルトの釣り場ワールドIDを指定します（デフォルト: `default`）
 - `defaultWorldSize`: デフォルトのワールドボーダーサイズを指定します（デフォルト: `100.0`）
-- `defaultClimateConfig`: デフォルトの天候設定です。詳細は[天候](./climate)を参照
+- `defaultClimateConfig`: デフォルトの天候設定です。詳細は[天候](/docs/format/config/climate)を参照
 - `refreshInterval`: ワールドの状態更新間隔を秒単位で指定します（デフォルト: `60`）
 - `defaultTimeZone`: デフォルトのタイムゾーンIDを指定します。`Asia/Tokyo`、`UTC`、`America/New_York`等のIANAタイムゾーンIDが使用可能です（デフォルト: `Asia/Tokyo`）
+
+`defaultWorldSize`はフォールバック値です。`world/<fishing_world_name>.json`の`borderSize`が設定されている場合はそちらが優先され、未設定のワールドにのみこの値が適用されます。
+
+`defaultClimateConfig`は`null`を許容しません。省略した場合も自動生成時にはすべての項目が展開された状態で書き出されます。個別のワールドで`climateConfig`が指定されている場合はそちらが優先され、未指定のワールドではこの設定がフォールバックとして使用されます。
+
+`refreshInterval`は天候や時間を同期するワールド更新処理のループ間隔として使われ、内部では秒からティック（1秒 = 20ティック）に換算されます。
+
+:::warning[注意]
+`defaultTimeZone`の値はそのままIANAタイムゾーンIDとして解決されるため、不正な文字列を指定すると天候計算やワールド更新の実行時に例外が発生します。
+:::
 
 ### defaultLocale
 
 プラグインのデフォルトロケールを指定します（デフォルト: `ja_JP`）。
 i18nの翻訳ファイルと対応しており、プレイヤーへのメッセージ表示言語に影響します。
+読み込み時は`_`を`-`に置き換えて言語タグとして解釈されるため、`ja_JP`と`ja-JP`のどちらの表記でも受け付けられます。自動生成されるファイルには`ja_JP`形式で書き出されます。
+
+## 設定の再読み込みと書き戻し
+
+`config.json`は`reload()`によって再読み込みされ、その時点のファイル内容が設定として反映されます。
+またプラグイン内部から`applyConfig()`が呼ばれた場合は、保持している設定がそのまま`config.json`へ書き戻されます。
+このためファイルを手動で編集した内容は、書き戻しのタイミングによっては上書きされる可能性があります。
+
+## 関連するディレクトリ
+
+`config.json`と同じルートディレクトリ配下には、用途ごとのサブディレクトリが用意されています。
+
+- `rarity/`: レアリティの定義ファイル
+- `fish/`: 魚の定義ファイル
+- `world/`: 釣り場ワールドごとの詳細設定ファイル
+- `generator/`: ワールドジェネレータの設定ファイル
+- `translation/`: 翻訳メッセージのファイル

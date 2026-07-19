@@ -1,13 +1,14 @@
 ---
 title: ワールド管理コマンド
+icon: Globe
 ---
 
 ワールドの作成、削除、設定を行うコマンドです。
 
 export const commandList = [
     {
-        command: "/mf world create <id> [generator] [biome]",
-        description: "ワールドを作成します",
+        command: "/mf world create <id> <generator>",
+        description: "指定したジェネレーターでワールドを作成します(WorldLifecycle 統合が必要)",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.create",
@@ -15,14 +16,14 @@ export const commandList = [
     },{
         command: "/mf world list",
         description: "ワールド一覧を表示します",
-        tags: ["player"],
+        tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.list",
+        permission: "moripa_fishing.command.world.default",
         status: "newly"
     },
     {
         command: "/mf world transfer <world> <player>",
-        description: "プレイヤーを別のワールドに移動します",
+        description: "プレイヤーを対象ワールドのスポーン地点へ移動します",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.default",
@@ -30,7 +31,7 @@ export const commandList = [
     },
     {
         command: "/mf world delete <world>",
-        description: "ワールドを削除します",
+        description: "ワールドを管理対象から削除します(フォルダーは残ります)",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.delete",
@@ -45,15 +46,15 @@ export const commandList = [
         status: "beta"
     },
     {
-        command: "/mf world config set center <world> <x> <z>",
-        description: "ワールドの中心座標を設定します",
+        command: "/mf world config set center <world> [x] [z]",
+        description: "ワールドの中心座標を設定します(座標を省略した場合は実行者の現在位置)",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.config",
         status: "beta"
     },
     {
-        command: "/mf world config set radius <world> <radius>",
+        command: "/mf world config set size <world> <size>",
         description: "ワールドのサイズを設定します",
         tags: ["admin"],
         aliases: [],
@@ -62,17 +63,17 @@ export const commandList = [
     },
     {
         command: "/mf world config view <world>",
-        description: "ワールドの設定を表示します",
+        description: "ワールド設定を JSON 形式でそのまま表示します",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.config",
         status: "beta"
     }, {
         command: "/mf world reload <world>",
-        description: "ワールドを再読み込みします",
+        description: "ワールドを再読み込みします(未実装。権限ノードも未登録)",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.reload",
+        permission: "未登録(実装時に決定)",
         status: "proposal"
     }
 ];
@@ -82,3 +83,21 @@ import { CommandList } from "@/components/commands/command-list";
 # コマンド
 
 <CommandList list={commandList} />
+
+## 補足
+
+すべてのサブコマンドは、クラス全体に設定された `moripa_fishing.command.world` を前提としています。各サブコマンドの権限は、この基本権限に加えて必要になるものです。
+
+### ワールドの作成について
+
+`create` はジェネレーターの指定が必須で、省略できません。ジェネレーター名は WorldLifecycle 統合から解決されるため、統合プラグインが導入されていない場合は `WorldLifecycle integration is not installed.` として失敗します。また、`WorldManager` の実装が既定の `WorldManagerImpl` でない場合も作成を中断し、その旨をメッセージで通知します。
+
+### ワールドの削除について
+
+`delete` は釣りワールドの管理対象からの削除のみを行い、ディスク上のワールドフォルダーは残したままにします。実行後のメッセージにも、フォルダーが削除されていないことが明示されます。
+
+### 設定コマンドについて
+
+`config set spawn` は実行者の現在位置をスポーン座標として保存するため、プレイヤーからのみ実行できます。`config set center` は座標を指定して実行することもできますが、`x` と `z` を省略した場合は実行者の現在位置が使われるため、その形式ではプレイヤー専用となります。
+
+`config view` はワールド設定を整形せず、`WorldDetailConfig` を JSON にエンコードした内容をそのまま出力します。

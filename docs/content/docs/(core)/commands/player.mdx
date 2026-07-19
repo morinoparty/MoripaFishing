@@ -1,24 +1,19 @@
 ---
 title: プレイヤー用コマンド
+icon: User
 ---
 
 プレイヤー用のコマンドです。
 
+なお、釣りワールドの一覧表示はすでに `/mf world list` として実装されています。詳細は[ワールド管理コマンド](/docs/commands/world)を参照してください。
+
 export const commandList = [
     {
-        command: "/mf list fish",
+        command: "/mf fish list",
         description: "現在のワールドで釣れる魚一覧を表示します",
         tags: ["player"],
         aliases: [],
-        permission: "moripa_fishing.command.player.list.fish",
-        status: "proposal"
-    },
-    {
-        command: "/mf list world",
-        description: "釣りワールド一覧を表示します",
-        tags: ["player"],
-        aliases: [],
-        permission: "moripa_fishing.command.player.list.world",
+        permission: "moripa_fishing.command.fish.list",
         status: "proposal"
     }
 ];
