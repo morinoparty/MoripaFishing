@@ -13,6 +13,9 @@ import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.event.world.FishingWorldCreateEvent
 import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
+import party.morino.moripafishing.event.world.FishingWorldDeletedEvent
+import party.morino.moripafishing.event.world.FishingWorldLoadEvent
+import party.morino.moripafishing.event.world.FishingWorldUnloadEvent
 import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 import party.morino.moripafishing.utils.Utils
 
@@ -54,8 +57,10 @@ class WorldManagerImpl :
             // 存在しない場合は createWorld で生成する (WorldLifecycle integration が必要)。
             if (Bukkit.getWorld(world.value) != null) {
                 plugin.logger.info("World is found! Skipping ${world.value}")
-                worldList.add(FishingWorldImpl(world))
-                worldList.find { it.getId() == world }?.updateState()
+                val instance = FishingWorldImpl(world)
+                worldList.add(instance)
+                instance.updateState()
+                FishingWorldLoadEvent(world).callEvent()
                 return@forEach
             }
             if (createWorld(world)) {
@@ -73,19 +78,49 @@ class WorldManagerImpl :
 
     override fun getWorldIdList(): List<FishingWorldId> = worldIdList.toList()
 
-    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld =
-        worldList.find { it.getId() == fishingWorldId } ?: run {
-            val world = FishingWorldImpl(fishingWorldId)
-            worldList.add(world)
-            world
-        }
+    override fun hasWorld(fishingWorldId: FishingWorldId): Boolean = fishingWorldId in worldIdList
+
+    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld? {
+        worldList.find { it.getId() == fishingWorldId }?.let { return it }
+        // 登録済み (設定ファイルが存在する) かつ Bukkit ワールドがロード済みの場合のみ遅延構築する。
+        // 未登録の ID に対してワールドを捏造しない。
+        if (fishingWorldId !in worldIdList) return null
+        if (Bukkit.getWorld(fishingWorldId.value) == null) return null
+        val world = FishingWorldImpl(fishingWorldId)
+        worldList.add(world)
+        return world
+    }
+
+    override fun getWorlds(): List<FishingWorld> = worldIdList.toList().mapNotNull { getWorld(it) }
+
+    override fun getGeneratorIds(): List<String> = plugin.getWorldLifecycleProvider()?.listGenerators()?.map { it.id } ?: emptyList()
+
+    override fun createWorld(
+        fishingWorldId: FishingWorldId,
+        generatorId: String,
+    ): Boolean {
+        val provider =
+            plugin.getWorldLifecycleProvider() ?: run {
+                plugin.logger.warning(
+                    "createWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
+                )
+                return false
+            }
+        val generator =
+            provider.getGenerator(generatorId) ?: run {
+                plugin.logger.warning(
+                    "Generator '$generatorId' was not found in the WorldLifecycle integration.",
+                )
+                return false
+            }
+        return createWorld(fishingWorldId, generator)
+    }
 
     /**
-     * 指定されたジェネレータデータで Bukkit ワールドを作成する。
-     * コマンド (`/mf world create`) から呼ばれる内部 API。
+     * 指定されたジェネレータデータで Bukkit ワールドを作成する内部実装。
      * Integration 未導入時は warning を出して `false` を返す。
      */
-    fun createWorld(
+    private fun createWorld(
         fishingWorldId: FishingWorldId,
         generatorData: GeneratorData,
     ): Boolean {
@@ -131,6 +166,7 @@ class WorldManagerImpl :
         if (isNewWorld) {
             FishingWorldCreateEvent(fishingWorldId).callEvent()
         }
+        FishingWorldLoadEvent(fishingWorldId).callEvent()
         return true
     }
 
@@ -160,13 +196,24 @@ class WorldManagerImpl :
             plugin.logger.info("deleteWorld(${fishingWorldId.value}) was cancelled by an event handler.")
             return false
         }
-        Bukkit.unloadWorld(world, false)
+        if (!Bukkit.unloadWorld(world, false)) {
+            plugin.logger.warning(
+                "deleteWorld(${fishingWorldId.value}) aborted: Bukkit.unloadWorld failed (players still in the world?).",
+            )
+            return false
+        }
         val worldFile = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
         if (worldFile.exists()) {
             worldFile.delete()
         }
+        // 破棄前に天候プロバイダーの Listener 等を解放する
+        worldList
+            .filter { it.getId() == fishingWorldId }
+            .forEach { (it as? FishingWorldImpl)?.disposeWeatherProvider() }
         worldList.removeIf { it.getId() == fishingWorldId }
         worldIdList.remove(fishingWorldId)
+        FishingWorldUnloadEvent(fishingWorldId).callEvent()
+        FishingWorldDeletedEvent(fishingWorldId).callEvent()
         return true
     }
 

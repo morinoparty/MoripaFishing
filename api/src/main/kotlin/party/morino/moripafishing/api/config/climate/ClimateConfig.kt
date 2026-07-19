@@ -19,6 +19,11 @@ import party.morino.moripafishing.api.utils.serializer.KeySerializer
  *   のみ使用、`DO_WEATHER_CYCLE = true`）を提供する。
  *   外部プラグインは `MoripaFishingAPI.registerWeatherSource` で独自キーのソースを登録できる。
  *   未登録のキーが指定された場合は `moripafishing:internal` にフォールバックする。
+ * @property applyWeatherEffects 決定した天候を Bukkit ワールドへ反映するかどうか。
+ *   `true` の場合、`managesWorldWeather = true` なソースの天候をワールドに適用し、
+ *   `DO_WEATHER_CYCLE` をソースに応じて制御する。
+ *   `false` の場合、MoripaFishing はワールドの天候・`DO_WEATHER_CYCLE` を一切変更せず、
+ *   天候は魚の抽選条件にのみ使用される（演出はバニラや他プラグインに委ねる）。
  * @property enableDayCycle プラグインによる時間同期を有効にするかどうか。
  *   `true` の場合、`DO_DAYLIGHT_CYCLE` を `false` に設定しプラグインがリアルタイム同期または固定時間を管理する。
  *   `false` の場合、`DO_DAYLIGHT_CYCLE` を `true` に設定しバニラの昼夜サイクルに委ねる。
@@ -31,6 +36,7 @@ import party.morino.moripafishing.api.utils.serializer.KeySerializer
 data class ClimateConfig(
     @Serializable(with = KeySerializer::class)
     val weatherSource: Key = WeatherSource.INTERNAL,
+    val applyWeatherEffects: Boolean = true,
     val enableDayCycle: Boolean = true,
     val constant: ConstantConfig = ConstantConfig(),
     val dayCycle: DayCycleConfig = DayCycleConfig(),

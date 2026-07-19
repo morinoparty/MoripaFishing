@@ -1,6 +1,4 @@
-package party.morino.moripafishing.api.core.world.lifecycle
-
-import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
+package party.morino.moripafishing.integrations.worldlifecycle.api
 
 /**
  * 釣りワールドのライフサイクル（境界制御・ワールド生成）を提供する SPI。

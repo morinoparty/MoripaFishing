@@ -1,4 +1,7 @@
 {
   "title": "その他",
-  "pages": ["dir", "translation", "database"]
+  "pages": [
+    "dir",
+    "translation"
+  ]
 }

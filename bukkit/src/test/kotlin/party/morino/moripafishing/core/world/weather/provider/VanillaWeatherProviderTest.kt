@@ -36,8 +36,17 @@ class VanillaWeatherProviderTest {
     }
 
     @Test
+    fun `classify maps vanilla flags correctly`() {
+        assertEquals(WeatherType.SUNNY, VanillaWeatherProvider.classify(storming = false, thundering = false))
+        assertEquals(WeatherType.RAINY, VanillaWeatherProvider.classify(storming = true, thundering = false))
+        assertEquals(WeatherType.THUNDERSTORM, VanillaWeatherProvider.classify(storming = true, thundering = true))
+        // 雷フラグのみではバニラは雨を描画しないため SUNNY 扱い
+        assertEquals(WeatherType.SUNNY, VanillaWeatherProvider.classify(storming = false, thundering = true))
+    }
+
+    @Test
     fun `returns SUNNY when world is not loaded`() {
-        val provider = VanillaWeatherProvider(plugin)
+        val provider = VanillaWeatherProvider(plugin, FishingWorldId("missing_world"))
         assertEquals(
             WeatherType.SUNNY,
             provider.getCurrentWeather(FishingWorldId("missing_world")),
@@ -45,12 +54,12 @@ class VanillaWeatherProviderTest {
     }
 
     @Test
-    fun `primes state from already-loaded worlds`() {
+    fun `primes state from the target world`() {
         val world = addWorld("vanilla_primed")
         world.setStorm(true)
         world.isThundering = false
 
-        val provider = VanillaWeatherProvider(plugin)
+        val provider = VanillaWeatherProvider(plugin, FishingWorldId("vanilla_primed"))
         server.scheduler.performOneTick()
 
         assertEquals(
@@ -65,7 +74,7 @@ class VanillaWeatherProviderTest {
         world.setStorm(false)
         world.isThundering = false
 
-        val provider = VanillaWeatherProvider(plugin)
+        val provider = VanillaWeatherProvider(plugin, FishingWorldId("vanilla_rain_event"))
         server.scheduler.performOneTick()
 
         server.pluginManager.callEvent(WeatherChangeEvent(world, true))
@@ -81,13 +90,68 @@ class VanillaWeatherProviderTest {
         world.setStorm(true)
         world.isThundering = false
 
-        val provider = VanillaWeatherProvider(plugin)
+        val provider = VanillaWeatherProvider(plugin, FishingWorldId("vanilla_thunder_event"))
         server.scheduler.performOneTick()
 
         server.pluginManager.callEvent(ThunderChangeEvent(world, true))
         assertEquals(
             WeatherType.THUNDERSTORM,
             provider.getCurrentWeather(FishingWorldId("vanilla_thunder_event")),
+        )
+    }
+
+    @Test
+    fun `storm ending clears thunderstorm even while the thunder flag is stale`() {
+        val world = addWorld("vanilla_storm_end")
+        world.setStorm(true)
+        world.isThundering = true
+
+        val provider = VanillaWeatherProvider(plugin, FishingWorldId("vanilla_storm_end"))
+        server.scheduler.performOneTick()
+        assertEquals(
+            WeatherType.THUNDERSTORM,
+            provider.getCurrentWeather(FishingWorldId("vanilla_storm_end")),
+        )
+
+        // 雨が止んだ時点で thunder フラグが残っていても、描画上は晴れになる
+        server.pluginManager.callEvent(WeatherChangeEvent(world, false))
+        assertEquals(
+            WeatherType.SUNNY,
+            provider.getCurrentWeather(FishingWorldId("vanilla_storm_end")),
+        )
+    }
+
+    @Test
+    fun `ignores events for other worlds`() {
+        val target = addWorld("vanilla_target")
+        target.setStorm(false)
+        target.isThundering = false
+        val other = addWorld("vanilla_other")
+
+        val provider = VanillaWeatherProvider(plugin, FishingWorldId("vanilla_target"))
+        server.scheduler.performOneTick()
+
+        server.pluginManager.callEvent(WeatherChangeEvent(other, true))
+        assertEquals(
+            WeatherType.SUNNY,
+            provider.getCurrentWeather(FishingWorldId("vanilla_target")),
+        )
+    }
+
+    @Test
+    fun `dispose stops tracking events`() {
+        val world = addWorld("vanilla_disposed")
+        world.setStorm(false)
+        world.isThundering = false
+
+        val provider = VanillaWeatherProvider(plugin, FishingWorldId("vanilla_disposed"))
+        server.scheduler.performOneTick()
+        provider.dispose()
+
+        server.pluginManager.callEvent(WeatherChangeEvent(world, true))
+        assertEquals(
+            WeatherType.SUNNY,
+            provider.getCurrentWeather(FishingWorldId("vanilla_disposed")),
         )
     }
 }

@@ -33,8 +33,10 @@ flowchart BT
 Integration は独立した Bukkit プラグイン jar として提供され、
 以下のように Core から検出・利用されます。
 
-1. Integration の `JavaPlugin` が `party.morino.moripafishing.api` に
-   定義された SPI インターフェース（例: `WorldLifecycleProvider`）を実装する。
+1. Integration の `JavaPlugin` が、各 Integration の独立 SPI モジュール
+   （`party.morino:moripafishing-world-lifecycle-api` の `WorldLifecycleProvider`、
+   `party.morino:moripafishing-weather-api` の `WeatherControlProvider` 等）に
+   定義されたインターフェースを実装する。SPI モジュールはコアの `moripafishing-api` に依存しない。
 2. Integration の `plugin.yml` では、原則として MoripaFishing への読み込み順を課す
    `depend` / `softdepend`（Paper の `Load.BEFORE` / `AFTER`）を**書かない**。
    Core 側が Integration を `Load.BEFORE` で参照するため、順序を課すと循環するためである。
@@ -54,15 +56,18 @@ Integration は Core が能動的に検出して取り込みます。
 
 ## 利用側の確認方法
 
-Integration が導入されているかは Core API から確認できます。
+SPI の実体は Core が内部で保持し、`MoripaFishingAPI` には公開されません。
+Integration が導入されているかは、プラグインの存在で確認できます。
 
 ```kotlin
-val api = Bukkit.getPluginManager().getPlugin("MoripaFishing") as MoripaFishingAPI
-val worldLifecycle = api.getWorldLifecycleProvider()
-if (worldLifecycle == null) {
+val installed = Bukkit.getPluginManager().getPlugin("MoripaFishing-Integration-WorldLifecycle") != null
+if (!installed) {
     logger.warning("WorldLifecycle Integration が未導入です")
 }
 ```
+
+未導入時の Core API の挙動は各機能側で吸収されます。たとえば WorldLifecycle 未導入時は
+`WorldManager.createWorld` が `false` を、`WorldManager.getGeneratorIds` が空リストを返します。
 
 ## 提供される Integration
 

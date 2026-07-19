@@ -4,25 +4,20 @@ import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.utils.serializer.FishingWorldIdSerializer
 
 /**
- * ワールドのIDを表すクラス
- * @param value ワールドのID
+ * ワールドのIDを表すデータクラス
+ * @property value ワールドの一意の識別子
  */
 @Serializable(with = FishingWorldIdSerializer::class)
-class FishingWorldId(
+data class FishingWorldId(
     val value: String,
 ) {
-    override fun toString(): String = "FishingWorldId(value='$value')"
+    /**
+     * このワールドの表示名に対応する翻訳キーを返す。
+     */
+    fun toTranslateKey(): String = "moripa_fishing.world.$value.name"
 
-    fun localeTag(): String = "<lang:moripa_fishing.world.$value.name>"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is FishingWorldId) return false
-
-        if (value != other.value) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int = value.hashCode()
+    /**
+     * このワールドの表示名を参照する MiniMessage の `<lang>` タグを返す。
+     */
+    fun localeTag(): String = "<lang:${toTranslateKey()}>"
 }

@@ -1,4 +1,4 @@
-package party.morino.moripafishing.api.core.world.weather.control
+package party.morino.moripafishing.integrations.weather.api
 
 /**
  * 釣りワールドの天候を実際に Bukkit ワールドへ適用する破壊的処理を提供する SPI。

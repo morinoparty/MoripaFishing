@@ -14,8 +14,6 @@ dependencies {
     implementation(project(":integrations:weather-api"))
     compileOnly(libs.paper.api)
 
-    implementation(libs.koin.core)
-
     testImplementation(project(":integrations:weather-api"))
     testImplementation(libs.paper.api)
     testImplementation(libs.mock.bukkit)

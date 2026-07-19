@@ -25,7 +25,7 @@ class WeatherRandomizerImpl(
     private val worldManager: WorldManager by inject()
 
     private fun getClimateConfig(): ClimateConfig =
-        worldManager.getWorld(fishingWorldId).getWorldDetails().climateConfig
+        worldManager.getWorld(fishingWorldId)?.getWorldDetails()?.climateConfig
             ?: configManager.getConfig().world.defaultClimateConfig
 
     private val startDate: ZonedDateTime by lazy {

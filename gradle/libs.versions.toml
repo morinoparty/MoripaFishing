@@ -52,8 +52,6 @@ noise = { group = "de.articdive", name = "jnoise-pipeline", version.ref = "jnois
 
 koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koinVersion" }
 
-vault-api = { group = "com.github.MilkBowl", name = "vaultAPI", version = "1.7.1" }
-
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }
 
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }

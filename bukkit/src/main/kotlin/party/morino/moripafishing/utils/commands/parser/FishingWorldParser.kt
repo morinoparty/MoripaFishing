@@ -25,8 +25,9 @@ class FishingWorldParser<C> :
     ): ArgumentParseResult<FishingWorld> {
         val worldId = commandInput.readString()
         val fishingWorldId = FishingWorldId(worldId)
-        return if (worldManager.getWorldIdList().contains(fishingWorldId)) {
-            ArgumentParseResult.success(worldManager.getWorld(fishingWorldId))
+        val fishingWorld = worldManager.getWorld(fishingWorldId)
+        return if (fishingWorld != null) {
+            ArgumentParseResult.success(fishingWorld)
         } else {
             ArgumentParseResult.failure(Throwable("$fishingWorldId not found"))
         }

@@ -95,14 +95,25 @@ onlyFirstJoin: false
 
 | イベント | パッケージ | Cancellable | 発火タイミング |
 |---|---|---|---|
-| `AnglerJoinTeleportEvent` | `party.morino.moripafishing.event.angler` | ✔ | 参加時テレポートの実行直前（本 Integration が発火） |
+| `AnglerJoinTeleportEvent` | `party.morino.moripafishing.event.angler` | ✔ | 参加時テレポートの実行直前（本 Integration が発火。`setDestination` で移動先を変更可能） |
 | `FishingWorldCreateEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドの作成完了後（Core が発火） |
 | `FishingWorldDeleteEvent` | `party.morino.moripafishing.event.world` | ✔ | 釣りワールドの削除直前（Core が発火。キャンセルで削除中止） |
+| `FishingWorldDeletedEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドの削除完了後（Core が発火） |
+| `FishingWorldLoadEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドのロード完了後（起動時の読み込みと新規作成の両方で Core が発火） |
+| `FishingWorldUnloadEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドのアンロード後（削除時・プラグイン無効化時に Core が発火） |
+
+イベントの全体像（釣果・天候・設定リロード関連を含む）は [API利用ガイド](/docs/addons/api-guide#イベント) を参照。
 
 ## SPI
 
-Integration は `party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider` を実装する。
-SPI は独立モジュール `moripafishing-world-lifecycle-api` として公開され、`:api` には依存しない。
+Integration は `party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider` を実装する。
+SPI は独立モジュールとして Maven Central に公開され、コアの `moripafishing-api` には依存しない。
+
+```kotlin title="build.gradle.kts"
+dependencies {
+    compileOnly("party.morino:moripafishing-world-lifecycle-api:<version>")
+}
+```
 
 ```kotlin
 interface WorldLifecycleProvider {

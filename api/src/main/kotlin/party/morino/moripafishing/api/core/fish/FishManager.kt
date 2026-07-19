@@ -15,6 +15,13 @@ interface FishManager {
     fun registerFish(fish: FishData)
 
     /**
+     * 登録されている魚を解除する
+     * @param id 解除する魚のID
+     * @return 解除した場合 `true`、登録されていなかった場合 `false`
+     */
+    fun unregisterFish(id: FishId): Boolean
+
+    /**
      * 登録されている魚の一覧を取得する
      * @return 魚の一覧
      */
@@ -34,7 +41,14 @@ interface FishManager {
      */
     fun getFishesWithRarity(rarity: RarityId): List<FishData>
 
+    /**
+     * 登録されている魚をすべて解除する。
+     * リロード時にコアが呼び出す。`registerFish` で登録した魚も破棄される点に注意。
+     */
     fun unloadFishes()
 
+    /**
+     * 設定ディレクトリから魚の定義を読み込み登録する。
+     */
     fun loadFishes()
 }

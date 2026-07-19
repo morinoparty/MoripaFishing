@@ -9,14 +9,14 @@ import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Permission
+import org.incendo.cloud.annotations.suggestion.Suggestions
+import org.incendo.cloud.context.CommandContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
-import party.morino.moripafishing.core.world.WorldManagerImpl
-import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
 import party.morino.moripafishing.utils.Utils
 import party.morino.moripafishing.utils.coroutines.minecraft
 
@@ -59,20 +59,15 @@ class WorldCommand : KoinComponent {
     suspend fun create(
         sender: CommandSender,
         @Argument("id") id: String,
-        @Argument("generator") generator: GeneratorData,
+        @Argument(value = "generator", suggestions = "generatorIds") generator: String,
     ) {
         if (worldManager.getWorldIdList().contains(FishingWorldId(id))) {
             sender.sendMessage("World $id already exists.")
             return
         }
-        val impl =
-            worldManager as? WorldManagerImpl ?: run {
-                sender.sendMessage("World creation with explicit generator requires the default WorldManagerImpl.")
-                return
-            }
         val res =
             withContext(Dispatchers.minecraft) {
-                impl.createWorld(FishingWorldId(id), generator)
+                worldManager.createWorld(FishingWorldId(id), generator)
             }
         if (!res) {
             sender.sendMessage("Failed to create world $id.")
@@ -80,6 +75,12 @@ class WorldCommand : KoinComponent {
         }
         sender.sendMessage("Created world $id.")
     }
+
+    @Suggestions("generatorIds")
+    fun generatorIds(
+        context: CommandContext<CommandSender>,
+        input: String,
+    ): List<String> = worldManager.getGeneratorIds()
 
     @Command("delete <world>")
     @Permission("moripa_fishing.command.world.delete")
@@ -101,14 +102,6 @@ class WorldCommand : KoinComponent {
         }
         sender.sendMessage("Deleted world ${world.getId()} (but folder is not deleted).")
     }
-
-    // @Command("world reload <world>")
-    // @Permission("moripa_fishing.command.world.reload")
-    // suspend fun reload(sender: CommandSender, @Argument("world") world: FishingWorld) {
-    //     //TODO ワールドの再読み込み
-    //     world.reloadWorlds()
-    //     sender.sendMessage("Reloaded all worlds.")
-    // }
 
     @Command("config set spawn <world>")
     @Permission("moripa_fishing.command.world.config")
@@ -139,7 +132,7 @@ class WorldCommand : KoinComponent {
             sender.sendMessage("This command can only be used by players.")
             return
         }
-        world.setCenter(x ?: (sender as Player).location.x, z ?: (sender as Player).location.z)
+        world.setCenter(Pair(x ?: (sender as Player).location.x, z ?: (sender as Player).location.z))
         sender.sendMessage("Center set for world ${world.getId().value}.")
     }
 

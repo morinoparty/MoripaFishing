@@ -69,6 +69,16 @@ class MoripaFishingWeatherPluginTest {
     }
 
     @Test
+    fun `unknown weather value falls back to clear`() {
+        plugin.applyWeather("fishing", "THUNDERSTORM")
+        tick()
+        plugin.applyWeather("fishing", "NOT_A_WEATHER")
+        tick()
+        assertFalse(world.hasStorm())
+        assertFalse(world.isThundering)
+    }
+
+    @Test
     fun `reset clears the sky`() {
         plugin.applyWeather("fishing", "THUNDERSTORM")
         tick()

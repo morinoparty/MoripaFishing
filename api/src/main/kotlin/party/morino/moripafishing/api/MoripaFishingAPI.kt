@@ -68,7 +68,8 @@ interface MoripaFishingAPI {
      *
      * `ClimateConfig.weatherSource` が `source.key` と一致するワールドで使用される。
      * 同じキーで再登録した場合は上書きする。組み込みキー（`moripafishing:internal` /
-     * `moripafishing:vanilla`）を上書きすることも可能。
+     * `moripafishing:vanilla`）を上書きすることも可能だが、警告ログが出力される。
+     * 登録元プラグインが無効化されると、そのプラグインが登録したソースは自動的に解除される。
      *
      * @param source 登録する天候ソース
      */
@@ -77,7 +78,24 @@ interface MoripaFishingAPI {
     /**
      * 指定キーの [WeatherSource] を解除する。登録されていない場合は何もしない。
      *
+     * 解除したソースを使用中のワールドは即座に `moripafishing:internal` へフォールバックする。
+     *
      * @param key 解除する天候ソースのキー
      */
     fun unregisterWeatherSource(key: Key)
+
+    /**
+     * 指定キーで登録されている [WeatherSource] を返す。未登録の場合は `null`。
+     *
+     * @param key 天候ソースのキー
+     * @return 登録されている天候ソース、または `null`
+     */
+    fun getWeatherSource(key: Key): WeatherSource?
+
+    /**
+     * 現在登録されている天候ソースのキー一覧をスナップショットとして返す。
+     *
+     * @return 登録済みキーの集合
+     */
+    fun getWeatherSourceKeys(): Set<Key>
 }

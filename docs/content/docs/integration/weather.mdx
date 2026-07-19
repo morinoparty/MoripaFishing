@@ -49,8 +49,14 @@ Core は天候の **決定・参照** のみを行い、ワールドの実体を
 
 ## SPI
 
-Integration は `party.morino.moripafishing.api.core.world.weather.control.WeatherControlProvider` を実装する。
-SPI は独立モジュール `moripafishing-weather-api` として公開され、`:api` には依存しない。
+Integration は `party.morino.moripafishing.integrations.weather.api.WeatherControlProvider` を実装する。
+SPI は独立モジュールとして Maven Central に公開され、コアの `moripafishing-api` には依存しない。
+
+```kotlin title="build.gradle.kts"
+dependencies {
+    compileOnly("party.morino:moripafishing-weather-api:<version>")
+}
+```
 
 ```kotlin
 interface WeatherControlProvider {

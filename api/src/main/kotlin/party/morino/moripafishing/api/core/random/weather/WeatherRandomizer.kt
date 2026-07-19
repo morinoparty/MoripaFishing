@@ -10,7 +10,8 @@ interface WeatherRandomizer {
     /**
      * 現在の天気を抽選する
      *
-     * @param fishingWorldId 釣り場のID
+     * 対象のワールドは `RandomizeManager.getWeatherRandomizer(fishingWorldId)` で束縛される。
+     *
      * @return 抽選された天気
      */
     fun drawWeather(): WeatherType
@@ -19,7 +20,6 @@ interface WeatherRandomizer {
      * 指定された時間数分の天気を抽選する
      *
      * @param limit 抽選する天気の数
-     * @param fishingWorldId 釣り場のID
      * @return 抽選された天気のリスト
      */
     fun drawWeatherForecast(limit: Int): List<WeatherType>

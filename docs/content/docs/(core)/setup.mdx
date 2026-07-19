@@ -68,7 +68,6 @@ plugins/MoripaFishing/
 
 主な設定項目:
 
-- **データベース**: デフォルトは SQLite です。MySQL に変更する場合は `database.type` を `MYSQL` に変更してください
 - **デフォルトワールド**: `world.defaultId` でデフォルトの釣り場IDを指定します
 - **タイムゾーン**: `world.defaultTimeZone` でタイムゾーンを設定します（デフォルト: `Asia/Tokyo`）
 - **言語**: `defaultLocale` でプラグインの表示言語を設定します（`ja_JP` / `en_US`）
@@ -102,38 +101,6 @@ plugins/MoripaFishing/
 - 魚データのフォーマット: [魚データ](./format/data/fish)
 - レアリティのフォーマット: [レアリティ](./format/data/rarity)
 - ジェネレーターのフォーマット: [ジェネレーター](./format/data/generator)
-
-## データベース設定
-
-### SQLite（デフォルト）
-
-デフォルトでは SQLite が使用され、追加の設定は不要です。
-データは `plugins/MoripaFishing/moripa_fishing.db` に保存されます。
-
-### MySQL / MariaDB
-
-MySQL を使用する場合は `config.json` の `database` セクションを以下のように変更します。
-
-```json title="plugins/MoripaFishing/config.json"
-{
-    "database": {
-        "type": "MYSQL",
-        "host": "localhost",
-        "port": 3306,
-        "database": "moripafishing",
-        "username": "your_username",
-        "password": "your_password"
-    }
-}
-```
-
-事前にデータベースを作成しておく必要があります。
-
-```sql
-CREATE DATABASE moripafishing;
-```
-
-テーブルはプラグインが自動的に作成します。
 
 ## 権限設定
 

@@ -20,11 +20,13 @@ title: CaughtFish
 
 ## 利用例
 
-`AnglerFishCaughtEvent`から釣果データを取得できます。
+`AnglerFishCaughtEvent`（釣り上げ確定前・キャンセルや差し替えが可能）と、
+`AnglerFishCaughtResultEvent`（釣り上げ完了後・読み取り専用）から釣果データを取得できます。
+通知や記録などの副作用には`AnglerFishCaughtResultEvent`を使用してください。
 
 ```kotlin
 @EventHandler
-fun onFishCaught(event: AnglerFishCaughtEvent) {
+fun onFishCaught(event: AnglerFishCaughtResultEvent) {
     val caught = event.getCaughtFish()
     println("魚: ${caught.fish}, サイズ: ${caught.size}, 価値: ${caught.worth}")
 }

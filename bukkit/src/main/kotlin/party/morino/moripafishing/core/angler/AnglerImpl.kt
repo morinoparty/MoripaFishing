@@ -1,9 +1,9 @@
 package party.morino.moripafishing.core.angler
 
+import net.kyori.adventure.audience.Audience
 import org.bukkit.Bukkit
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import party.morino.moripafishing.MoripaFishing
 import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
@@ -16,8 +16,7 @@ class AnglerImpl(
     private val uniqueId: UUID,
 ) : Angler,
     KoinComponent {
-    val plugin: MoripaFishing by inject()
-    val worldManager: WorldManager by inject()
+    private val worldManager: WorldManager by inject()
 
     /**
      * 釣り人のIDを取得する
@@ -56,4 +55,6 @@ class AnglerImpl(
             )
         return location
     }
+
+    override fun getAudience(): Audience = Bukkit.getPlayer(uniqueId) ?: Audience.empty()
 }

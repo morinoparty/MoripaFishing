@@ -11,6 +11,7 @@ title: 天候
 ```json
 {
     "weatherSource": "moripafishing:internal",
+    "applyWeatherEffects": true,
     "enableDayCycle": true,
     "constant" : {
         "weather": "SUNNY",
@@ -42,10 +43,37 @@ title: 天候
 
 組み込みのソースは次の2つです。
 
-- `moripafishing:internal`: プラグイン内蔵のランダマイザーが天候を決定し、Bukkit ワールドにも適用します（従来の `enableWeather: true` 相当）。`DO_WEATHER_CYCLE` は `false` になります。
+- `moripafishing:internal`: プラグイン内蔵のランダマイザーが天候を決定し、Bukkit ワールドにも適用します。`DO_WEATHER_CYCLE` は `false` になります。
 - `moripafishing:vanilla`: Bukkit のバニラ天候状態 (`hasStorm` / `isThundering`) を読み取り、魚の抽選条件にのみ反映します。`constant.weather` や `weather` の設定は無視され、`DO_WEATHER_CYCLE` は `true` のままになります。バニラ天候は `SUNNY` / `RAINY` / `THUNDERSTORM` の3値しか表現できないため、`CLOUDY` / `FOGGY` / `SNOWY` を条件に持つ魚はこのソースでは出現しません。
 
 外部プラグインは `MoripaFishingAPI.registerWeatherSource` で独自キー（例: `myplugin:realistic`）の `WeatherSource` を登録できます。そのソースを使うには、`weatherSource` にそのキーを指定します。`WeatherSource.managesWorldWeather` が `false` のソースは MoripaFishing 側でワールドの天候を変更せず、魚の抽選条件にのみ反映されます。
+
+### applyWeatherEffects
+
+決定した天候を Bukkit ワールドへ実際に反映するかどうかを指定します（デフォルト: `true`）。
+
+- `true`: `managesWorldWeather` が `true` のソース（`moripafishing:internal` など）が決定した天候をワールドに適用し、`DO_WEATHER_CYCLE` をソースに応じて制御します
+- `false`: MoripaFishing はワールドの天候と `DO_WEATHER_CYCLE` を一切変更しません。天候は魚の抽選条件にのみ使用され、見た目の天候はバニラや他プラグインに委ねられます
+
+天候カレンダー（`weather` の設定）は `false` でも動作し続けるため、「抽選条件は内蔵ランダマイザーで決めつつ、演出は別プラグインに任せる」構成をワールド単位で実現できます。
+
+### ユースケース別の設定
+
+`weatherSource` と `applyWeatherEffects` を組み合わせることで、天候の「決定」と「適用」を独立して制御できます。
+
+| # | 天候の決定 | 見た目への適用 | 設定 |
+|---|---|---|---|
+| 1 | 内蔵ランダマイザー | する | `weatherSource: "moripafishing:internal"` + `applyWeatherEffects: true`（デフォルト） |
+| 2 | 内蔵ランダマイザー | しない | `weatherSource: "moripafishing:internal"` + `applyWeatherEffects: false` |
+| 3 | 外部プラグイン | する | `weatherSource: "<外部キー>"`（`managesWorldWeather = true` なソース）+ `applyWeatherEffects: true` |
+| 4 | 外部プラグイン | しない | `weatherSource: "<外部キー>"` + `applyWeatherEffects: false`（または `managesWorldWeather = false` なソース） |
+| 5 | バニラ天候の読み取り | しない | `weatherSource: "moripafishing:vanilla"`（`applyWeatherEffects` は影響しない） |
+
+いずれの構成でも、魚の抽選条件への天候の反映（消費側）は変わりません。決定と適用だけが差し替わります。
+
+:::info
+実効天候が変化すると `FishingWorldWeatherChangeEvent` が発火します。イベントの一覧は [API利用ガイド](/docs/addons/api-guide#イベント) を参照してください。
+:::
 
 ### enableDayCycle
 

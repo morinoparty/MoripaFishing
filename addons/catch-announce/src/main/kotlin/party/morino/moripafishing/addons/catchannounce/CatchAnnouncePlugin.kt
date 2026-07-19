@@ -1,8 +1,8 @@
 package party.morino.moripafishing.addons.catchannounce
 
 import com.charleskorn.kaml.Yaml
-import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
+import party.morino.moripafishing.api.MoripaFishingAPIProvider
 import java.io.File
 
 /**
@@ -15,7 +15,7 @@ open class CatchAnnouncePlugin : JavaPlugin() {
     private var config: CatchAnnounceConfig = CatchAnnounceConfig()
 
     override fun onEnable() {
-        if (Bukkit.getPluginManager().getPlugin("MoripaFishing") == null) {
+        if (MoripaFishingAPIProvider.getOrNull() == null) {
             logger.warning("MoripaFishing is not installed; disabling MoripaFishing-Addon-CatchAnnounce.")
             server.pluginManager.disablePlugin(this)
             return

@@ -1,16 +1,16 @@
 package party.morino.moripafishing
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
+import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.getOrNull
 import org.koin.dsl.module
 import party.morino.moripafishing.api.MoripaFishingAPI
+import party.morino.moripafishing.api.MoripaFishingAPIProvider
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
@@ -20,9 +20,7 @@ import party.morino.moripafishing.api.core.log.LogManager
 import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
-import party.morino.moripafishing.api.core.world.lifecycle.WorldLifecycleProvider
 import party.morino.moripafishing.api.core.world.weather.WeatherSource
-import party.morino.moripafishing.api.core.world.weather.control.WeatherControlProvider
 import party.morino.moripafishing.config.ConfigManagerImpl
 import party.morino.moripafishing.config.PluginDirectoryImpl
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
@@ -31,29 +29,32 @@ import party.morino.moripafishing.core.internationalization.TranslateManagerImpl
 import party.morino.moripafishing.core.log.LogManagerImpl
 import party.morino.moripafishing.core.random.RandomizeManagerImpl
 import party.morino.moripafishing.core.rarity.RarityManagerImpl
+import party.morino.moripafishing.core.world.FishingWorldImpl
 import party.morino.moripafishing.core.world.WorldManagerImpl
+import party.morino.moripafishing.core.world.weather.WeatherSourceCleanupListener
 import party.morino.moripafishing.core.world.weather.WeatherSourceRegistry
 import party.morino.moripafishing.core.world.weather.source.InternalWeatherSource
 import party.morino.moripafishing.core.world.weather.source.VanillaWeatherSource
+import party.morino.moripafishing.event.world.FishingWorldUnloadEvent
+import party.morino.moripafishing.integrations.weather.api.WeatherControlProvider
+import party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider
 import party.morino.moripafishing.listener.minecraft.PlayerFishingListener
-import party.morino.moripafishing.utils.coroutines.async
 
 open class MoripaFishing :
     JavaPlugin(),
-    MoripaFishingAPI {
-    // 各マネージャーのインスタンスをKoinから遅延初期化
-    private val _configManager: ConfigManager by lazy { GlobalContext.get().get() }
-    private val _randomizeManager: RandomizeManager by lazy { GlobalContext.get().get() }
-    private val _rarityManager: RarityManager by lazy { GlobalContext.get().get() }
-    private val _pluginDirectory: PluginDirectory by lazy { GlobalContext.get().get() }
-    private val _worldManager: WorldManager by lazy { GlobalContext.get().get() }
-    private val _fishManager: FishManager by lazy { GlobalContext.get().get() }
-    private val _anglerManager: AnglerManager by lazy { GlobalContext.get().get() }
-    private val _logManager: LogManager by lazy { GlobalContext.get().get() }
-    private val _translateManager: TranslateManager by lazy { GlobalContext.get().get() }
-    private val _weatherSourceRegistry: WeatherSourceRegistry by lazy { GlobalContext.get().get() }
-
-    private var disable = false
+    MoripaFishingAPI,
+    KoinComponent {
+    // 各マネージャーのインスタンスをKoinから遅延初期化 (setupKoin 後に解決される)
+    private val _configManager: ConfigManager by inject()
+    private val _randomizeManager: RandomizeManager by inject()
+    private val _rarityManager: RarityManager by inject()
+    private val _pluginDirectory: PluginDirectory by inject()
+    private val _worldManager: WorldManager by inject()
+    private val _fishManager: FishManager by inject()
+    private val _anglerManager: AnglerManager by inject()
+    private val _logManager: LogManager by inject()
+    private val translateManager: TranslateManager by inject()
+    private val weatherSourceRegistry: WeatherSourceRegistry by inject()
 
     private var worldLifecycleProvider: WorldLifecycleProvider? = null
 
@@ -64,12 +65,15 @@ open class MoripaFishing :
      */
     override fun onEnable() {
         setupKoin()
+        // 外部プラグイン向けの安定した API 取得口を用意する
+        MoripaFishingAPIProvider.register(this)
+        server.servicesManager.register(MoripaFishingAPI::class.java, this, this, ServicePriority.Normal)
         resolveWorldLifecycleProvider()
         resolveWeatherControlProvider()
         registerBuiltInWeatherSources()
         initializeManagers()
         loadListeners()
-        _translateManager.load()
+        translateManager.load()
         logger.info("MoripaFishing enabled")
         updateWorlds()
     }
@@ -137,8 +141,8 @@ open class MoripaFishing :
      * 外部プラグインは `registerWeatherSource` で自前のソースを追加できる。
      */
     private fun registerBuiltInWeatherSources() {
-        _weatherSourceRegistry.register(InternalWeatherSource(_randomizeManager))
-        _weatherSourceRegistry.register(VanillaWeatherSource(this))
+        weatherSourceRegistry.register(InternalWeatherSource(_randomizeManager))
+        weatherSourceRegistry.register(VanillaWeatherSource(this))
     }
 
     /**
@@ -149,10 +153,14 @@ open class MoripaFishing :
     }
 
     override fun onDisable() {
-        disable = true
-        _worldManager.getWorldIdList().forEach {
-            _worldManager.getWorld(it).effectFinish()
+        _worldManager.getWorlds().forEach { world ->
+            // shutdown はソースを新たに解決しない (無効化中の Listener 登録例外を避ける)。
+            // 天候リセットと外部プロバイダーの Listener 解放をまとめて行う。
+            (world as? FishingWorldImpl)?.shutdown() ?: world.effectFinish()
+            FishingWorldUnloadEvent(world.getId()).callEvent()
         }
+        MoripaFishingAPIProvider.unregister()
+        server.servicesManager.unregisterAll(this)
         logger.info("MoripaFishing disabled")
     }
 
@@ -182,32 +190,29 @@ open class MoripaFishing :
         }
     }
 
+    /**
+     * ワールド状態の定期同期タスクを開始する。
+     * プラグイン無効化時は Bukkit スケジューラーがタスクを自動的に破棄する。
+     */
     private fun updateWorlds() {
-        Bukkit.getScheduler().runTaskAsynchronously(
+        val intervalTicks = _configManager.getConfig().world.refreshInterval * 20L
+        Bukkit.getScheduler().runTaskTimerAsynchronously(
             this,
             Runnable {
-                runBlocking {
-                    withContext(Dispatchers.async) {
-                        val interval = _configManager.getConfig().world.refreshInterval * 1000L
-                        // whileループにラベルを付けて、ラムダ内からreturn@runWhileで抜ける
-                        runWhile@ while (!disable) {
-                            _worldManager.getWorldIdList().forEach {
-                                _worldManager.getWorld(it).updateState()
-                            }
-                            repeat(10) {
-                                if (disable) return@repeat // whileループごと抜ける
-                                delay(interval / 10)
-                            }
-                        }
-                    }
+                _worldManager.getWorlds().forEach {
+                    (it as? FishingWorldImpl)?.updateState()
                 }
             },
+            0L,
+            intervalTicks,
         )
     }
 
     private fun loadListeners() {
         // コア機能: 釣りイベント処理は常に有効
         this.server.pluginManager.registerEvents(PlayerFishingListener(), this)
+        // 無効化されたプラグインの WeatherSource を自動解除する
+        this.server.pluginManager.registerEvents(WeatherSourceCleanupListener(), this)
     }
 
     // API getters - 式本体で簡潔に
@@ -228,12 +233,16 @@ open class MoripaFishing :
     override fun getLogManager(): LogManager = _logManager
 
     override fun registerWeatherSource(source: WeatherSource) {
-        _weatherSourceRegistry.register(source)
+        weatherSourceRegistry.register(source)
     }
 
     override fun unregisterWeatherSource(key: Key) {
-        _weatherSourceRegistry.unregister(key)
+        weatherSourceRegistry.unregister(key)
     }
+
+    override fun getWeatherSource(key: Key): WeatherSource? = weatherSourceRegistry.get(key)
+
+    override fun getWeatherSourceKeys(): Set<Key> = weatherSourceRegistry.getKeys()
 
     /**
      * WorldLifecycle Integration の `WorldLifecycleProvider` を返す。未導入時は `null`。
