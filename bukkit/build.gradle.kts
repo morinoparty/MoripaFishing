@@ -58,7 +58,7 @@ dependencies {
     testImplementation(project(":integrations:world-lifecycle-api"))
     testImplementation(project(":integrations:weather-api"))
 
-    testImplementation(platform("org.junit:junit-bom:6.1.1"))
+    testImplementation(platform("org.junit:junit-bom:6.1.2"))
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.bundles.koin.test)
     testImplementation(libs.junit.platform.launcher)

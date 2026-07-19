@@ -26,7 +26,7 @@ dependencies {
     testImplementation(project(":api"))
     testImplementation(libs.paper.api)
     testImplementation(libs.mock.bukkit)
-    testImplementation(platform("org.junit:junit-bom:6.1.1"))
+    testImplementation(platform("org.junit:junit-bom:6.1.2"))
     testImplementation(libs.bundles.junit.jupiter)
     testImplementation(libs.junit.platform.launcher)
     testImplementation(libs.allure.junit5)
