@@ -263,3 +263,10 @@ jobs:
       # 旧 jar の削除 → 新 jar のアップロード → サーバー再起動を行う
       - name: Deploy and restart
         run: ./.github/scripts/pelican-deploy.sh
+
+      # Linked Artifacts: 各 jar のデプロイ先環境を deployment record として登録する
+      - name: Record deployments to Linked Artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENVIRONMENT_NAME: Development Server
+        run: ./.github/scripts/record-deployment.sh
