@@ -69,47 +69,11 @@ jobs:
         run:
           mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
-      # 統合モジュールの jar をリリース用に自動収集する。新しい integration を追加しても
-      # ここを編集せずにリリースアセットへ自動的に増える。-api の SPI 専用モジュールは
-      # 配布物ではないため除外する。
       - name: Collect integration JARs
-        env:
-          VER: ${{ env.PLUGIN_VERSION }}
-        run: |
-          mkdir -p ./release-integrations
-          for dir in ./integrations/*/; do
-            [ -d "$dir" ] || continue
-            base="$(basename "$dir")"
-            case "$base" in
-              *-api) continue ;;
-            esac
-            for jar in "$dir"build/libs/*-${VER}.jar; do
-              [ -e "$jar" ] || continue
-              mv "$jar" "./release-integrations/MoripaFishing-$(basename "$jar")"
-            done
-          done
-          ls -1 ./release-integrations
+        run: ./.github/scripts/collect-module-jars.sh ./integrations ./release-integrations "${{ env.PLUGIN_VERSION }}"
 
-      # アドオンモジュールの jar をリリース用に自動収集する。新しい addon を追加しても
-      # ここを編集せずにリリースアセットへ自動的に増える。-api の SPI 専用モジュールは
-      # 配布物ではないため除外する。
       - name: Collect Addon JARs
-        env:
-          VER: ${{ env.PLUGIN_VERSION }}
-        run: |
-          mkdir -p ./release-addons
-          for dir in ./addons/*/; do
-            [ -d "$dir" ] || continue
-            base="$(basename "$dir")"
-            case "$base" in
-              *-api) continue ;;
-            esac
-            for jar in "$dir"build/libs/*-${VER}.jar; do
-              [ -e "$jar" ] || continue
-              mv "$jar" "./release-addons/MoripaFishing-$(basename "$jar")"
-            done
-          done
-          ls -1 ./release-addons
+        run: ./.github/scripts/collect-module-jars.sh ./addons ./release-addons "${{ env.PLUGIN_VERSION }}"
 
       # GitHub Attestations（Linked Artifacts 用）: 全 JAR をまとめて1つの attestation に署名する
       - name: Attest JAR artifacts
@@ -276,6 +240,8 @@ jobs:
       SERVER_UUID: ${{ secrets.PELICAN_SERVER_UUID }}
       API_KEY: ${{ secrets.PELICAN_CLIENT_API_KEY }}
     steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
       - name: Download Bukkit JAR
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -288,43 +254,19 @@ jobs:
           name: addon-jars
           path: ./artifacts/addons
 
-      # 旧バージョンの jar を残すと二重ロードになるため、先に削除する。
-      # 削除対象は本体とアップロード予定の addon に限定し、integration 等は触らない。
-      - name: Remove old plugin JARs
-        run: |
-          pattern='^MoripaFishing[-_](bukkit[-_].*|[0-9].*)\.jar$'
-          for jar in ./artifacts/addons/*.jar; do
-            [ -e "$jar" ] || continue
-            prefix=$(basename "$jar" | sed "s/-${PLUGIN_VERSION}\.jar\$//")
-            pattern="$pattern|^${prefix}-.*\.jar\$"
-          done
-          old=$(curl -fsS "$PANEL_URL/api/client/servers/$SERVER_UUID/files/list?directory=%2Fplugins" \
-            -H "Authorization: Bearer $API_KEY" -H "Accept: application/json" \
-            | jq -r --arg re "$pattern" '.data[] | select(.attributes.is_file) | .attributes.name | select(test($re))')
-          if [ -z "$old" ]; then
-            echo "No old plugin JARs found."
-            exit 0
-          fi
-          files=$(printf '%s\n' "$old" | jq -R . | jq -cs .)
-          curl -fsS -X POST "$PANEL_URL/api/client/servers/$SERVER_UUID/files/delete" \
-            -H "Authorization: Bearer $API_KEY" -H "Accept: application/json" -H "Content-Type: application/json" \
-            -d "{\"root\":\"/plugins\",\"files\":$files}"
-          echo "Removed: $old"
+      - name: Download integration JARs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: integration-jars
+          path: ./artifacts/integrations
 
-      - name: Upload plugin JARs
-        run: |
-          form_args=(-F "files=@./artifacts/MoripaFishing_${PLUGIN_VERSION}.jar")
-          for jar in ./artifacts/addons/*.jar; do
-            [ -e "$jar" ] || continue
-            form_args+=(-F "files=@$jar")
-          done
-          upload_url=$(curl -fsS "$PANEL_URL/api/client/servers/$SERVER_UUID/files/upload" \
-            -H "Authorization: Bearer $API_KEY" -H "Accept: application/json" \
-            | jq -r '.attributes.url')
-          curl -fsS -X POST "$upload_url&directory=%2Fplugins" "${form_args[@]}"
+      # 旧 jar の削除 → 新 jar のアップロード → サーバー再起動を行う
+      - name: Deploy and restart
+        run: ./.github/scripts/pelican-deploy.sh
 
-      - name: Restart server
-        run: |
-          curl -fsS -X POST "$PANEL_URL/api/client/servers/$SERVER_UUID/power" \
-            -H "Authorization: Bearer $API_KEY" -H "Accept: application/json" -H "Content-Type: application/json" \
-            -d '{"signal":"restart"}'
+      # Linked Artifacts: 各 jar のデプロイ先環境を deployment record として登録する
+      - name: Record deployments to Linked Artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENVIRONMENT_NAME: Development Server
+        run: ./.github/scripts/record-deployment.sh
