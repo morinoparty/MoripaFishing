@@ -19,3 +19,5 @@ docs/static/dokka
 docs/static/javadoc
 
 .playwright-mcp/**
+
+.env
