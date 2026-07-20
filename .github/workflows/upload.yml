@@ -282,12 +282,25 @@ jobs:
           name: bukkit-jar
           path: ./artifacts
 
-      # 旧バージョンの jar を残すと二重ロードになるため、先に削除する
+      - name: Download Addon JARs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: addon-jars
+          path: ./artifacts/addons
+
+      # 旧バージョンの jar を残すと二重ロードになるため、先に削除する。
+      # 削除対象は本体とアップロード予定の addon に限定し、integration 等は触らない。
       - name: Remove old plugin JARs
         run: |
+          pattern='^MoripaFishing[-_](bukkit[-_].*|[0-9].*)\.jar$'
+          for jar in ./artifacts/addons/*.jar; do
+            [ -e "$jar" ] || continue
+            prefix=$(basename "$jar" | sed "s/-${PLUGIN_VERSION}\.jar\$//")
+            pattern="$pattern|^${prefix}-.*\.jar\$"
+          done
           old=$(curl -fsS "$PANEL_URL/api/client/servers/$SERVER_UUID/files/list?directory=%2Fplugins" \
             -H "Authorization: Bearer $API_KEY" -H "Accept: application/json" \
-            | jq -r '.data[] | select(.attributes.is_file) | .attributes.name | select(test("^MoripaFishing[-_](bukkit[-_].*|[0-9].*)\\.jar$"))')
+            | jq -r --arg re "$pattern" '.data[] | select(.attributes.is_file) | .attributes.name | select(test($re))')
           if [ -z "$old" ]; then
             echo "No old plugin JARs found."
             exit 0
@@ -298,13 +311,17 @@ jobs:
             -d "{\"root\":\"/plugins\",\"files\":$files}"
           echo "Removed: $old"
 
-      - name: Upload plugin JAR
+      - name: Upload plugin JARs
         run: |
+          form_args=(-F "files=@./artifacts/MoripaFishing_${PLUGIN_VERSION}.jar")
+          for jar in ./artifacts/addons/*.jar; do
+            [ -e "$jar" ] || continue
+            form_args+=(-F "files=@$jar")
+          done
           upload_url=$(curl -fsS "$PANEL_URL/api/client/servers/$SERVER_UUID/files/upload" \
             -H "Authorization: Bearer $API_KEY" -H "Accept: application/json" \
             | jq -r '.attributes.url')
-          curl -fsS -X POST "$upload_url&directory=%2Fplugins" \
-            -F "files=@./artifacts/MoripaFishing_${PLUGIN_VERSION}.jar"
+          curl -fsS -X POST "$upload_url&directory=%2Fplugins" "${form_args[@]}"
 
       - name: Restart server
         run: |
