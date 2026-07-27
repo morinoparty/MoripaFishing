@@ -19,7 +19,7 @@ adventure = "5.2.0"
 ktlint = "14.2.0"
 mavenPublish = "0.37.0"
 detekt = "2.0.0-alpha.5"
-allure = "2.35.3"
+allure = "2.35.4"
 
 [libraries]
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
