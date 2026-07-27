@@ -2,7 +2,7 @@
 paper = "26.1.2.build.74-stable"
 mccoroutine = "2.22.0"
 cloud = "2.1.0"
-cloudPaper = "2.0.0-SNAPSHOT"
+cloudPaper = "2.1.0-SNAPSHOT"
 koinVersion = "4.2.2"
 coroutine = "1.11.0"
 serialization = "1.11.0"
