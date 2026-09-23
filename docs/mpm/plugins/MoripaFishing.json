@@ -18,5 +18,9 @@
         "useUpstreamLabel": true
       }
     }
+  ],
+  "softDependencies": [
+    "MoripaFishing-Integration-WorldLifecycle",
+    "MoripaFishing-Integration-Weather"
   ]
 }
