@@ -1,0 +1,22 @@
+{
+  "$schema": "https://repo.mpm.nikomaru.dev/schema/plugin-info/v1.json",
+  "id": "MoripaFishing",
+  "license": "CC0-1.0",
+  "website": "https://fishing.plugin.morino.party",
+  "source": "https://github.com/morinoparty/MoripaFishing",
+  "repositories": [
+    {
+      "type": "github",
+      "id": "morinoparty/MoripaFishing",
+      "fileNameRegex": "MoripaFishing_.*\\.jar$",
+      "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+      "latest": {
+        "useUpstreamLabel": true,
+        "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+      },
+      "beta": {
+        "useUpstreamLabel": true
+      }
+    }
+  ]
+}
