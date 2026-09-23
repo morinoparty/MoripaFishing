@@ -104,12 +104,12 @@ open class MoripaFishingWorldLifecyclePlugin :
     }
 
     override fun applyBorder(
-        worldId: String,
+        worldKey: String,
         centerX: Double,
         centerZ: Double,
         size: Double,
     ) {
-        val world = Bukkit.getWorld(worldId) ?: return
+        val world = NamespacedKey.fromString(worldKey)?.let { Bukkit.getWorld(it) } ?: return
         Bukkit.getScheduler().runTask(
             this,
             Runnable {
@@ -120,18 +120,17 @@ open class MoripaFishingWorldLifecyclePlugin :
     }
 
     override fun createBukkitWorld(
-        worldId: String,
+        worldKey: String,
         generatorData: GeneratorData,
     ): Boolean {
-        if (Bukkit.getWorld(worldId) != null) {
+        val namespacedKey =
+            NamespacedKey.fromString(worldKey) ?: run {
+                logger.warning("Invalid world key: $worldKey")
+                return false
+            }
+        if (Bukkit.getWorld(namespacedKey) != null) {
             return false
         }
-        val reserved = setOf("world", "world_nether", "world_the_end")
-        if (worldId in reserved) {
-            logger.warning("World name is not allowed: $worldId")
-            return false
-        }
-        val namespacedKey = NamespacedKey(this, worldId)
         val biomeProvider = generatorData.biomeProvider?.let { ConstBiomeGenerator(it) }
         val creator =
             WorldCreator(namespacedKey)
@@ -141,10 +140,10 @@ open class MoripaFishingWorldLifecyclePlugin :
                 .biomeProvider(biomeProvider)
         val world = Bukkit.createWorld(creator)
         if (world == null) {
-            logger.warning("Failed to create world $worldId")
+            logger.warning("Failed to create world $worldKey")
             return false
         }
-        logger.info("World ${world.name} created via integration")
+        logger.info("World ${world.key} created via integration")
         return true
     }
 

@@ -117,13 +117,14 @@ dependencies {
 
 ```kotlin
 interface WeatherControlProvider {
-    fun applyWeather(worldId: String, weatherType: String)
+    fun applyWeather(worldKey: String, weatherType: String)
 
-    fun resetWeather(worldId: String)
+    fun resetWeather(worldKey: String)
 }
 ```
 
 境界をまたぐ型は `String` のみで、classloader 間の class identity 問題が起きない。
+`worldKey` は対象 Bukkit ワールドのキー文字列（`moripafishing:<ワールドID>`）で、Integration 側は `NamespacedKey.fromString` で解決して `Bukkit.getWorld` に渡す。
 `weatherType` は `WeatherType` の enum 名（`SUNNY` / `RAINY` / `THUNDERSTORM` / `CLOUDY` 等）で渡される。
 `CLOUDY` の天井はプレイヤー位置を基準に Integration 側で生成・追従させるため、座標やサイズは受け取らない。
 

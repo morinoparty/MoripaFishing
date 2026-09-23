@@ -36,7 +36,8 @@ class AnglerImpl(
         val offlinePlayer = Bukkit.getOfflinePlayer(uniqueId)
         if (!offlinePlayer.isOnline) return null
         val player = offlinePlayer.player ?: return null
-        val world = worldManager.getWorld(FishingWorldId(player.world.name))
+        val worldId = FishingWorldId.fromWorldKey(player.world.key) ?: return null
+        val world = worldManager.getWorld(worldId)
 
         return world
     }

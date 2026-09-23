@@ -1,5 +1,7 @@
 package party.morino.moripafishing.core.world.weather.provider
 
+import org.bukkit.NamespacedKey
+import org.bukkit.WorldCreator
 import org.bukkit.event.weather.ThunderChangeEvent
 import org.bukkit.event.weather.WeatherChangeEvent
 import org.junit.jupiter.api.AfterEach
@@ -29,8 +31,7 @@ class VanillaWeatherProviderTest {
     }
 
     private fun addWorld(name: String): WorldMock {
-        val world = WorldMock()
-        world.name = name
+        val world = WorldMock(WorldCreator(NamespacedKey(FishingWorldId.WORLD_KEY_NAMESPACE, name)))
         server.addWorld(world)
         return world
     }

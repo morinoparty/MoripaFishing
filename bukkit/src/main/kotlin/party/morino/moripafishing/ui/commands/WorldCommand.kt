@@ -35,7 +35,7 @@ class WorldCommand : KoinComponent {
         val spawnPosition = fishingWorld.getWorldSpawnPosition()
         val location =
             Location(
-                Bukkit.getWorld(fishingWorld.getId().value),
+                Bukkit.getWorld(fishingWorld.getId().toWorldKey()),
                 spawnPosition.x,
                 spawnPosition.y,
                 spawnPosition.z,
@@ -61,6 +61,11 @@ class WorldCommand : KoinComponent {
         @Argument("id") id: String,
         @Argument(value = "generator", suggestions = "generatorIds") generator: String,
     ) {
+        // The world id becomes the value of the Bukkit world key (moripafishing:<id>)
+        if (runCatching { FishingWorldId(id).toWorldKey() }.isFailure) {
+            sender.sendMessage("Invalid world id $id. Use only [a-z0-9_.-/].")
+            return
+        }
         if (worldManager.getWorldIdList().contains(FishingWorldId(id))) {
             sender.sendMessage("World $id already exists.")
             return

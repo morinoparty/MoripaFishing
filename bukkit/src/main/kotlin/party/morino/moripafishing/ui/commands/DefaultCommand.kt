@@ -1,5 +1,7 @@
 package party.morino.moripafishing.ui.commands
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Permission
@@ -12,6 +14,7 @@ import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.core.world.FishingWorldImpl
 import party.morino.moripafishing.event.config.ConfigReloadedEvent
+import party.morino.moripafishing.utils.coroutines.minecraft
 
 @Command("mf")
 @Permission("moripa_fishing.command.world")
@@ -24,36 +27,39 @@ class DefaultCommand : KoinComponent {
 
     @Command("reload")
     @Permission("moripa_fishing.command.world.default")
-    fun reload(sender: CommandSender) {
-        val n = 5
-        // config
-        configManager.reload()
-        sender.sendRichMessage("<green>[1 / $n] Reloaded root config")
+    suspend fun reload(sender: CommandSender) {
+        // Bukkit event dispatch and world state updates must run on the main thread
+        withContext(Dispatchers.minecraft) {
+            val n = 5
+            // config
+            configManager.reload()
+            sender.sendRichMessage("<green>[1 / $n] Reloaded root config")
 
-        // world
-        worldManager.getWorlds().forEach { fishingWorld ->
-            (fishingWorld as? FishingWorldImpl)?.let {
-                it.loadConfig()
-                it.updateState()
+            // world
+            worldManager.getWorlds().forEach { fishingWorld ->
+                (fishingWorld as? FishingWorldImpl)?.let {
+                    it.loadConfig()
+                    it.updateState()
+                }
             }
+            sender.sendRichMessage("<green>[2 / $n] Reloaded world")
+
+            // rarity
+            rarityManager.unloadRarities()
+            rarityManager.loadRarities()
+            sender.sendRichMessage("<green>[3 / $n] Reloaded all rarities")
+
+            // fishing
+            fishManager.unloadFishes()
+            fishManager.loadFishes()
+            sender.sendRichMessage("<green>[4 / $n] Reloaded all fishes")
+
+            // i18n
+            translateManager.reload()
+            sender.sendRichMessage("<green>[5 / $n] Reloaded all i18n files")
+
+            // 設定由来の値をキャッシュしているアドオンへ再読み込み完了を通知する
+            ConfigReloadedEvent().callEvent()
         }
-        sender.sendRichMessage("<green>[2 / $n] Reloaded world")
-
-        // rarity
-        rarityManager.unloadRarities()
-        rarityManager.loadRarities()
-        sender.sendRichMessage("<green>[3 / $n] Reloaded all rarities")
-
-        // fishing
-        fishManager.unloadFishes()
-        fishManager.loadFishes()
-        sender.sendRichMessage("<green>[4 / $n] Reloaded all fishes")
-
-        // i18n
-        translateManager.reload()
-        sender.sendRichMessage("<green>[5 / $n] Reloaded all i18n files")
-
-        // 設定由来の値をキャッシュしているアドオンへ再読み込み完了を通知する
-        ConfigReloadedEvent().callEvent()
     }
 }

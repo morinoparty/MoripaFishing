@@ -172,7 +172,7 @@ class FishingWorldImpl(
         synchronized(weatherProviderLock) {
             val source = resolvedSource
             if (source != null && source.managesWorldWeather && currentClimateConfig().applyWeatherEffects) {
-                plugin.getWeatherControlProvider()?.resetWeather(worldId.value)
+                plugin.getWeatherControlProvider()?.resetWeather(worldId.toWorldKey().asString())
             }
             weatherProvider?.dispose()
             weatherProvider = null
@@ -213,7 +213,7 @@ class FishingWorldImpl(
     }
 
     private val world: World by lazy {
-        Bukkit.getWorld(worldId.value)
+        Bukkit.getWorld(worldId.toWorldKey())
             ?: throw IllegalStateException("World not found")
     }
 
@@ -282,7 +282,7 @@ class FishingWorldImpl(
         lastKnownWeather = weatherType
         if (currentClimateConfig().applyWeatherEffects) {
             plugin.getWeatherControlProvider()?.applyWeather(
-                worldId = worldId.value,
+                worldKey = worldId.toWorldKey().asString(),
                 weatherType = weatherType.name,
             ) ?: plugin.logger.fine(
                 "[${worldId.value}] applyWeather($weatherType) skipped: WeatherControlProvider is not available.",
@@ -389,7 +389,7 @@ class FishingWorldImpl(
             return
         }
         plugin.getWorldLifecycleProvider()?.applyBorder(
-            worldId = worldId.value,
+            worldKey = worldId.toWorldKey().asString(),
             centerX = center.first,
             centerZ = center.second,
             size = size,
@@ -484,7 +484,7 @@ class FishingWorldImpl(
             // MoripaFishing がワールド天候を触っていない場合はリセットも行わない
             return
         }
-        plugin.getWeatherControlProvider()?.resetWeather(worldId.value)
+        plugin.getWeatherControlProvider()?.resetWeather(worldId.toWorldKey().asString())
         plugin.logger.info("[${worldId.value}] effectFinish called: weather reset requested.")
     }
 

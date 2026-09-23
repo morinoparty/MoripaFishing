@@ -12,8 +12,8 @@ package party.morino.moripafishing.integrations.worldlifecycle.api
  *
  * ### 境界を跨ぐ型について
  *
- * 本 SPI は `:api` モジュールに一切依存しない。ワールド ID やジェネレータ ID は
- * `String` としてやり取りし、ジェネレータ定義は本モジュールに定義された
+ * 本 SPI は `:api` モジュールに一切依存しない。ワールドキー (`moripafishing:<worldId>`) や
+ * ジェネレータ ID は `String` としてやり取りし、ジェネレータ定義は本モジュールに定義された
  * [GeneratorData] を用いる。これにより classloader の class identity 問題が
  * 発生する余地をなくしている。
  */
@@ -21,13 +21,13 @@ interface WorldLifecycleProvider {
     /**
      * 指定された釣りワールドの Bukkit `WorldBorder` を更新する。
      *
-     * @param worldId 対象ワールドの ID (Bukkit ワールド名と同一)
+     * @param worldKey 対象 Bukkit ワールドのキー文字列 (例: `moripafishing:default`)
      * @param centerX ボーダーの中心 X 座標
      * @param centerZ ボーダーの中心 Z 座標
      * @param size ボーダーのサイズ
      */
     fun applyBorder(
-        worldId: String,
+        worldKey: String,
         centerX: Double,
         centerZ: Double,
         size: Double,
@@ -38,12 +38,12 @@ interface WorldLifecycleProvider {
      *
      * 既存のワールドがある場合や作成に失敗した場合は `false` を返す。
      *
-     * @param worldId 作成するワールドの ID (Bukkit ワールド名と同一)
+     * @param worldKey 作成する Bukkit ワールドのキー文字列 (例: `moripafishing:default`)
      * @param generatorData ジェネレータ情報
      * @return 作成に成功した場合 `true`
      */
     fun createBukkitWorld(
-        worldId: String,
+        worldKey: String,
         generatorData: GeneratorData,
     ): Boolean
 
