@@ -20,6 +20,26 @@ Spigot サーバーには対応していません。必ず Paper または Purpu
 
 ## インストール
 
+### mpm でインストールする
+
+[mpm](https://mpm.plugin.morino.party) を導入済みのサーバーでは、次のコマンドでインストールできます。手動で配置する場合は下の手順に進んでください。
+
+```bash
+# 本体 + 統合プラグイン（WorldLifecycle / Weather）
+/mpm add MoripaFishing --soft
+
+# 本体のみ
+/mpm add MoripaFishing
+
+# 統合プラグイン・アドオンを個別に追加
+/mpm add MoripaFishing-Integration-WorldLifecycle
+/mpm add MoripaFishing-Integration-Weather
+/mpm add MoripaFishing-Addon-CatchAnnounce
+
+# 更新
+/mpm update
+```
+
 ### 1. JAR ファイルの取得
 
 以下のいずれかから最新の JAR ファイルをダウンロードしてください。
