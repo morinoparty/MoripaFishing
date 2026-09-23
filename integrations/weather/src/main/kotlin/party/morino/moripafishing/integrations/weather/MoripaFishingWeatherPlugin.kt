@@ -3,6 +3,7 @@ package party.morino.moripafishing.integrations.weather
 import io.papermc.paper.math.Position
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.World
 import org.bukkit.block.data.BlockData
 import org.bukkit.entity.Player
@@ -67,37 +68,39 @@ open class MoripaFishingWeatherPlugin :
     }
 
     override fun applyWeather(
-        worldId: String,
+        worldKey: String,
         weatherType: String,
     ) {
-        val world = Bukkit.getWorld(worldId) ?: return
+        val world = resolveWorld(worldKey) ?: return
         Bukkit.getScheduler().runTask(
             this,
             Runnable {
                 applyStorm(world, weatherType)
                 if (weatherType == "CLOUDY") {
-                    cloudyWorlds.add(worldId)
+                    cloudyWorlds.add(world.key.asString())
                     world.players.forEach { sendPatch(it) }
-                } else if (cloudyWorlds.remove(worldId)) {
+                } else if (cloudyWorlds.remove(world.key.asString())) {
                     world.players.forEach { clearPatch(it) }
                 }
             },
         )
     }
 
-    override fun resetWeather(worldId: String) {
-        val world = Bukkit.getWorld(worldId) ?: return
+    override fun resetWeather(worldKey: String) {
+        val world = resolveWorld(worldKey) ?: return
         Bukkit.getScheduler().runTask(
             this,
             Runnable {
                 world.setStorm(false)
                 world.isThundering = false
-                if (cloudyWorlds.remove(worldId)) {
+                if (cloudyWorlds.remove(world.key.asString())) {
                     world.players.forEach { clearPatch(it) }
                 }
             },
         )
     }
+
+    private fun resolveWorld(worldKey: String): World? = NamespacedKey.fromString(worldKey)?.let { Bukkit.getWorld(it) }
 
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
@@ -136,7 +139,7 @@ open class MoripaFishingWeatherPlugin :
      */
     private fun refreshAll() {
         for (player in Bukkit.getOnlinePlayers()) {
-            if (player.world.name in cloudyWorlds) {
+            if (player.world.key.asString() in cloudyWorlds) {
                 sendPatch(player)
             } else if (patches.containsKey(player.uniqueId)) {
                 clearPatch(player)

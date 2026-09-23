@@ -33,7 +33,7 @@ class JoinTeleportListener(
 
         // 未登録の worldId (設定ミス等) は getWorld が null を返すため、そのまま弾く。
         val fishingWorld = worldManager.getWorld(worldId) ?: return
-        if (Bukkit.getWorld(worldId.value) == null) return
+        if (Bukkit.getWorld(worldId.toWorldKey()) == null) return
         val spawnLocation = fishingWorld.getWorldDetails().spawnLocation
 
         val angler = api.getAnglerManager().getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
@@ -41,7 +41,7 @@ class JoinTeleportListener(
         if (!teleportEvent.callEvent()) return
 
         val destination = teleportEvent.getDestination()
-        val bukkitWorld = Bukkit.getWorld(destination.worldId.value) ?: return
+        val bukkitWorld = Bukkit.getWorld(destination.worldId.toWorldKey()) ?: return
         val location =
             Location(
                 bukkitWorld,

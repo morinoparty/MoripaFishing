@@ -1,5 +1,7 @@
 package party.morino.moripafishing.integrations.weather
 
+import org.bukkit.NamespacedKey
+import org.bukkit.WorldCreator
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -14,12 +16,14 @@ class MoripaFishingWeatherPluginTest {
     private lateinit var server: ServerMock
     private lateinit var plugin: MoripaFishingWeatherPlugin
     private lateinit var world: WorldMock
+    private val worldKey = "moripafishing:fishing"
 
     @BeforeEach
     fun setUp() {
         server = MockBukkit.mock()
         plugin = MockBukkit.load(MoripaFishingWeatherPlugin::class.java)
-        world = server.addSimpleWorld("fishing")
+        world = WorldMock(WorldCreator(NamespacedKey.fromString(worldKey)!!))
+        server.addWorld(world)
     }
 
     @AfterEach
@@ -33,7 +37,7 @@ class MoripaFishingWeatherPluginTest {
 
     @Test
     fun `rain applies storm without thunder`() {
-        plugin.applyWeather("fishing", "RAINY")
+        plugin.applyWeather(worldKey, "RAINY")
         tick()
         assertTrue(world.hasStorm())
         assertFalse(world.isThundering)
@@ -41,7 +45,7 @@ class MoripaFishingWeatherPluginTest {
 
     @Test
     fun `thunderstorm applies storm with thunder`() {
-        plugin.applyWeather("fishing", "THUNDERSTORM")
+        plugin.applyWeather(worldKey, "THUNDERSTORM")
         tick()
         assertTrue(world.hasStorm())
         assertTrue(world.isThundering)
@@ -50,7 +54,7 @@ class MoripaFishingWeatherPluginTest {
     @Test
     fun `cloudy applies storm without touching the world blocks or biome`() {
         val biomeBefore = world.getBiome(0, world.seaLevel, 0)
-        plugin.applyWeather("fishing", "CLOUDY")
+        plugin.applyWeather(worldKey, "CLOUDY")
         tick()
         assertTrue(world.hasStorm())
         assertFalse(world.isThundering)
@@ -60,9 +64,9 @@ class MoripaFishingWeatherPluginTest {
 
     @Test
     fun `sunny clears the sky`() {
-        plugin.applyWeather("fishing", "THUNDERSTORM")
+        plugin.applyWeather(worldKey, "THUNDERSTORM")
         tick()
-        plugin.applyWeather("fishing", "SUNNY")
+        plugin.applyWeather(worldKey, "SUNNY")
         tick()
         assertFalse(world.hasStorm())
         assertFalse(world.isThundering)
@@ -70,9 +74,9 @@ class MoripaFishingWeatherPluginTest {
 
     @Test
     fun `unknown weather value falls back to clear`() {
-        plugin.applyWeather("fishing", "THUNDERSTORM")
+        plugin.applyWeather(worldKey, "THUNDERSTORM")
         tick()
-        plugin.applyWeather("fishing", "NOT_A_WEATHER")
+        plugin.applyWeather(worldKey, "NOT_A_WEATHER")
         tick()
         assertFalse(world.hasStorm())
         assertFalse(world.isThundering)
@@ -80,9 +84,9 @@ class MoripaFishingWeatherPluginTest {
 
     @Test
     fun `reset clears the sky`() {
-        plugin.applyWeather("fishing", "THUNDERSTORM")
+        plugin.applyWeather(worldKey, "THUNDERSTORM")
         tick()
-        plugin.resetWeather("fishing")
+        plugin.resetWeather(worldKey)
         tick()
         assertFalse(world.hasStorm())
         assertFalse(world.isThundering)

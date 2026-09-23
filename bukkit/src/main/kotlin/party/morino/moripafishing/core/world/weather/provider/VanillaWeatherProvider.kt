@@ -50,7 +50,7 @@ class VanillaWeatherProvider(
     }
 
     private fun primeFromWorld() {
-        val world = Bukkit.getWorld(worldId.value) ?: return
+        val world = Bukkit.getWorld(worldId.toWorldKey()) ?: return
         snapshot = classify(world.hasStorm(), world.isThundering)
     }
 
@@ -58,13 +58,13 @@ class VanillaWeatherProvider(
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onWeatherChange(event: WeatherChangeEvent) {
-        if (event.world.name != worldId.value) return
+        if (FishingWorldId.fromWorldKey(event.world.key) != worldId) return
         snapshot = classify(event.toWeatherState(), event.world.isThundering)
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onThunderChange(event: ThunderChangeEvent) {
-        if (event.world.name != worldId.value) return
+        if (FishingWorldId.fromWorldKey(event.world.key) != worldId) return
         snapshot = classify(event.world.hasStorm(), event.toThunderState())
     }
 

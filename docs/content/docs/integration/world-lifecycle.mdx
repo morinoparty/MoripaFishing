@@ -107,8 +107,8 @@ Integration 側の `plugins/MoripaFishing-Integration-WorldLifecycle/generator/*
 
 `createBukkitWorld` は次の場合に何も作らず `false` を返します。
 
-- 同名の Bukkit ワールドが既にロードされている
-- ワールド名が `world` / `world_nether` / `world_the_end` のいずれか（予約名として拒否し、warning を出力）
+- 同じキーの Bukkit ワールドが既にロードされている
+- `worldKey` が `namespace:value` 形式のキーとして不正（warning を出力）
 
 なお `addGenerator` は `id` の重複チェックを行わず、メモリ上のリストへ追加しつつ同名ファイルを上書きします。
 
@@ -200,8 +200,8 @@ dependencies {
 
 ```kotlin
 interface WorldLifecycleProvider {
-    fun applyBorder(worldId: String, centerX: Double, centerZ: Double, size: Double)
-    fun createBukkitWorld(worldId: String, generatorData: GeneratorData): Boolean
+    fun applyBorder(worldKey: String, centerX: Double, centerZ: Double, size: Double)
+    fun createBukkitWorld(worldKey: String, generatorData: GeneratorData): Boolean
     fun getGenerator(id: String): GeneratorData?
     fun listGenerators(): List<GeneratorData>
     fun addGenerator(generator: GeneratorData)
@@ -209,6 +209,7 @@ interface WorldLifecycleProvider {
 ```
 
 境界をまたぐ型は `String` と本モジュールの `GeneratorData` のみで、classloader 間の class identity 問題が起きない。
+`worldKey` は対象 Bukkit ワールドのキー文字列（`moripafishing:<ワールドID>`）で、`createBukkitWorld` はこのキーで `WorldCreator` を作成する。
 
 独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
 `MoripaFishing-Integration-WorldLifecycle` の名前でビルドして配置すれば Core はそちらを優先する。

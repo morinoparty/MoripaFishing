@@ -13,8 +13,9 @@ package party.morino.moripafishing.integrations.weather.api
  *
  * ### 境界を跨ぐ型について
  *
- * 本 SPI は `:api` モジュールに一切依存しない。ワールド ID や天候種別は `String`
- * (天候は `WeatherType` の enum 名) としてやり取りし、classloader の class identity 問題が
+ * 本 SPI は `:api` モジュールに一切依存しない。ワールドキーや天候種別は `String`
+ * (ワールドは Bukkit ワールドのキー文字列 (`moripafishing:<worldId>`)、天候は `WeatherType` の enum 名)
+ * としてやり取りし、classloader の class identity 問題が
  * 発生する余地をなくしている。
  *
  * ### CLOUDY の扱い
@@ -30,18 +31,18 @@ interface WeatherControlProvider {
      * 既に同じ天候が適用済みかどうかの判定はコア側が行うため、本メソッドは
      * 呼ばれたら必ず適用してよい。
      *
-     * @param worldId 対象ワールドの ID (Bukkit ワールド名と同一)
+     * @param worldKey 対象 Bukkit ワールドのキー文字列 (例: `moripafishing:default`)
      * @param weatherType 適用する天候 (`WeatherType` の enum 名)
      */
     fun applyWeather(
-        worldId: String,
+        worldKey: String,
         weatherType: String,
     )
 
     /**
      * 指定された釣りワールドに適用済みの天候効果を解除し、ワールドを晴れに戻す。
      *
-     * @param worldId 対象ワールドの ID (Bukkit ワールド名と同一)
+     * @param worldKey 対象 Bukkit ワールドのキー文字列 (例: `moripafishing:default`)
      */
-    fun resetWeather(worldId: String)
+    fun resetWeather(worldKey: String)
 }

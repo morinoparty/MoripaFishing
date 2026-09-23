@@ -55,7 +55,7 @@ class WorldManagerImpl :
         worldIdList.toList().forEach { world ->
             // Bukkit ワールドが既に存在する場合は FishingWorldImpl を構築して updateState するのみ。
             // 存在しない場合は createWorld で生成する (WorldLifecycle integration が必要)。
-            if (Bukkit.getWorld(world.value) != null) {
+            if (Bukkit.getWorld(world.toWorldKey()) != null) {
                 plugin.logger.info("World is found! Skipping ${world.value}")
                 val instance = FishingWorldImpl(world)
                 worldList.add(instance)
@@ -85,7 +85,7 @@ class WorldManagerImpl :
         // 登録済み (設定ファイルが存在する) かつ Bukkit ワールドがロード済みの場合のみ遅延構築する。
         // 未登録の ID に対してワールドを捏造しない。
         if (fishingWorldId !in worldIdList) return null
-        if (Bukkit.getWorld(fishingWorldId.value) == null) return null
+        if (Bukkit.getWorld(fishingWorldId.toWorldKey()) == null) return null
         val world = FishingWorldImpl(fishingWorldId)
         worldList.add(world)
         return world
@@ -154,7 +154,7 @@ class WorldManagerImpl :
             )
         }
 
-        val created = provider.createBukkitWorld(fishingWorldId.value, generatorData)
+        val created = provider.createBukkitWorld(fishingWorldId.toWorldKey().asString(), generatorData)
         if (!created) {
             return false
         }
@@ -190,7 +190,7 @@ class WorldManagerImpl :
     }
 
     override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
-        val world = Bukkit.getWorld(fishingWorldId.value) ?: return false
+        val world = Bukkit.getWorld(fishingWorldId.toWorldKey()) ?: return false
         val event = FishingWorldDeleteEvent(fishingWorldId)
         if (!event.callEvent()) {
             plugin.logger.info("deleteWorld(${fishingWorldId.value}) was cancelled by an event handler.")
