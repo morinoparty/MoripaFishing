@@ -1,0 +1,20 @@
+{
+  "$schema": "https://repo.mpm.nikomaru.dev/schema/plugin-info/v1.json",
+  "id": "MoripaFishing-Integration-WorldLifecycle",
+  "source": "https://github.com/morinoparty/MoripaFishing",
+  "repositories": [
+    {
+      "type": "github",
+      "id": "morinoparty/MoripaFishing",
+      "fileNameRegex": "MoripaFishing-world-lifecycle-.*\\.jar$",
+      "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+      "latest": {
+        "useUpstreamLabel": true,
+        "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+      },
+      "beta": {
+        "useUpstreamLabel": true
+      }
+    }
+  ]
+}
