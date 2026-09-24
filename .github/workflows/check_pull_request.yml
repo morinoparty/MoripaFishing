@@ -40,6 +40,26 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test
 
+      # MoripaFishingLoader (paper-plugin.yml) と plugin.yml の libraries は、Paper がサーバー起動時に
+      # Maven Central のミラー (Google) から取得する。ミラーへの反映は Maven Central より遅れるため、
+      # 未反映のバージョンが入ると起動できなくなる
+      - name: Check plugin libraries are available on Paper's Maven Central mirror
+        run: |
+          MIRROR=https://maven-central.storage-download.googleapis.com/maven2
+          missing=0
+          while read -r coordinate; do
+            [ -n "$coordinate" ] || continue
+            IFS=: read -r group artifact version <<< "$coordinate"
+            url="$MIRROR/${group//.//}/$artifact/$version/$artifact-$version.pom"
+            if curl -sfI "$url" > /dev/null; then
+              echo "OK      $coordinate"
+            else
+              echo "::error::$coordinate is not available on $MIRROR yet"
+              missing=1
+            fi
+          done < bukkit/build/resources/main/paper-libraries.txt
+          exit $missing
+
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@3730c0a348a2ace3c110851bed53331bc6406e9f # v2.0.1
         if: always()
