@@ -65,6 +65,44 @@ dependencies {
     testImplementation(libs.allure.junit5)
 }
 
+// JARに同梱する依存。これ以外のruntimeClasspathの外部依存はPaperに実行時に取得させる
+// （paper-plugin.yml では MoripaFishingLoader、plugin.yml では libraries を使う）
+fun isBundled(
+    group: String,
+    version: String,
+): Boolean =
+    // apiモジュール
+    group == "party.morino" ||
+        // Adventure / MiniMessage は従来どおり同梱する（Paper本体が提供するものが優先される）
+        group == "net.kyori" ||
+        // スナップショット版はMaven Centralにない
+        version.endsWith("-SNAPSHOT")
+
+// runtimeClasspathのうち同梱しない外部依存（KMPは解決済みの -jvm アーティファクトになる）
+val runtimeLibraries =
+    configurations.runtimeClasspath.map { configuration ->
+        configuration.incoming.artifacts.artifacts
+            .mapNotNull { it.id.componentIdentifier as? ModuleComponentIdentifier }
+            .filterNot { isBundled(it.group, it.version) }
+            .map { "${it.group}:${it.module}:${it.version}" }
+            .distinct()
+    }
+
+// MoripaFishingLoader が読み込むライブラリ一覧をリソースとして生成する
+val generatePaperLibraries by tasks.registering {
+    val libraries = runtimeLibraries
+    val outputDirectory = layout.buildDirectory.dir("generated/paper-libraries")
+    inputs.property("libraries", libraries)
+    outputs.dir(outputDirectory)
+    doLast {
+        outputDirectory.get().file("paper-libraries.txt").asFile.writeText(libraries.get().joinToString("\n"))
+    }
+}
+
+sourceSets.main {
+    resources.srcDir(generatePaperLibraries)
+}
+
 tasks {
     build {
         dependsOn("shadowJar")
@@ -79,7 +117,12 @@ tasks {
             exceptionFormat = TestExceptionFormat.FULL
         }
     }
-    shadowJar
+    shadowJar {
+        // Paperが実行時に取得するので同梱しない
+        dependencies {
+            exclude { !isBundled(it.moduleGroup, it.moduleVersion) }
+        }
+    }
     runServer {
         minecraftVersion("26.1.2")
         val plugins =
@@ -114,6 +157,8 @@ sourceSets.main {
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
             softDepend.set(listOf("MoripaFishing-Integration-WorldLifecycle", "MoripaFishing-Integration-Weather"))
+            // Spigot など paper-plugin.yml を使わないサーバー向け
+            libraries.set(runtimeLibraries)
         }
     }
 }
