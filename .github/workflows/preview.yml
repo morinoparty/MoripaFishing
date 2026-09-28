@@ -335,13 +335,23 @@ jobs:
           SHA: ${{ env.COMMIT_SHORT_SHA }}
           PROJECT_NAME: ${{ env.PROJECT_NAME }}
         run: |
+          # バイト数を読みやすい単位に変換する (1 MiB 以上は MB、それ未満は KB)
+          human_size() {
+            local bytes
+            bytes=$(stat -c %s "$1")
+            if [ "$bytes" -ge 1048576 ]; then
+              awk -v b="$bytes" 'BEGIN { printf "%.1f MB", b / 1048576 }'
+            else
+              awk -v b="$bytes" 'BEGIN { printf "%.1f KB", b / 1024 }'
+            fi
+          }
           {
             echo "rows<<ROWS_EOF"
             while read -r f; do
               [ -n "$f" ] || continue
               label="${f#${PROJECT_NAME}-}"
               label="${label%-${SHA}.jar}"
-              echo "| ${label} | [${f}](${S3_DOWNLOAD_BASE}/${f}) |"
+              echo "| ${label} | [${f}](${S3_DOWNLOAD_BASE}/${f}) | $(human_size "./gradle-artifacts/jars/${f}") |"
             done < ./gradle-artifacts/jars.txt
             echo "ROWS_EOF"
           } >> "$GITHUB_OUTPUT"
@@ -362,8 +372,8 @@ jobs:
 
           ### 📦 Preview JARs
           Available for 7 days (until $LIMIT_TIME)
-          | Artifact | Download |
-          |----------|----------|
+          | Artifact | Download | Size |
+          |----------|----------|------|
           $JAR_ROWS
 
           > 📜 **Attestation** (SLSA provenance): [Verify on GitHub]($ATTESTATION_URL) or run \`gh attestation verify <jar-file> --owner morinoparty\`
