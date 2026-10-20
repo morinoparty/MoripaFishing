@@ -1,5 +1,5 @@
 [versions]
-paper = "26.2.build.87-stable"
+paper = "26.3.build.200-stable"
 mccoroutine = "2.23.0"
 cloud = "2.1.0"
 cloudPaper = "2.0.1"
@@ -14,7 +14,7 @@ postgresql = "42.7.14"
 jnoise = "4.1.0"
 mockk = "1.14.11"
 junit = "5.12.1"
-mockBukkit = "4.117.0"
+mockBukkit = "4.118.0"
 adventure = "5.2.0"
 ktlint = "14.2.0"
 mavenPublish = "0.37.0"
@@ -55,7 +55,7 @@ koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koinV
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }
 
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
-mock-bukkit = { group = "org.mockbukkit.mockbukkit", name = "mockbukkit-v26.2", version.ref = "mockBukkit" }
+mock-bukkit = { group = "org.mockbukkit.mockbukkit", name = "mockbukkit-v26.3", version.ref = "mockBukkit" }
 
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher"}
