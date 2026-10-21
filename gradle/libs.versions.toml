@@ -6,7 +6,7 @@ cloudPaper = "2.0.1"
 koinVersion = "4.2.2"
 coroutine = "1.11.0"
 serialization = "1.11.0"
-exposed = "1.5.1"
+exposed = "1.6.0"
 arrow = "2.2.3"
 sqlite = "3.53.4.0"
 kaml = "0.104.0"
@@ -78,7 +78,7 @@ run-paper = { id = "xyz.jpenilla.run-paper", version = "3.1.0" }
 resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.4.0" }
 shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.21" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.4.20" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.4.21" }
 dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
 dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version = "2.2.0" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
