@@ -36,7 +36,8 @@
 | ✅ 🧪 | `test` | patch |
 | 🔧 🔨 👷 💚 🙈 🔥 📦️ ➕ ➖ ⬆️ ⬇️ 🚚 | `chore` | patch |
 
-- 開発中はメジャーバージョンを上げません。破壊的変更でも minor として扱います。
+- 1.0.0 未満の開発中はメジャーバージョンを上げません。破壊的変更でも minor として扱います。
+- 1.0.0 以降は `.github/release-drafter.yml` の `version-resolver` で `breaking` を major に戻してください。
 - 破壊的変更を含む PR では `💥` を使うか、`breaking` ラベルを付けてください。
 - リリースノートに載せない PR には `skip-changelog` を付けてください。
 
