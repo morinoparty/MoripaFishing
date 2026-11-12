@@ -1,5 +1,3 @@
-import { Random } from "./random";
-
 export class WeatherType {
     static readonly SUNNY = "晴れ";
     static readonly CLOUDY = "曇り";
@@ -25,20 +23,21 @@ export class WeatherRandom {
         this.maxInclination = maxInclination;
     }
 
+    // コアの WeatherCalendar.noise と同じ計算 (Kotlin の Long 演算に合わせて整数除算・floorMod を使う)
     async get(x: number): Promise<number> {
         const check = Math.floor(100 / this.maxInclination);
-        if (x % check === 0) {
-            const random = new Random(await this.getHash(x));
-            return random.nextInt(0, 100);
+        const offset = ((x % check) + check) % check;
+        if (offset === 0) {
+            return this.random(x);
         }
-        const small = new Random(await this.getHash(x - (x % check))).nextInt(
-            0,
-            100,
-        );
-        const large = new Random(
-            await this.getHash(x - (x % check) + check),
-        ).nextInt(0, 100);
-        return ((large - small) / check) * (x % check) + small;
+        const small = await this.random(x - offset);
+        const large = await this.random(x - offset + check);
+        return Math.trunc((large - small) / check) * offset + small;
+    }
+
+    // スロットの乱数 (0..100)。SHA-256 の先頭 8 桁を 101 で割った余り
+    private async random(x: number): Promise<number> {
+        return (await this.getHash(x)) % 101;
     }
 
     async getWeather(x: number): Promise<WeatherType> {

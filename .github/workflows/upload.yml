@@ -48,9 +48,9 @@ jobs:
           echo "PLUGIN_VERSION=$after" >> $GITHUB_ENV
           echo "plugin_version=$after" >> $GITHUB_OUTPUT
 
-      - name: change plugin.yml version
+      - name: Set project version
         run: |
-          echo "バージョンは ${{ env.PLUGIN_VERSION }} なのだ！"
+          echo "Version: ${{ env.PLUGIN_VERSION }}"
           sed -i "s/VersionPlaceholder/${{ env.PLUGIN_VERSION }}/" ./gradle.properties
 
       - name: Build with Gradle (parallel)
@@ -67,7 +67,7 @@ jobs:
 
       - name: Rename Bukkit JAR
         run:
-          mv ./bukkit/build/libs/bukkit-*-all.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+          mv ./bukkit/build/libs/bukkit-${{ env.PLUGIN_VERSION }}.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
       - name: Collect integration JARs
         run: ./.github/scripts/collect-module-jars.sh ./integrations ./release-integrations "${{ env.PLUGIN_VERSION }}"
@@ -207,12 +207,10 @@ jobs:
             paper
             purpur
           game-versions: |
-            >=1.21.4
+            >=26.2
           game-version-filter: releases
-          modrinth-dependencies: |
-            Vault(required)
           java: |
-            21
+            25
 
       # リリースノートに SLSA provenance の確認リンクを追記する
       - name: Append SLSA provenance link to release notes

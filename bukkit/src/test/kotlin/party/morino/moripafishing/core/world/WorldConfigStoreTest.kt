@@ -79,6 +79,9 @@ class WorldConfigStoreTest {
         File(directory, "mismatch.json").writeText("""{ "id": "other" }""")
         File(directory, "Bad Id.json").writeText("""{ "id": "Bad Id" }""")
         File(directory, "badborder.json").writeText("""{ "id": "badborder", "border": {"size": -1.0} }""")
+        File(directory, "badkey.json").writeText(
+            """{ "id": "badkey", "climate": {"weather": {"type": "external", "source": "Bad Key"}} }""",
+        )
         File(directory, "ok.json").writeText("""{ "id": "ok" }""")
         assertEquals(listOf(FishingWorldId("ok")), store.loadAll().map { it.id })
     }

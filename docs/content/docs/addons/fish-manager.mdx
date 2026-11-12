@@ -12,47 +12,42 @@ FishManagerは、魚データの登録・取得を行うマネージャーです
 
 | メソッド | 戻り値 | 説明 |
 |---|---|---|
-| `getFish()` | `List<FishData>` | 登録されている全ての魚を取得する |
-| `getFishWithId(id)` | `FishData?` | IDから魚を取得する。未登録の場合は`null` |
-| `getFishesWithRarity(rarity)` | `List<FishData>` | レアリティで魚を絞り込む |
-| `registerFish(fish)` | `Unit` | 魚を登録する |
-| `loadFishes()` | `Unit` | 設定ディレクトリのJSONから魚を読み込む |
-| `unloadFishes()` | `Unit` | 読み込み済みの魚を全て破棄する |
+| `getAll()` | `List<FishData>` | 登録されている全ての魚を取得する |
+| `get(id)` | `FishData?` | IDから魚を取得する。未登録の場合は`null` |
+| `getByRarity(rarity)` | `List<FishData>` | レアリティで魚を絞り込む |
+| `register(fish)` | `Unit` | 魚を登録する。同じIDの魚は置き換える |
+| `unregister(id)` | `Boolean` | 魚の登録を解除する。登録されていなかった場合は`false` |
 
-取得・登録で扱う型は`FishData`です。ページ後半に登場する`Fish`は抽選済みのサイズなどを含む別の型なので、混同しないよう注意してください。`FishData`のスキーマは[魚データの形式](/docs/format/data/fish)を参照してください。
+取得・登録で扱う型は`FishData`です。抽選済みのサイズや価値を含む`Fish`は別の型なので、混同しないよう注意してください。`FishData`のスキーマは[魚データの形式](/docs/format/data/fish)を参照してください。
+
+`register(fish)`は登録前に検証を行い、レアリティが未登録・`item.material`がアイテムとして使えない・`worth`の計算式が不正のいずれかの場合は`IllegalArgumentException`を投げます。
 
 ## 読み込みのライフサイクル
 
-FishManagerは初期化時に`loadFishes()`を実行し、設定ディレクトリ配下のJSONを読み込みます。
-`/mf reload`コマンドは`unloadFishes()`のあとに`loadFishes()`を呼び直すため、その時点で保持している魚データは一度すべて破棄されます。
+FishManagerは起動時と`/mf reload`のたびに、`fish/`配下のJSONを読み直します。読み直しでは保持している魚データがファイルの内容で丸ごと置き換わります。
 
-`registerFish(fish)`はメモリ上のマップへ追加するだけで、JSONファイルへは保存されません。
-そのため、アドオンからプログラム的に登録した魚は`/mf reload`やサーバー再起動で失われます。恒久的に追加したい場合はJSONファイルとして配置するか、リロードのたびに登録し直す必要があります。
-また、既に存在する`FishId`で登録すると、そのIDの魚は上書きされます。
+`register(fish)`はメモリ上に追加するだけで、JSONファイルへは保存されません。
+そのため、アドオンからプログラム的に登録した魚は`/mf reload`やサーバー再起動で失われます。恒久的に追加したい場合はJSONファイルとして配置するか、`MoripaFishingReloadedEvent`を購読して登録し直してください。
 
-## 魚の抽選の流れ
+## FishDrawer
 
-釣りイベントが発生すると、以下の手順で魚が決定されます。
+魚の抽選は`FishDrawer`が担当します。`MoripaFishingAPI#getFishDrawer()`で取得でき、アドオンから任意のタイミングで抽選を実行できます。
 
-1. **レアリティ抽選** — 各レアリティの`weight`に基づいて重み付き抽選
-2. **魚種抽選** — 選ばれたレアリティの魚のうち、`isDisabled`が`false`で、かつ`conditions.world`と`conditions.weather`を満たすものだけを候補とし、`FishData.weight`に基づく重み付き抽選を行う
-3. **サイズ決定** — 平均を`(min + max) / 2`、標準偏差を`(max - min) / 6.0`とする正規分布からサイズを生成し、`min`〜`max`の範囲に丸める
-4. **Fishオブジェクト生成** — `FishBuilder`で最終的な`Fish`オブジェクトを構築
+| メソッド | 戻り値 | 説明 |
+|---|---|---|
+| `draw(world)` | `Fish?` | 指定した釣りワールドの条件でレアリティ・魚種・サイズ・価値を抽選する。候補が無ければ`null` |
+| `roll(data)` | `Fish` | 魚種を指定してサイズと価値だけを抽選する。レアリティが未登録なら`IllegalArgumentException` |
 
-`conditions.world`と`conditions.weather`はどちらも空リストであれば「条件なし」として扱われ、その項目では絞り込まれません。
+`draw(world)`は次の手順で魚を決定します。
 
-## FishRandomizer
+1. **候補の絞り込み** — `enabled`が`true`で`weight`が0より大きく、`conditions.world`と`conditions.weather`を満たす魚だけを候補にする
+2. **レアリティ抽選** — 候補の魚がいるレアリティだけを対象に、各レアリティの`weight`に基づいて重み付き抽選する
+3. **魚種抽選** — 選ばれたレアリティの候補から`FishData.weight`に基づいて重み付き抽選する
+4. **サイズと価値の決定** — 平均を`(min + max) / 2`、標準偏差を`(max - min) / 6`とする正規分布からサイズを生成して`min`〜`max`に丸め、価値の計算式で価値を求める
 
-抽選そのものは`FishRandomizer`が担当しています。`MoripaFishingAPI#getRandomizeManager()`から`getFishRandomizer()`を呼ぶことで取得でき、アドオンから任意のタイミングで抽選を実行できます。
+`conditions.world`と`conditions.weather`はどちらも空であれば「条件なし」として扱われます。天候が分からない釣りワールド（未定義のワールドなど）では、天候条件付きの魚は候補から外れます。
 
-| メソッド | 説明 |
-|---|---|
-| `selectRandomFish(fishingWorldId)` | レアリティ抽選から魚の生成までを一括で行う |
-| `selectRandomFishByRarity(rarity, fishingWorldId)` | レアリティを指定して魚を抽選する |
-| `selectRandomFishByFishData(fishData)` | 魚種を指定してサイズだけを抽選する |
-| `drawRandomRarity()` | レアリティのみを抽選する |
-
-:::warning[注意]
-釣れる魚は釣り場（ワールド）と天候条件によって変わります。
-また、`FishData.conditions.time`（`TimeRange`）はデータ形式としては定義されているものの、現在の抽選処理では参照されていません。時間帯による出現制御を前提とした実装は行わないでください。
-:::
+```kotlin
+val fish = api.getFishDrawer().draw(FishingWorldId("default")) ?: return
+logger.info("${fish.data.id.value}: ${fish.size}cm, ${fish.worth}")
+```

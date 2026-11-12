@@ -1,11 +1,10 @@
 {
-    "id" : "epic",
-    "color" : "#ab47bc",
-    "cacheCommand" : [],
-    "displayName" : {
-        "ja-JP" : "エピック",
-        "en-US" : "Epic"
-    },
-    "weight": 6.5,
-    "worthExpression" : "(<length_rate> ^ 2) * 50 + 100"
-} 
+  "$schema": "https://fishing.plugin.morino.party/schema/rarity/v1.json",
+  "id": "epic",
+  "displayName": {
+    "ja_JP": "エピック",
+    "en_US": "Epic"
+  },
+  "weight": 6.5,
+  "worth": "(length_rate ^ 2) * 50 + 100"
+}

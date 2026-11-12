@@ -1,33 +1,20 @@
 {
   "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
   "id": "clown_anemonefish",
-  "catchCommands": [],
-  "conditions": {
-    "weather": [],
-    "world": [],
-    "time": []
-  },
+  "rarity": "epic",
   "displayName": {
     "en_US": "Clown Anemonefish",
     "ja_JP": "カクレクマノミ"
   },
-  "icon": "",
-  "itemStack": {
+  "item": {
     "material": "TROPICAL_FISH",
-    "itemMeta": {
-      "customModelData": [
-        1.0
-      ]
-    }
+    "customModelData": [
+      1.0
+    ]
   },
   "size": {
     "min": 5.0,
     "max": 13.0
   },
-  "rarity": "epic",
-  "weight": 10.0,
-  "lore": {
-    "en_US": [],
-    "ja_JP": []
-  }
+  "weight": 10.0
 }

@@ -11,15 +11,15 @@ import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
+import party.morino.moripafishing.api.event.world.FishingWorldCreateEvent
+import party.morino.moripafishing.api.event.world.FishingWorldDeleteEvent
+import party.morino.moripafishing.api.event.world.FishingWorldDeletedEvent
+import party.morino.moripafishing.api.event.world.FishingWorldLoadEvent
+import party.morino.moripafishing.api.event.world.FishingWorldUnloadEvent
+import party.morino.moripafishing.api.event.world.FishingWorldWeatherChangeEvent
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.core.world.weather.VanillaWeatherCache
-import party.morino.moripafishing.event.world.FishingWorldCreateEvent
-import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
-import party.morino.moripafishing.event.world.FishingWorldDeletedEvent
-import party.morino.moripafishing.event.world.FishingWorldLoadEvent
-import party.morino.moripafishing.event.world.FishingWorldUnloadEvent
-import party.morino.moripafishing.event.world.FishingWorldWeatherChangeEvent
 import java.time.Clock
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @property store 釣りワールド設定ファイルの読み書き
  * @property clock 現在時刻の取得元 (テストで差し替える)
  */
+@Suppress("TooManyFunctions") // WorldManager (公開 API) と WorldContext (Listener 向け) の実装を 1 か所で状態ごと管理するため
 internal class WorldManagerImpl(
     private val plugin: Plugin,
     private val configManager: ConfigManager,
@@ -157,15 +158,17 @@ internal class WorldManagerImpl(
                 generator = generatorId,
             )
         store.save(config)
-        if (!tryCreate(define(config))) {
+        val created = tryCreate(define(config))
+        if (created) {
+            FishingWorldCreateEvent(id).callEvent()
+        } else {
             worlds.remove(id)
             store.delete(id)
-            return false
         }
-        FishingWorldCreateEvent(id).callEvent()
-        return true
+        return created
     }
 
+    @Suppress("ReturnCount") // 削除を中止する理由 (未定義・アンロード不可・イベントのキャンセル) ごとに早期 return するため
     override fun deleteWorld(id: FishingWorldId): Boolean {
         checkMainThread("deleteWorld")
         val world = worlds[id] ?: return false

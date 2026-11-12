@@ -2,7 +2,7 @@ package party.morino.moripafishing.integrations.weather
 
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
-import org.bukkit.GameRule
+import org.bukkit.GameRules
 import org.bukkit.NamespacedKey
 import org.bukkit.WorldCreator
 import org.bukkit.event.player.PlayerQuitEvent
@@ -79,12 +79,12 @@ class WeatherApplierTest {
     @Test
     fun `the weather cycle gamerule is written on every call`() {
         applier.apply(state(WeatherType.SUNNY))
-        assertEquals(false, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
+        assertEquals(false, world.getGameRuleValue(GameRules.ADVANCE_WEATHER))
         applier.apply(state(null))
-        assertEquals(true, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
+        assertEquals(true, world.getGameRuleValue(GameRules.ADVANCE_WEATHER))
+        world.setGameRule(GameRules.ADVANCE_WEATHER, false)
         applier.apply(state(null))
-        assertEquals(true, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
+        assertEquals(true, world.getGameRuleValue(GameRules.ADVANCE_WEATHER))
     }
 
     @Test
@@ -161,9 +161,9 @@ class WeatherApplierTest {
 
     @Test
     fun `an unknown world is ignored`() {
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, true)
+        world.setGameRule(GameRules.ADVANCE_WEATHER, true)
         applier.apply(state(WeatherType.THUNDERSTORM, Key.key("moripafishing", "missing")))
         assertFalse(world.hasStorm())
-        assertEquals(true, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
+        assertEquals(true, world.getGameRuleValue(GameRules.ADVANCE_WEATHER))
     }
 }

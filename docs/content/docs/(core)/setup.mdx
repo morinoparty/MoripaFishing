@@ -9,13 +9,13 @@ icon: Rocket
 
 | 項目 | 要件 |
 |------|------|
-| Minecraft | Paper API 1.20 以降（開発とテストは Paper 26.1.2 で行っています） |
-| サーバー | Paper / Purpur |
-| Java | 21 以降 |
+| Minecraft | Paper 26.2 以降（開発とテストは Paper 26.2 で行っています） |
+| サーバー | Paper または Paper 互換サーバー（Purpur など） |
+| Java | 25 以降 |
 | 任意プラグイン | [WorldLifecycle 統合](/docs/integration/world-lifecycle)（釣りワールドの作成に必須）、[Weather 統合](/docs/integration/weather)、[Terra](https://modrinth.com/plugin/terra)（`terra` ジェネレーターを使う場合）。統合プラグインは MoripaFishing 本体に必須依存するため、本体と一緒に導入してください |
 
 :::warning[注意]
-Spigot サーバーには対応していません。必ず Paper または Purpur を使用してください。
+MoripaFishing は Paper プラグイン (`paper-plugin.yml`) として配布しています。Spigot サーバーには対応していません。
 :::
 
 ## インストール
@@ -47,7 +47,7 @@ Spigot サーバーには対応していません。必ず Paper または Purpu
 - [Modrinth](https://modrinth.com/plugin/moripafishing)
 - [GitHub Releases](https://github.com/morinoparty/MoripaFishing/releases)
 
-ダウンロードするファイルは `MoripaFishing_<バージョン>.jar` です。
+Core のファイルは `MoripaFishing_<バージョン>.jar` です。Integration と Addon は `MoripaFishing-<モジュール名>-<バージョン>.jar` という名前で同じリリースに含まれています（例: `MoripaFishing-world-lifecycle-<バージョン>.jar`）。
 
 ### 2. プラグインの配置
 
@@ -56,7 +56,7 @@ Spigot サーバーには対応していません。必ず Paper または Purpu
 ```bash
 plugins/
 ├── MoripaFishing_<バージョン>.jar
-└── MoripaFishing-Integration-WorldLifecycle_<バージョン>.jar
+└── MoripaFishing-world-lifecycle-<バージョン>.jar
 ```
 
 :::note
@@ -70,7 +70,7 @@ plugins/
 ```bash
 plugins/MoripaFishing/
 ├── config.json          # メイン設定
-├── translation/         # 翻訳ファイル
+├── translation/         # 翻訳ファイル (<ロケール>.properties)
 │   ├── en_US.properties
 │   └── ja_JP.properties
 ├── fish/                # 魚データ
@@ -93,7 +93,7 @@ plugins/MoripaFishing/
 
 - **デフォルトワールド**: `world.defaultId` でデフォルトの釣り場IDを指定します
 - **タイムゾーン**: `world.timeZone` でタイムゾーンを設定します（デフォルト: `Asia/Tokyo`）
-- **言語**: `defaultLocale` でプラグインの表示言語を設定します（`ja_JP` / `en_US`）
+- **言語**: `defaultLocale` で翻訳が見つからない場合に使う言語を設定します（例: `ja_JP`）
 
 ### 釣りワールドの作成
 
@@ -147,11 +147,12 @@ plugins/MoripaFishing/
 
 | パーミッション | 説明 |
 |----------------|------|
-| `moripa_fishing.command.world` | `/mf` 以下のコマンド全体の基本権限 |
-| `moripa_fishing.command.world.default` | ワールド一覧表示・プレイヤー移動・`/mf reload` |
-| `moripa_fishing.command.world.create` | ワールドの作成 |
-| `moripa_fishing.command.world.delete` | ワールドの削除 |
-| `moripa_fishing.command.world.config` | ワールド設定の変更・表示 |
+| `moripafishing.command.reload` | `/mf reload` |
+| `moripafishing.command.world.list` | ワールド一覧の表示 |
+| `moripafishing.command.world.transfer` | プレイヤーの移動 |
+| `moripafishing.command.world.create` | ワールドの作成 |
+| `moripafishing.command.world.delete` | ワールドの削除 |
+| `moripafishing.command.world.config` | ワールド設定の変更・表示 |
 
 ## 設定の反映
 
@@ -161,8 +162,4 @@ plugins/MoripaFishing/
 /mf reload
 ```
 
-このコマンドはメイン設定、各釣りワールドの設定と状態、レアリティ、魚、翻訳ファイルの順に再読み込みを行い、進捗を実行者へ返します。
-
-:::note
-`/mf reload` の実行には `moripa_fishing.command.world.default` が必要です。reload 自体はワールド管理コマンドではありませんが、実装上このノードの配下に置かれています。
-:::
+このコマンドはメイン設定、各釣りワールドの設定と状態、レアリティ、魚、翻訳ファイルの順に再読み込みします。詳しくは [管理コマンド](/docs/commands/admin) を参照してください。

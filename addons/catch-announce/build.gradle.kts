@@ -1,57 +1,21 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
 
 plugins {
-    java
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow)
     alias(libs.plugins.resource.factory)
 }
 
-group = "party.morino"
-version = project.version.toString()
-
 dependencies {
     // Addon は公開アーティファクト (moripafishing-api) のみに依存する外部プラグイン想定。
     // :bukkit には依存しない (実際の外部リポジトリでは compileOnly("party.morino:moripafishing-api:<version>") に相当)。
     compileOnly(project(":api"))
-    compileOnly(libs.paper.api)
 
-    // Adventure / MiniMessage は Paper が提供するため shade しない。
-    compileOnly(libs.bundles.kyori)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kaml)
 
     testImplementation(project(":api"))
-    testImplementation(libs.paper.api)
-    testImplementation(libs.mock.bukkit)
-    testImplementation(platform("org.junit:junit-bom:6.1.3"))
-    testImplementation(libs.bundles.junit.jupiter)
-    testImplementation(libs.junit.platform.launcher)
-    testImplementation(libs.allure.junit5)
-}
-
-kotlin {
-    jvmToolchain(25)
-}
-
-tasks {
-    compileKotlin {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
-        compilerOptions.javaParameters = true
-    }
-    build {
-        dependsOn("shadowJar")
-    }
-    shadowJar {
-        archiveClassifier.set("")
-    }
-    test {
-        useJUnitPlatform()
-        // Allure結果の出力先を指定
-        systemProperty("allure.results.directory", "${project.layout.buildDirectory.get().asFile}/allure-results")
-    }
 }
 
 sourceSets.main {
@@ -61,18 +25,10 @@ sourceSets.main {
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.addons.catchannounce.CatchAnnouncePlugin"
-            apiVersion = "1.20"
+            apiVersion = "26.2"
             dependencies {
-                server("MoripaFishing", PaperPluginYaml.Load.BEFORE, required = false)
+                server("MoripaFishing", PaperPluginYaml.Load.BEFORE, required = true)
             }
-        }
-        bukkitPluginYaml {
-            name = "MoripaFishing-Addon-CatchAnnounce"
-            version = project.version.toString()
-            website = "https://fishing.plugin.morino.party"
-            main = "party.morino.moripafishing.addons.catchannounce.CatchAnnouncePlugin"
-            apiVersion = "1.20"
-            softDepend.set(listOf("MoripaFishing"))
         }
     }
 }

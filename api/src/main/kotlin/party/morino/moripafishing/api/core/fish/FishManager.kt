@@ -5,50 +5,44 @@ import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
 
 /**
- * 魚の管理を行うインターフェース
+ * 魚の定義を管理する。
+ *
+ * 定義は `fish/` 配下の JSON から読み込まれる。[register] で追加した定義は `/mf reload` で破棄される。
+ * 取得系のメソッドは任意のスレッドから呼べる。
  */
 interface FishManager {
     /**
-     * 魚を登録する
+     * 魚を登録する。同じ ID の魚は置き換える。
+     *
      * @param fish 登録する魚
+     * @throws IllegalArgumentException レアリティが未登録・不明な Material・不正な価値式の場合
      */
-    fun registerFish(fish: FishData)
+    fun register(fish: FishData)
 
     /**
-     * 登録されている魚を解除する
-     * @param id 解除する魚のID
+     * 魚の登録を解除する。
+     *
+     * @param id 解除する魚の ID
      * @return 解除した場合 `true`、登録されていなかった場合 `false`
      */
-    fun unregisterFish(id: FishId): Boolean
+    fun unregister(id: FishId): Boolean
 
     /**
-     * 登録されている魚の一覧を取得する
-     * @return 魚の一覧
+     * 魚を返す。未登録なら `null`。
+     *
+     * @param id 魚の ID
      */
-    fun getFish(): List<FishData>
+    fun get(id: FishId): FishData?
 
     /**
-     * 魚を取得する
-     * @param id 魚のID
-     * @return 魚
+     * 登録されている全ての魚を返す。
      */
-    fun getFishWithId(id: FishId): FishData?
+    fun getAll(): List<FishData>
 
     /**
-     * 魚を取得する
-     * @param rarity レアリティ
-     * @return 魚
+     * 指定したレアリティの魚を返す。
+     *
+     * @param rarity レアリティの ID
      */
-    fun getFishesWithRarity(rarity: RarityId): List<FishData>
-
-    /**
-     * 登録されている魚をすべて解除する。
-     * リロード時にコアが呼び出す。`registerFish` で登録した魚も破棄される点に注意。
-     */
-    fun unloadFishes()
-
-    /**
-     * 設定ディレクトリから魚の定義を読み込み登録する。
-     */
-    fun loadFishes()
+    fun getByRarity(rarity: RarityId): List<FishData>
 }

@@ -1,33 +1,20 @@
 {
   "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
   "id": "black_marlin",
-  "catchCommands": [],
-  "conditions": {
-    "weather": [],
-    "world": [],
-    "time": []
-  },
+  "rarity": "legendary",
   "displayName": {
     "en_US": "Black Marlin",
     "ja_JP": "クロマグロ"
   },
-  "icon": "",
-  "itemStack": {
+  "item": {
     "material": "COD",
-    "itemMeta": {
-      "customModelData": [
-        10001.0
-      ]
-    }
+    "customModelData": [
+      10001.0
+    ]
   },
   "size": {
     "min": 173.0,
     "max": 458.0
   },
-  "rarity": "legendary",
-  "weight": 10.0,
-  "lore": {
-    "en_US": [],
-    "ja_JP": []
-  }
+  "weight": 10.0
 }

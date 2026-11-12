@@ -1,33 +1,20 @@
 {
   "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
   "id": "atlantic_salmon",
-  "catchCommands": [],
-  "conditions": {
-    "weather": [],
-    "world": [],
-    "time": []
-  },
+  "rarity": "epic",
   "displayName": {
     "en_US": "Atlantic Salmon",
     "ja_JP": "アトランティックサーモン"
   },
-  "icon": "",
-  "itemStack": {
+  "item": {
     "material": "SALMON",
-    "itemMeta": {
-      "customModelData": [
-        1.0
-      ]
-    }
+    "customModelData": [
+      1.0
+    ]
   },
   "size": {
     "min": 90.0,
     "max": 143.0
   },
-  "rarity": "epic",
-  "weight": 10.0,
-  "lore": {
-    "en_US": [],
-    "ja_JP": []
-  }
+  "weight": 10.0
 }

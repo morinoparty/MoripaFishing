@@ -1,7 +1,7 @@
 package party.morino.moripafishing.api.model.world
 
 import kotlinx.serialization.Serializable
-import party.morino.moripafishing.api.utils.serializer.FishingWorldIdSerializer
+import party.morino.moripafishing.api.serialization.FishingWorldIdSerializer
 
 /**
  * ワールドのIDを表すデータクラス
@@ -15,9 +15,4 @@ data class FishingWorldId(
      * このワールドの表示名に対応する翻訳キーを返す。
      */
     fun toTranslateKey(): String = "moripa_fishing.world.$value.name"
-
-    /**
-     * このワールドの表示名を参照する MiniMessage の `<lang>` タグを返す。
-     */
-    fun localeTag(): String = "<lang:${toTranslateKey()}>"
 }

@@ -1,11 +1,10 @@
 {
-    "id" : "junk",
-    "color" : "#757575",
-    "cacheCommand" : [],
-    "displayName" : {
-        "ja-JP" : "ごみ",
-        "en-US" : "Junk"
-    },
-    "weight": 1.0,
-    "worthExpression" : "1"
-} 
+  "$schema": "https://fishing.plugin.morino.party/schema/rarity/v1.json",
+  "id": "junk",
+  "displayName": {
+    "ja_JP": "ごみ",
+    "en_US": "Junk"
+  },
+  "weight": 1.0,
+  "worth": "1"
+}

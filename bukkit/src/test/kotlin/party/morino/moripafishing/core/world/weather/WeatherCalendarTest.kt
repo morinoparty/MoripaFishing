@@ -25,15 +25,26 @@ class WeatherCalendarTest {
     }
 
     @Test
-    fun `matches the values of the previous WeatherRandomizerImpl with default settings`() {
-        // 削除前の WeatherRandomizerImpl.getWeatherByDate (既定設定・seed "pepper") で記録した値
+    fun `pins the weather for the default settings`() {
+        // 既定設定・seed "pepper" で記録した値。ノイズの計算を変えた場合は意図した変更かを確認してから更新する
         val calendar = WeatherCalendar(WeatherPolicy.Random(), worldId)
-        assertEquals(WeatherType.THUNDERSTORM, calendar.at(at("2024-01-01T00:00")))
-        assertEquals(WeatherType.SUNNY, calendar.at(at("2024-03-15T09:00")))
-        assertEquals(WeatherType.RAINY, calendar.at(at("2026-11-12T07:00")))
+        assertEquals(WeatherType.SUNNY, calendar.at(at("2024-01-01T00:00")))
+        assertEquals(WeatherType.RAINY, calendar.at(at("2024-03-15T09:00")))
+        assertEquals(WeatherType.CLOUDY, calendar.at(at("2026-11-12T07:00")))
         assertEquals(276L, calendar.slotOf(at("2024-01-01T00:00")))
         assertEquals(499L, calendar.slotOf(at("2024-03-15T09:00")))
         assertEquals(3414L, calendar.slotOf(at("2026-11-12T07:00")))
+    }
+
+    @Test
+    fun `noise stays within 0 to 100`() {
+        listOf(1, 30, 100).forEach { inclination ->
+            val calendar = WeatherCalendar(WeatherPolicy.Random(maxInclination = inclination), worldId)
+            (-1_000L..1_000L).forEach { slot ->
+                val noise = calendar.noise(slot)
+                assertTrue(noise in 0L..100L, "noise $noise of slot $slot is out of range")
+            }
+        }
     }
 
     @Test

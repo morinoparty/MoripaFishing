@@ -1,12 +1,12 @@
 package party.morino.moripafishing.api.model.rarity
 
 import kotlinx.serialization.Serializable
-import party.morino.moripafishing.api.utils.serializer.RarityIdSerializer
+import party.morino.moripafishing.api.serialization.RarityIdSerializer
 
 /**
  * レアリティのIDを表すデータクラス
  *
- * `RarityData` への解決は `RarityManager.getRarity(id)` を使用する。
+ * `RarityData` への解決は `RarityManager.get(id)` を使用する。
  *
  * @property value レアリティの一意の識別子
  */

@@ -1,6 +1,6 @@
 package party.morino.moripafishing.core.world
 
-import org.bukkit.GameRule
+import org.bukkit.GameRules
 import org.bukkit.Location
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -17,6 +17,7 @@ import party.morino.moripafishing.api.config.world.BorderConfig
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.SpawnPoint
+import party.morino.moripafishing.testing.FakeConfigManager
 import java.io.File
 import java.time.Instant
 
@@ -42,8 +43,8 @@ class CoreWorldPurityTest {
         world = mockWorld(WorldKeys.of(worldId))
         server.addWorld(world)
         // 適用されていれば変わるはずの値を事前に設定しておく
-        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true)
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, true)
+        world.setGameRule(GameRules.ADVANCE_TIME, true)
+        world.setGameRule(GameRules.ADVANCE_WEATHER, true)
         world.time = 1234L
         world.setStorm(true)
         world.isThundering = true
@@ -63,8 +64,8 @@ class CoreWorldPurityTest {
     }
 
     private fun assertWorldUntouched() {
-        assertEquals(true, world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE))
-        assertEquals(true, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
+        assertEquals(true, world.getGameRuleValue(GameRules.ADVANCE_TIME))
+        assertEquals(true, world.getGameRuleValue(GameRules.ADVANCE_WEATHER))
         assertEquals(1234L, world.time)
         assertTrue(world.hasStorm())
         assertTrue(world.isThundering)

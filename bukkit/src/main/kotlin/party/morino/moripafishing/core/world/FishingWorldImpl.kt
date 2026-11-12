@@ -12,17 +12,6 @@ import party.morino.moripafishing.core.world.weather.WeatherCalendar
 import java.time.ZonedDateTime
 
 /**
- * 天候の決定結果。
- *
- * @property weather 魚の抽選条件に使う天候
- * @property appliesToWorld この天候をワールドへ適用させるかどうか
- */
-internal data class WeatherDecision(
-    val weather: WeatherType,
-    val appliesToWorld: Boolean,
-)
-
-/**
  * [FishingWorld] のコア実装。
  *
  * 設定と [WorldContext] から天候・時刻などの値を決定するだけで、Bukkit にはアクセスしない。

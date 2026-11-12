@@ -4,46 +4,33 @@ import net.kyori.adventure.audience.Audience
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.LocationData
-import java.util.UUID
 
 /**
- * 釣り人を表すインターフェース
- * プレイヤーの釣りデータを管理するメソッドを提供します
+ * 釣り人。プレイヤーがオフラインでも取得できる。
  */
 interface Angler {
     /**
-     * 釣り人のIDを取得する
-     * @return 釣り人のID(これはminecraftのuuidとは一致しません)
+     * 釣り人の ID (プレイヤーの UUID) を返す。
      */
-    fun getAnglerUniqueId(): AnglerId
+    fun getId(): AnglerId
 
     /**
-     * 釣りびとのminecraftのuuidを取得する
-     * @return 釣りびとのminecraftのuuid
-     */
-    fun getMinecraftUniqueId(): UUID
-
-    /**
-     * 釣り人の名前を取得する
-     * @return 釣り人の名前
+     * 釣り人の名前を返す。オフラインでも取得できる。一度も参加していない場合は UUID 文字列。
      */
     fun getName(): String
 
     /**
-     * 釣り人が現在いる釣りワールドを取得する
-     * @return 釣りワールド(オフライン、または釣りワールド以外にいる場合はnull)
+     * 釣り人が現在いる釣りワールドを返す。オフライン、または釣りワールド外なら `null`。
      */
     fun getWorld(): FishingWorld?
 
     /**
-     *  釣り人の現在の位置を取得する
-     *  @return 釣り人の現在の位置(オフラインプレイヤーの場合はnull)
+     * 釣り人の現在位置を返す。オフライン、または釣りワールド外なら `null`。
      */
     fun getLocation(): LocationData?
 
     /**
-     * 釣り人へメッセージ等を送るための Audience を取得する
-     * @return オンラインの場合はプレイヤーの Audience、オフラインの場合は Audience.empty()
+     * メッセージ等を送るための `Audience` を返す。オンラインならプレイヤー、オフラインなら `Audience.empty()`。
      */
     fun getAudience(): Audience
 }

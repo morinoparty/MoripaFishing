@@ -4,43 +4,37 @@ import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.rarity.RarityId
 
 /**
- * レアリティの管理を行うインターフェース
+ * レアリティの定義を管理する。
+ *
+ * 定義は `rarity/` 配下の JSON から読み込まれる。[register] で追加した定義は `/mf reload` で破棄される。
+ * 取得系のメソッドは任意のスレッドから呼べる。
  */
 interface RarityManager {
     /**
-     * レアリティを登録する
+     * レアリティを登録する。同じ ID のレアリティは置き換える。
+     *
      * @param rarity 登録するレアリティ
+     * @throws IllegalArgumentException 不正な価値式の場合
      */
-    fun registerRarity(rarity: RarityData)
+    fun register(rarity: RarityData)
 
     /**
-     * 登録されているレアリティを解除する
-     * @param id 解除するレアリティのID
+     * レアリティの登録を解除する。
+     *
+     * @param id 解除するレアリティの ID
      * @return 解除した場合 `true`、登録されていなかった場合 `false`
      */
-    fun unregisterRarity(id: RarityId): Boolean
+    fun unregister(id: RarityId): Boolean
 
     /**
-     * レアリティを取得する
-     * @param id レアリティのID
-     * @return レアリティ
+     * レアリティを返す。未登録なら `null`。
+     *
+     * @param id レアリティの ID
      */
-    fun getRarity(id: RarityId): RarityData?
+    fun get(id: RarityId): RarityData?
 
     /**
-     * 登録されているレアリティの一覧を取得する
-     * @return レアリティの一覧
+     * 登録されている全てのレアリティを返す。
      */
-    fun getRarities(): List<RarityData>
-
-    /**
-     * 登録されているレアリティをすべて解除する。
-     * リロード時にコアが呼び出す。`registerRarity` で登録したレアリティも破棄される点に注意。
-     */
-    fun unloadRarities()
-
-    /**
-     * 設定ディレクトリからレアリティの定義を読み込み登録する。
-     */
-    fun loadRarities()
+    fun getAll(): List<RarityData>
 }

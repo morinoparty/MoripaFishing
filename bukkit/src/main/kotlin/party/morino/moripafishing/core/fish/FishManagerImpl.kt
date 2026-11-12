@@ -1,124 +1,68 @@
 package party.morino.moripafishing.core.fish
 
-import kotlinx.serialization.json.Json
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import party.morino.moripafishing.api.config.PluginDirectory
+import org.bukkit.Material
 import party.morino.moripafishing.api.core.fish.FishManager
+import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.model.fish.FishData
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
+import party.morino.moripafishing.config.readDefinitions
 import java.io.File
+import java.util.logging.Logger
 
 /**
- * 魚の管理を行う実装クラス
+ * `fish/` 配下の JSON から魚を読み込む [FishManager] の実装。
+ *
+ * 定義はコピーオンライトのマップで保持し、任意のスレッドから読める。生成時は I/O を行わない。
+ * レアリティを参照するため、[RarityManagerImpl][party.morino.moripafishing.core.rarity.RarityManagerImpl] の後に読み込むこと。
+ *
+ * @property directory 魚の定義を置くディレクトリ
+ * @property rarities レアリティの存在確認に使う
+ * @property logger 不正なファイルの警告の出力先
  */
-class FishManagerImpl :
-    FishManager,
-    KoinComponent {
-    // 魚のデータを保持するマップ
-    private val fishes = mutableMapOf<FishId, FishData>()
+internal class FishManagerImpl(
+    private val directory: File,
+    private val rarities: RarityManager,
+    private val logger: Logger,
+) : FishManager {
+    @Volatile
+    private var fishes: Map<FishId, FishData> = emptyMap()
 
-    // プラグインディレクトリのインスタンスを注入
-    private val pluginDirectory: PluginDirectory by inject()
-
-    init {
-        // 初期化時に魚のデータを読み込む
-        loadFishes()
+    /**
+     * 定義を読み直す。不正なファイルは警告してスキップする。[register] で追加した定義は破棄される。
+     */
+    @Synchronized
+    fun reload() {
+        fishes =
+            readDefinitions(directory, "fish", logger, FishData.serializer(), { it.id.value }, ::validate)
+                .associateBy { it.id }
+        logger.info("Loaded ${fishes.size} fishes")
     }
 
-    /**
-     * 魚を登録する
-     * @param fish 登録する魚
-     */
-    override fun registerFish(fish: FishData) {
-        // 魚のIDをキーにしてマップに登録
-        fishes[fish.id] = fish
+    @Synchronized
+    override fun register(fish: FishData) {
+        validate(fish)
+        fishes = LinkedHashMap(fishes).apply { put(fish.id, fish) }
     }
 
-    /**
-     * 登録されている魚を解除する
-     * @param id 解除する魚のID
-     * @return 解除した場合 true、登録されていなかった場合 false
-     */
-    override fun unregisterFish(id: FishId): Boolean = fishes.remove(id) != null
-
-    /**
-     * 登録されている魚の一覧を取得する
-     * @return 魚の一覧
-     */
-    override fun getFish(): List<FishData> = fishes.values.toList()
-
-    /**
-     * 魚を取得する
-     * @param id 魚のID
-     * @return 魚
-     */
-    override fun getFishWithId(id: FishId): FishData? = fishes[id]
-
-    /**
-     * レアリティに基づいて魚を取得する
-     * @param rarity レアリティ
-     * @return 魚の一覧
-     */
-    override fun getFishesWithRarity(rarity: RarityId): List<FishData> = fishes.values.filter { it.rarity == rarity }
-
-    /**
-     * 魚のデータを読み込む
-     * 管理しやすいようにfish/<rarity>/<fish_name>.jsonに移動
-     */
-    override fun loadFishes() {
-        val fishDir = pluginDirectory.getFishDirectory()
-        if (!fishDir.exists()) {
-            fishDir.mkdirs()
-        }
-
-        val json =
-            Json {
-                ignoreUnknownKeys = true
-                prettyPrint = true
-                encodeDefaults = true
-                isLenient = true
-            }
-        // ルートディレクトリのファイルを処理
-        processFishFiles(fishDir, json)
-
-        // レアリティごとのディレクトリのファイルを処理
-        fishDir.listFiles { file -> file.isDirectory }?.forEach { rarityDir ->
-            processFishFiles(rarityDir, json)
-        }
+    @Synchronized
+    override fun unregister(id: FishId): Boolean {
+        if (id !in fishes) return false
+        fishes = LinkedHashMap(fishes).apply { remove(id) }
+        return true
     }
 
-    override fun unloadFishes() {
-        fishes.clear()
-    }
+    override fun get(id: FishId): FishData? = fishes[id]
 
-    /**
-     * 指定されたディレクトリ内の魚の設定ファイルを処理する
-     * @param directory 処理するディレクトリ
-     * @param json JSONパーサー
-     */
-    private fun processFishFiles(
-        directory: File,
-        json: Json,
-    ) {
-        directory.listFiles { file -> file.extension == "json" }?.forEach { file ->
-            // println("Processing fish file: ${file.name}")
-            val fish = json.decodeFromString<FishData>(file.readText())
-            registerFish(fish)
+    override fun getAll(): List<FishData> = fishes.values.toList()
 
-            // ファイルが正しいディレクトリにない場合は移動
-            val correctDir = File(pluginDirectory.getFishDirectory(), fish.rarity.value)
-            if (file.parentFile != correctDir) {
-                if (!correctDir.exists()) {
-                    correctDir.mkdirs()
-                }
+    override fun getByRarity(rarity: RarityId): List<FishData> = fishes.values.filter { it.rarity == rarity }
 
-                val newFile = File(correctDir, file.name)
-                if (!newFile.exists()) {
-                    file.renameTo(newFile)
-                }
-            }
-        }
+    /** レアリティ・Material・価値式を検証する。不正なら `IllegalArgumentException` を投げる。 */
+    private fun validate(data: FishData) {
+        require(rarities.get(data.rarity) != null) { "unknown rarity '${data.rarity.value}'" }
+        val material = Material.matchMaterial(data.item.material)
+        require(material != null && material.isItem) { "'${data.item.material}' is not an item material" }
+        data.worth?.let(::WorthFormula)
     }
 }

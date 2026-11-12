@@ -1,11 +1,10 @@
 {
-    "id" : "rare",
-    "color" : "#2196f3",
-    "cacheCommand" : [],
-    "displayName" : {
-        "ja-JP" : "レア",
-        "en-US" : "Rare"
-    },
-    "weight": 22.0,
-    "worthExpression" : "(<length_rate> ^ 2) * 10 + 10"
-} 
+  "$schema": "https://fishing.plugin.morino.party/schema/rarity/v1.json",
+  "id": "rare",
+  "displayName": {
+    "ja_JP": "レア",
+    "en_US": "Rare"
+  },
+  "weight": 22.0,
+  "worth": "(length_rate ^ 2) * 10 + 10"
+}

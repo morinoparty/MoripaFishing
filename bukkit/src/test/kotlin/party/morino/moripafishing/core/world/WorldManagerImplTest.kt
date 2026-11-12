@@ -25,11 +25,12 @@ import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.core.world.spi.WeatherSource
 import party.morino.moripafishing.api.core.world.spi.WorldLifecycle
 import party.morino.moripafishing.api.core.world.spi.WorldStateApplier
+import party.morino.moripafishing.api.event.world.FishingWorldDeleteEvent
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.SpawnPoint
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.core.world.weather.WeatherCalendar
-import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
+import party.morino.moripafishing.testing.FakeConfigManager
 import java.io.File
 import java.time.Duration
 import java.time.Instant

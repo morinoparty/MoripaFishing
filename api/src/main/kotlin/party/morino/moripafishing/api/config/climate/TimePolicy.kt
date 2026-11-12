@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface TimePolicy {
     /**
-     * `WorldConfig.timeZone` の実時刻にワールド時刻を同期する (`DO_DAYLIGHT_CYCLE = false`)。
+     * `WorldConfig.timeZone` の実時刻にワールド時刻を同期する (`ADVANCE_TIME = false`)。
      *
      * @property offsetHours 実時刻からのずらし幅 (時間)。負の値も可
      */
@@ -20,7 +20,7 @@ sealed interface TimePolicy {
     ) : TimePolicy
 
     /**
-     * 常に同じ時刻に固定する (`DO_DAYLIGHT_CYCLE = false`)。
+     * 常に同じ時刻に固定する (`ADVANCE_TIME = false`)。
      *
      * @property hour 固定する時 (0..23)
      */
@@ -30,14 +30,16 @@ sealed interface TimePolicy {
         val hour: Int,
     ) : TimePolicy {
         init {
-            require(hour in 0..23) { "hour must be in 0..23: $hour" }
+            require(hour in 0 until HOURS_PER_DAY) { "hour must be in 0..23: $hour" }
         }
     }
 
     /**
-     * 時刻を変更させない (`DO_DAYLIGHT_CYCLE = true`)。
+     * 時刻を変更させない (`ADVANCE_TIME = true`)。
      */
     @Serializable
     @SerialName("vanilla")
     data object Vanilla : TimePolicy
 }
+
+private const val HOURS_PER_DAY = 24

@@ -11,14 +11,14 @@ export const commandList = [
         description: "釣りワールドを定義し、指定したジェネレーターで作成します(WorldLifecycle Integration が必要)",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.create",
+        permission: "moripafishing.command.world.create",
         status: "newly"
     },{
         command: "/mf world list",
         description: "定義済みの釣りワールドの一覧とロード状態を表示します",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.default",
+        permission: "moripafishing.command.world.list",
         status: "newly"
     },
     {
@@ -26,7 +26,7 @@ export const commandList = [
         description: "プレイヤーを対象ワールドのスポーン地点へ移動します(ロード済みのワールドのみ)",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.default",
+        permission: "moripafishing.command.world.transfer",
         status: "newly"
     },
     {
@@ -34,7 +34,7 @@ export const commandList = [
         description: "ワールドを管理対象から削除します(フォルダーは残ります)",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.delete",
+        permission: "moripafishing.command.world.delete",
         status: "beta"
     },
     {
@@ -42,7 +42,7 @@ export const commandList = [
         description: "ワールドのスポーン座標を設定します(Only player)",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config",
+        permission: "moripafishing.command.world.config",
         status: "beta"
     },
     {
@@ -50,7 +50,7 @@ export const commandList = [
         description: "ワールドボーダーの中心座標を設定します(座標を省略した場合は実行者の現在位置)",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config",
+        permission: "moripafishing.command.world.config",
         status: "beta"
     },
     {
@@ -58,7 +58,7 @@ export const commandList = [
         description: "ワールドボーダーのサイズを設定します",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config",
+        permission: "moripafishing.command.world.config",
         status: "beta"
     },
     {
@@ -66,7 +66,7 @@ export const commandList = [
         description: "ワールドボーダーを MoripaFishing の管理対象から外します",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config",
+        permission: "moripafishing.command.world.config",
         status: "newly"
     },
     {
@@ -74,7 +74,7 @@ export const commandList = [
         description: "ワールド設定を JSON 形式で表示し、現在の天候を添えます",
         tags: ["admin"],
         aliases: [],
-        permission: "moripa_fishing.command.world.config",
+        permission: "moripafishing.command.world.config",
         status: "beta"
     }, {
         command: "/mf world reload <world>",
@@ -94,8 +94,6 @@ import { CommandList } from "@/components/commands/command-list";
 
 ## 補足
 
-すべてのサブコマンドは、クラス全体に設定された `moripa_fishing.command.world` を前提としています。各サブコマンドの権限は、この基本権限に加えて必要になるものです。
-
 ### 一覧について
 
 `list` は定義済み (設定ファイルが存在する) の釣りワールドを `- <表示名> (<id>) [loaded|unloaded]` の形式で表示します。`unloaded` は、対応する Bukkit ワールドがまだロードされていないことを示します。
@@ -103,6 +101,8 @@ import { CommandList } from "@/components/commands/command-list";
 ### 移動について
 
 `transfer` は対象の Bukkit ワールドがロードされていない場合、`World <id> is not loaded.` を返して何もしません。
+
+存在しない釣りワールド ID を指定したコマンドは、`Unknown fishing world: <id>` で失敗します。
 
 ### ワールドの作成について
 
@@ -116,7 +116,7 @@ import { CommandList } from "@/components/commands/command-list";
 
 設定コマンドは設定ファイルを保存し、ロード済みのワールドへすぐに適用させます。Bukkit ワールドへ実際に反映するのは Integration が導入されている場合のみです。
 
-`config set spawn` は実行者の現在位置をスポーン座標として保存するため、プレイヤーからのみ実行できます。`config set center` は座標を指定して実行することもできますが、`x` と `z` を省略した場合は実行者の現在位置が使われるため、その形式ではプレイヤー専用となります。
+`config set spawn` は実行者の現在位置をスポーン座標として保存するため、プレイヤーからのみ実行できます。`config set center` は座標を指定して実行することもできますが、`x` と `z` を省略した場合は実行者の現在位置が使われるため、その形式ではプレイヤー専用となります。コンソールから省略して実行すると `x and z are required from the console.` を返します。
 
 `config set center` と `config set size` は、ボーダーが管理対象外 (`border: null`) のワールドでは既定のボーダー (中心 `0, 0`・サイズ `100`) を元に値を設定し、ボーダーを管理対象に戻します。`config unset border` はボーダーを管理対象外にし、以降 MoripaFishing はそのワールドのボーダーに触れません。
 

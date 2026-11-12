@@ -8,31 +8,19 @@ import java.io.File
 /**
  * MoripaFishing の釣果通知 Addon。
  *
- * コア (`MoripaFishing`) には依存せず、公開 API (`:api`) のみを利用して構築されている。
- * コアが導入されていないサーバーでは無害に自身を無効化する。
+ * コア (`MoripaFishing`) の公開 API (`:api`) のみを利用する。コアは必須の依存で、先に有効化される。
  */
-open class CatchAnnouncePlugin : JavaPlugin() {
-    private var config: CatchAnnounceConfig = CatchAnnounceConfig()
-
+class CatchAnnouncePlugin : JavaPlugin() {
     override fun onEnable() {
-        if (MoripaFishingAPIProvider.getOrNull() == null) {
-            logger.warning("MoripaFishing is not installed; disabling MoripaFishing-Addon-CatchAnnounce.")
-            server.pluginManager.disablePlugin(this)
-            return
-        }
-        config = loadConfig()
-        server.pluginManager.registerEvents(CatchAnnounceListener(config), this)
-        logger.info("MoripaFishing-Addon-CatchAnnounce enabled.")
+        server.pluginManager.registerEvents(CatchAnnounceListener(MoripaFishingAPIProvider.get(), server, loadConfig()), this)
     }
 
+    /** `config.yml` を読み込む。無ければ既定値で作成する。 */
     private fun loadConfig(): CatchAnnounceConfig {
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs()
-        }
         val file = File(dataFolder, "config.yml")
         if (!file.exists()) {
+            dataFolder.mkdirs()
             file.writeText(Yaml.default.encodeToString(CatchAnnounceConfig.serializer(), CatchAnnounceConfig()))
-            return CatchAnnounceConfig()
         }
         return Yaml.default.decodeFromString(CatchAnnounceConfig.serializer(), file.readText())
     }

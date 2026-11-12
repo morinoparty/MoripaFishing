@@ -3,7 +3,7 @@ package party.morino.moripafishing.integrations.weather
 import io.papermc.paper.math.Position
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
-import org.bukkit.GameRule
+import org.bukkit.GameRules
 import org.bukkit.Material
 import org.bukkit.World
 import org.bukkit.block.data.BlockData
@@ -17,7 +17,7 @@ import party.morino.moripafishing.api.model.world.WeatherType
 import java.util.UUID
 
 /**
- * [WorldState] のうち天候とゲームルール `DO_WEATHER_CYCLE` を Bukkit ワールドへ適用する。
+ * [WorldState] のうち天候とゲームルール `ADVANCE_WEATHER` を Bukkit ワールドへ適用する。
  *
  * すべてのメソッドはメインスレッドから呼ばれる。
  *
@@ -56,7 +56,7 @@ internal class WeatherApplier :
     override fun apply(state: WorldState) {
         val world = Bukkit.getWorld(state.worldKey) ?: return
         val key = state.worldKey.normalized()
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, state.doWeatherCycle)
+        world.setGameRule(GameRules.ADVANCE_WEATHER, state.doWeatherCycle)
         val weather = state.weather
         if (weather == null) {
             // 天候の管理をやめた: 以前に駆動していた演出だけを解除し、嵐の状態はバニラに任せる

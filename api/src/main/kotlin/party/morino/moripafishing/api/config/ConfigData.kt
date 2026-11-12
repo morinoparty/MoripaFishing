@@ -2,18 +2,19 @@ package party.morino.moripafishing.api.config
 
 import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.config.world.WorldConfig
+import party.morino.moripafishing.api.serialization.LocaleSerializer
 import java.util.Locale
-import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
+
 /**
- * プラグイン全体の設定データを保持するデータクラス
+ * プラグイン全体の設定 (`config.json`)。
  *
- * @param world ワールド関連の設定
- * @param defaultLocale デフォルトのロケール
+ * @property world 釣りワールド全体に関する設定
+ * @property defaultLocale 翻訳が見つからない場合に使うロケール
  */
 @Serializable
 data class ConfigData(
-    // ワールド設定
     val world: WorldConfig = WorldConfig(),
-
-    val defaultLocale: @Serializable(with = LocaleSerializer::class) Locale = Locale.JAPAN
+    val defaultLocale:
+        @Serializable(with = LocaleSerializer::class)
+        Locale = Locale.JAPAN,
 )

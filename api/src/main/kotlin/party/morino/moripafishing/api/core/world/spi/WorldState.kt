@@ -36,9 +36,9 @@ import party.morino.moripafishing.api.model.world.WeatherType
  * @property worldId 釣りワールドの ID
  * @property worldKey 対応する Bukkit ワールドのキー
  * @property weather 適用する天候。`null` の場合は天候を変更しない (Integration が以前に駆動していた演出だけ解除してよい)
- * @property doWeatherCycle ゲームルール `DO_WEATHER_CYCLE` の値。[weather] が `null` のとき `true`、それ以外は `false`
+ * @property doWeatherCycle ゲームルール `ADVANCE_WEATHER` の値。[weather] が `null` のとき `true`、それ以外は `false`
  * @property time 適用するワールド時刻 (0..23999)。`null` の場合は時刻を変更しない
- * @property doDaylightCycle ゲームルール `DO_DAYLIGHT_CYCLE` の値。[time] が `null` のとき `true`、それ以外は `false`
+ * @property doDaylightCycle ゲームルール `ADVANCE_TIME` の値。[time] が `null` のとき `true`、それ以外は `false`
  * @property border 適用するワールドボーダー。`null` の場合はボーダーを変更しない
  * @property spawn 適用するスポーン地点
  */

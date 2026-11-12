@@ -1,63 +1,43 @@
 package party.morino.moripafishing.api
 
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.angler.AnglerManager
+import party.morino.moripafishing.api.core.fish.FishDrawer
 import party.morino.moripafishing.api.core.fish.FishManager
-import party.morino.moripafishing.api.core.log.LogManager
-import party.morino.moripafishing.api.core.random.RandomizeManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
 
 /**
- * MoripaFishingのAPI
+ * MoripaFishing の公開 API。[MoripaFishingAPIProvider] から取得する。
  */
 interface MoripaFishingAPI {
     /**
-     * 設定マネージャーを取得する
-     * @return 設定マネージャー
+     * 設定 (`config.json`) の読み取り口を返す。
      */
     fun getConfigManager(): ConfigManager
 
     /**
-     * 乱数生成マネージャーを取得する
-     * @return 乱数生成マネージャー
-     */
-    fun getRandomizeManager(): RandomizeManager
-
-    /**
-     * 魚マネージャーを取得する
-     * @return 魚マネージャー
+     * 魚の定義を管理するマネージャーを返す。
      */
     fun getFishManager(): FishManager
 
     /**
-     * 世界マネージャーを取得する
-     * @return 世界マネージャー
-     */
-    fun getWorldManager(): WorldManager
-
-    /**
-     * プラグインディレクトリを取得する
-     * @return プラグインディレクトリ
-     */
-    fun getPluginDirectory(): PluginDirectory
-
-    /**
-     * 釣り人マネージャーを取得する
-     * @return 釣り人マネージャー
-     */
-    fun getAnglerManager(): AnglerManager
-
-    /**
-     * レアリティマネージャーを取得する
-     * @return レアリティマネージャー
+     * レアリティの定義を管理するマネージャーを返す。
      */
     fun getRarityManager(): RarityManager
 
     /**
-     * ログマネージャーを取得する
-     * @return ログマネージャー
+     * 魚の抽選を行う [FishDrawer] を返す。
      */
-    fun getLogManager(): LogManager
+    fun getFishDrawer(): FishDrawer
+
+    /**
+     * 釣りワールドを管理するマネージャーを返す。
+     */
+    fun getWorldManager(): WorldManager
+
+    /**
+     * 釣り人を取得するマネージャーを返す。
+     */
+    fun getAnglerManager(): AnglerManager
 }

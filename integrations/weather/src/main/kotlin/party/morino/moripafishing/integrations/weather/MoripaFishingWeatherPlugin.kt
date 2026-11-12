@@ -8,7 +8,7 @@ import party.morino.moripafishing.api.core.world.spi.WorldStateApplier
  * MoripaFishing の Weather Integration プラグイン。
  *
  * コア (`MoripaFishing`) に依存してその後にロードされ、[WeatherApplier] を `WorldStateApplier` として
- * `ServicesManager` に登録する。コアが決定した天候とゲームルール `DO_WEATHER_CYCLE` を Bukkit ワールドへ適用する。
+ * `ServicesManager` に登録する。コアが決定した天候とゲームルール `ADVANCE_WEATHER` を Bukkit ワールドへ適用する。
  * 登録は本プラグインの無効化時に自動で解除される。
  */
 open class MoripaFishingWeatherPlugin : JavaPlugin() {

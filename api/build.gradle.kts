@@ -1,14 +1,22 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     `java-library`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
 }
 
-group = "party.morino"
-version = project.version.toString()
+dependencies {
+    // AnglerFishCaughtEvent など公開イベント用の例外的な Bukkit 依存 (実装詳細の持ち込みではない)。Adventure もここから得る
+    compileOnly(libs.paper.api)
+
+    // @Serializable モデルとカスタムシリアライザが公開 ABI に含まれる
+    api(libs.kotlinx.serialization.json)
+
+    // シリアライザーのテストで Adventure の型を使う
+    testImplementation(libs.paper.api)
+}
 
 mavenPublishing {
     publishToMavenCentral()
@@ -42,30 +50,4 @@ mavenPublishing {
             developerConnection.set("scm:git:ssh://git@github.com/morinoparty/MoripaFishing.git")
         }
     }
-}
-
-dependencies {
-    // AnglerFishCaughtEvent など公開イベント用の例外的な Bukkit 依存 (実装詳細の持ち込みではない)
-    compileOnly(libs.paper.api)
-
-    // @Serializable モデルとカスタムシリアライザ (Key/Component) が公開 ABI に含まれる
-    api(libs.kotlinx.serialization.json)
-    api(libs.bundles.kyori)
-
-    implementation(libs.kaml)
-    implementation(libs.uuid.creator)
-}
-
-kotlin {
-    jvmToolchain(25)
-}
-
-tasks {
-    compileKotlin {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
-        compilerOptions.javaParameters = true
-    }
-}
-repositories {
-    mavenCentral()
 }

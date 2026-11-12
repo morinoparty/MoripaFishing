@@ -11,10 +11,8 @@
 
 - `api` には Paper/Bukkit の実装詳細を持ち込まないでください。
 - `bukkit` には Paper 実装、コマンド、イベント、設定読み込み、ゲーム内挙動を配置してください。
-- Core からワールド状態を直接変更しないでください。変更が必要な処理は Integration の SPI 経由にしてください。
-- `integrations/*-api` の SPI は `api` に依存させず、境界を跨ぐ型は String やプリミティブ、または SPI モジュール内の型にしてください（classloader 上の型の同一性問題を避けるため）。
-- DI は Koin を使います。周辺実装が `KoinComponent` と `by inject()` を使っている場合はそれに合わせてください。
-- Arrow は既存コードで利用されている箇所に合わせて使い、不要な箇所へ無理に導入しないでください。
+- Core からワールド状態を直接変更しないでください。変更が必要な処理は `api.core.world.spi` の SPI 経由で Integration に任せてください。
+- DI コンテナは使いません。依存はコンストラクタで受け取ってください。
 - Adventure / MiniMessage を使っている箇所では、既存のメッセージ表現を優先してください。
 
 ## コードスタイル
@@ -27,5 +25,6 @@
 
 ## 確認
 
-- Kotlin 側を変更したら `task check` を実行してください。`ktlintFormat`、`detekt`、`test` を順に実行します。
+- Kotlin 側を変更したら `task check`（`./gradlew check`）を実行してください。全モジュールの ktlint・detekt・テストをまとめて検証し、lint の指摘があるとビルドは失敗します。
+- 整形は `task fmt`（`./gradlew ktlintFormat`）で行ってから、残った指摘をコードで修正してください。
 - エディタ上の一時的な unresolved 表示は、実ビルドと矛盾しない限り過信しないでください。

@@ -3,37 +3,46 @@ title: CaughtFish
 icon: Receipt
 ---
 
-釣り上げた魚の情報を表すデータクラスです（`party.morino.moripafishing.api.model.fish.CaughtFish`）。実装依存を持たない純粋なデータ構造で、現在は`AnglerFishCaughtEvent`と`AnglerFishCaughtResultEvent`でのデータ受け渡しと、釣果アイテムの生成に使用されます。
+釣り上げた魚の情報を表すデータクラスです（`party.morino.moripafishing.api.model.fish.CaughtFish`）。実装依存を持たない純粋なデータ構造で、`AnglerFishCaughtEvent`と`AnglerFishCaughtResultEvent`でのデータ受け渡しと、釣果アイテムに使用されます。
 
-`@Serializable`が付与されているため、kotlinx.serializationでそのままJSON化できます。釣果履歴やランキングのように、Addon側で永続化やAPI返却を行いたい場合はこのクラスをそのまま利用できますが、Core自体は釣果をデータベースへ保存しません。
+`@Serializable`が付与されているため、kotlinx.serializationでそのままJSON化できます。釣果履歴やランキングのように、Addon側で永続化やAPI返却を行いたい場合はこのクラスをそのまま利用できます。Core自体は釣果を保存しません。
 
 ## フィールド
 
 | フィールド | 型 | 説明 |
 |---|---|---|
-| `uniqueId` | `UUID` | 釣果の一意ID。UUIDv7（時系列順）で採番される |
+| `uniqueId` | `UUID` | 釣果の一意ID（ランダムな UUIDv4） |
 | `fish` | `FishId` | 魚種ID |
-| `size` | `Double` | 魚のサイズ。表示時は小数2桁に整形される |
 | `rarity` | `RarityId` | レアリティID |
+| `size` | `Double` | 魚のサイズ。表示時は小数2桁に整形される |
+| `lengthRate` | `Double` | サイズの累積分布関数値（0〜1）。価値の計算式の `length_rate` と同じ値 |
 | `worth` | `Double` | 魚の価値 |
-| `cfd` | `Double` | 累積分布関数値（0〜1） |
-| `angler` | `AnglerId` | つりびとID |
+| `angler` | `AnglerId` | つりびとID。プレイヤーの Minecraft UUID と同じで、JSONでは UUID 文字列になる |
 | `world` | `FishingWorldId` | 釣り場ワールドID |
 | `timestamp` | `ZonedDateTime` | 釣った日時。ISO8601形式の文字列としてシリアライズされる |
 
-`uniqueId`は`UUIDSerializer`、`timestamp`は`ZonedDateTimeSerializer`によってシリアライズされます。`FishId`・`RarityId`・`FishingWorldId`はいずれも`value: String`を持つ値クラスで、専用のシリアライザによって文字列として直接シリアライズされます。生の識別子を取り出したい場合は`caughtFish.fish.value`のように`value`を参照してください。
+`FishId`・`RarityId`・`FishingWorldId`はいずれも`value: String`を持つデータクラスで、専用のシリアライザによって文字列として直接シリアライズされます。生の識別子を取り出したい場合は`caughtFish.fish.value`のように`value`を参照してください。
 
 `fish`・`rarity`・`world`の各IDは、それぞれ`moripa_fishing.fish.<id>.name`、`moripa_fishing.rarity.<id>.name`、`moripa_fishing.world.<id>.name`という翻訳キーに対応しています。各IDの`toTranslateKey()`でこのキーを取得できるため、閲覧者のロケールに応じた表示名を解決したい場合は、その戻り値を`Component.translatable`に渡してください。
 
 ## 生成
 
-`CaughtFish.fromFish(fish, angler, world)`で`Fish`・`Angler`・`FishingWorld`から生成できます。`uniqueId`は時系列順のUUIDv7、`timestamp`は生成時点の`ZonedDateTime.now()`が自動的に設定されます。
+`CaughtFish.of(fish, angler, world)`で、抽選済みの`Fish`（`FishDrawer`の戻り値）と`AnglerId`・`FishingWorldId`から生成できます。`uniqueId`はランダムなUUID、`timestamp`は生成時点の`ZonedDateTime.now()`が自動的に設定されます。
 
 ```kotlin
-val caughtFish = CaughtFish.fromFish(fish, angler, fishingWorld)
+val fish = api.getFishDrawer().draw(worldId) ?: return
+val caughtFish = CaughtFish.of(fish, angler.getId(), worldId)
 ```
 
-Bukkit側では`BukkitFishItem.create(caughtFish, locale)`によって実際の釣果アイテムを生成します。生成された`ItemStack`のPersistentDataContainerには、`moripa_fishing.fish`というキーで`uniqueId`が文字列として保存されるため、アイテムから釣果を逆引きできます。
+## 釣果アイテム
+
+Coreが生成する釣果アイテムのPersistentDataContainerには、キー`moripafishing:caught_fish`に`CaughtFish`のJSONが文字列として保存されます。アイテムから釣果を復元できます。
+
+```kotlin
+val key = NamespacedKey("moripafishing", "caught_fish")
+val json = item.persistentDataContainer.get(key, PersistentDataType.STRING) ?: return
+val caughtFish = Json.decodeFromString(CaughtFish.serializer(), json)
+```
 
 ## 利用例
 
@@ -61,4 +70,4 @@ fun onFishCaught(event: AnglerFishCaughtEvent) {
 }
 ```
 
-また`AnglerFishCaughtEvent`では`setCaughtFish(caughtFish)`によって釣果そのものを差し替えられます。差し替えた内容はアイテム化と後続の`AnglerFishCaughtResultEvent`の両方に反映されます。ただし未登録の`FishId`へ差し替えるとアイテムを生成できず、その場合はバニラのドロップが維持されます。
+また`AnglerFishCaughtEvent`では`setCaughtFish(caughtFish)`によって釣果そのものを差し替えられます。差し替えた内容はアイテム化と後続の`AnglerFishCaughtResultEvent`の両方に反映されます。ただし未登録の`FishId`へ差し替えるとアイテムを生成できず、その場合はバニラのドロップが維持され、`AnglerFishCaughtResultEvent`は発火しません。

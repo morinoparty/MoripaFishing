@@ -21,7 +21,7 @@ description: MoripaFishing の概要と、Core / Integration / Addon の 3 層�
 - ワールドの管理
 - 天候・時刻の決定と参照（ワールドへの実際の適用は Integration が担当します）
 - 魚釣りの基本システム
-- 表示文言の国際化（`ja_JP` / `en_US` の翻訳ファイルによる切り替え）
+- 表示文言の国際化（ロケールごとの翻訳ファイルによる切り替え）
 
 #### 魚関連
 - 魚のサイズなどの記録
@@ -29,7 +29,7 @@ description: MoripaFishing の概要と、Core / Integration / Addon の 3 層�
 
 #### システム関連
 - 釣り上げまでの速度変化のインターフェース提供
-- 釣果の統計データ収集（釣果ログはデータベースに永続化されます。既定は SQLite で、MySQL なども利用できます）
+- 釣果のイベント通知（釣果の記録・集計はイベントを購読するアドオンで行います）
 
 ### アドオン側で対応すべき部分
 
@@ -54,7 +54,7 @@ MoripaFishing は **Core / Integration / Addon** の 3 層で構成されます�
 
 - **Core**: 魚抽選・釣りイベントなどの最小機能を提供する本体プラグイン
 - **Integration**: Core に必須依存し、Core が決めた値を Bukkit ワールドへ適用するプラグイン。導入したときにだけ適用が有効になります
-- **Addon**: Core に `depend` して Core の API を使い機能を拡張するプラグイン
+- **Addon**: Core に依存して Core の API を使い機能を拡張するプラグイン
 
 公式 Integration は次の 2 つです。
 
@@ -85,7 +85,7 @@ flowchart BT
 
 ## サポート
 
-このプラグインは Paper / Purpur サーバー向けです。Spigot には対応していません。
+このプラグインは Paper (`paper-plugin.yml`) 専用です。Purpur など Paper 互換のサーバーでも動作しますが、Spigot には対応していません。
 対応する Minecraft バージョンや Java、依存プラグインなどの動作要件は [セットアップガイド](/docs/setup) を参照してください。
 
 導入後の使い方は次のページに続きます。

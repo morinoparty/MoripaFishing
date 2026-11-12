@@ -25,12 +25,11 @@ flowchart BT
     int1 -->|required, Load.BEFORE| core
     int2 -->|required, Load.BEFORE| core
 
-    addon1 -.soft depend.-> core
-    addon2 -.soft depend.-> core
+    addon1 -->|required, Load.BEFORE| core
+    addon2 -->|required, Load.BEFORE| core
 ```
 
-Addon は Core をハード依存にはしません。`server("MoripaFishing", Load.BEFORE, required = false)`
-として宣言し、Core が導入されていないサーバーでは Addon が起動時に自身を無効化します。
+Addon も Core に必須依存し (`server("MoripaFishing", Load.BEFORE, required = true)`)、Core の後にロードされます。
 
 ## 役割の分担
 
@@ -58,10 +57,6 @@ paperPluginYaml {
         // Core の後にロードし、join-classpath (既定で有効) で Core のクラスを参照する
         server("MoripaFishing", PaperPluginYaml.Load.BEFORE, required = true)
     }
-}
-
-bukkitPluginYaml {
-    depend.set(listOf("MoripaFishing"))
 }
 ```
 
@@ -99,9 +94,9 @@ SPI はすべて `party.morino.moripafishing.api.core.world.spi` パッケージ
 |---|---|
 | `worldId` / `worldKey` | 釣りワールドの ID と、対応する Bukkit ワールドのキー |
 | `weather` | 適用する天候。`null` は「天候を変更しない」 |
-| `doWeatherCycle` | ゲームルール `DO_WEATHER_CYCLE` の値 (`weather == null` のとき `true`) |
+| `doWeatherCycle` | ゲームルール `ADVANCE_WEATHER` の値 (`weather == null` のとき `true`) |
 | `time` | 適用するワールド時刻 (`0..23999`)。`null` は「時刻を変更しない」 |
-| `doDaylightCycle` | ゲームルール `DO_DAYLIGHT_CYCLE` の値 (`time == null` のとき `true`) |
+| `doDaylightCycle` | ゲームルール `ADVANCE_TIME` の値 (`time == null` のとき `true`) |
 | `border` | 適用するワールドボーダー。`null` は「ボーダーを変更しない」 |
 | `spawn` | 適用するスポーン地点 |
 
@@ -162,8 +157,8 @@ Core は Bukkit ワールドへ一切書き込まないため、Core だけを�
 
 現時点で公式に提供されている Integration は以下です。
 
-- [`MoripaFishing-Integration-WorldLifecycle`](/docs/integration/world-lifecycle): 時刻・`DO_DAYLIGHT_CYCLE`・ワールドボーダー・スポーン地点の適用と、ジェネレーターを使ったワールドの作成・アンロード
-- [`MoripaFishing-Integration-Weather`](/docs/integration/weather): 天候と `DO_WEATHER_CYCLE` の適用 (嵐の切り替えと CLOUDY のクライアント側バリア天井)
+- [`MoripaFishing-Integration-WorldLifecycle`](/docs/integration/world-lifecycle): 時刻・`ADVANCE_TIME`・ワールドボーダー・スポーン地点の適用と、ジェネレーターを使ったワールドの作成・アンロード
+- [`MoripaFishing-Integration-Weather`](/docs/integration/weather): 天候と `ADVANCE_WEATHER` の適用 (嵐の切り替えと CLOUDY のクライアント側バリア天井)
 
 ## 提供される Addon
 

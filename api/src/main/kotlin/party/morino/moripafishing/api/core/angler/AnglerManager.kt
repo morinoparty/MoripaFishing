@@ -1,29 +1,20 @@
 package party.morino.moripafishing.api.core.angler
 
 import party.morino.moripafishing.api.model.angler.AnglerId
-import java.util.UUID
 
 /**
- * 釣り人を管理するインターフェース
+ * 釣り人を取得する。
  */
 interface AnglerManager {
     /**
-     * UUIDから釣り人を取得する
-     * @param uuid プレイヤーのUUID
-     * @return 釣り人（存在しない場合はnull）
+     * 任意の ID の釣り人を返す。存在確認はしない。
+     *
+     * @param id 釣り人の ID
      */
-    fun getAnglerByMinecraftUniqueId(uuid: UUID): Angler?
+    fun getAngler(id: AnglerId): Angler
 
     /**
-     * 釣り人IDから釣り人を取得する
-     * @param anglerId 釣り人ID
-     * @return 釣り人（存在しない場合はnull）
-     */
-    fun getAnglerByAnglerUniqueId(anglerId: AnglerId): Angler?
-
-    /**
-     * オンラインの釣り人を取得する
-     * @return 釣り人のリスト
+     * オンラインの全プレイヤーを釣り人として返す。
      */
     fun getOnlineAnglers(): List<Angler>
 }

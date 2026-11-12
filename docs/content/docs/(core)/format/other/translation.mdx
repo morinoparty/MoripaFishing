@@ -9,23 +9,27 @@ MoripaFishingの表示文言は、Adventureの`MiniMessageTranslationStore`（�
 
 ## 翻訳ファイル
 
-翻訳ファイルは`plugins/MoripaFishing/translation/`に配置します。初回起動時にjar内の`/translate/<locale>.properties`がコピーされ、以降はこのディレクトリのファイルが読み込まれます。ファイルはUTF-8で保存してください。
+翻訳ファイルは`plugins/MoripaFishing/translation/`に`<ロケール>.properties`という名前で配置します。ファイルはUTF-8で保存してください。
 
 ```bash
 plugins/MoripaFishing/translation/
 ├── en_US.properties
-└── ja_JP.properties
+├── ja_JP.properties
+└── fr_FR.properties   # 任意のロケールを追加できる
 ```
 
-読み込まれるロケールは`ja_JP`と`en_US`に固定されています。これ以外の名前のファイルを置いても読み込まれないので注意してください。
+- 初回起動時に、同梱の`ja_JP.properties`と`en_US.properties`がコピーされます。既にファイルがある場合は上書きしません。
+- ディレクトリ内の`<ロケール>.properties`はすべて読み込まれます。ファイル名（`ja_JP`、`fr_FR`、`en`など）がそのままロケールになります。
+- ファイル名は`言語`（小文字 2〜3 文字）または`言語_国`（国は大文字 2 文字）の形にしてください。`en_us.properties`や`messages.properties`のようにこの形に合わないファイルは、警告を出して読み込みません。
+- 同梱されているロケールのファイルは、同梱の既定値の上に重ねて読み込まれます。ファイルに書いたキーだけが上書きされ、書いていないキーは同梱の既定値が使われるため、プラグインの更新で追加されたキーも表示されます。
 
 なお`config.json`の`defaultLocale`（既定値は`ja_JP`）が翻訳ストアの既定ロケールになり、プレイヤーのロケールに対応する翻訳が無い場合のフォールバック先として使われます。
 
-翻訳は`/mf reload`で再読み込みできます。このコマンドには`moripa_fishing.command.world.default`権限が必要です。
+翻訳は`/mf reload`で再読み込みできます。このコマンドには`moripafishing.command.reload`権限が必要です。翻訳ファイルの読み込みに失敗した場合（不正な`\uXXXX`エスケープなど）は、以前の翻訳がそのまま使われます。
 
 ## 自動登録される翻訳キー
 
-以下のキーはpropertiesファイルではなく、各JSON設定の`displayName`や`name`のロケールマップから登録されます。
+以下のキーは各JSON設定の`displayName`や`name`のロケールマップから登録されます。propertiesファイルに同じキーとロケールの翻訳がある場合は、propertiesファイルが優先されます。
 
 | キー | 由来 |
 | --- | --- |
@@ -37,7 +41,7 @@ plugins/MoripaFishing/translation/
 
 ### Params
 
-魚のloreでは、以下のタグをプレースホルダとして利用できます。`<size>`のようなタグ名でも、`<arg:0>`のような位置指定でも参照できます。
+既定のlore（下記）と魚設定の`lore`では、以下のタグをプレースホルダとして利用できます。
 
 <TranslateTable columns={[
     {
@@ -67,7 +71,7 @@ plugins/MoripaFishing/translation/
     },
 ]} />
 
-`<rarity>`と`<world>`には、翻訳済みのComponentが直接埋め込まれます。対応する翻訳が登録されていない場合のみ、`common`のような生のIDがそのまま表示されます。`<timestamp>`は整形されないため、読みやすい日時にしたい場合はloreの書き方で工夫してください。
+`<rarity>`と`<world>`には、翻訳済みのComponentが直接埋め込まれます。`<size>`はサーバーのロケールに関係なく小数点に`.`を使います。`<timestamp>`は整形されないため、読みやすい日時にしたい場合はloreの書き方で工夫してください。
 
 ### デフォルト
 
@@ -89,11 +93,9 @@ moripa_fishing.fish.lore.default.angler=<white><gray>釣った人: </gray><angle
 
 なおloreは常にイタリック装飾が解除された状態で表示されます。
 
-#### 追加
+#### 魚ごとの説明文
 
-`moripa_fishing.fish.lore.<fish_id>.additional.<index>` : 魚設定の`lore`から追加されます
-
-魚設定の`lore`は全ロケール分が翻訳キーとして登録されますが、実際に表示される行数は`config.json`の`defaultLocale`に対応する`lore`の要素数で決まります。そのため`defaultLocale`のロケールに`lore`を定義していない魚では、他のロケールに定義があっても追加loreは1行も表示されません。ロケールごとに行数を揃えて定義してください。
+魚設定の`lore`は翻訳キーとしては登録されず、アイテムを作る時点でMiniMessageとして解釈されます。既定の3行の後に、プレイヤーのロケールの`lore`（無ければ`defaultLocale`の`lore`）が続けて表示されます。上のプレースホルダーはここでも使えます。詳しくは[さかな](/docs/format/data/fish)を参照してください。
 
 ### 仕組み
 
