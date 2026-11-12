@@ -25,7 +25,7 @@ sourceSets.main {
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.addons.catchannounce.CatchAnnouncePlugin"
-            apiVersion = "26.2"
+            apiVersion = "26.3"
             dependencies {
                 server("MoripaFishing", PaperPluginYaml.Load.BEFORE, required = true)
             }

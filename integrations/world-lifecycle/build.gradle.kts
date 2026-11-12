@@ -24,7 +24,7 @@ sourceSets.main {
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.integrations.worldlifecycle.MoripaFishingWorldLifecyclePlugin"
-            apiVersion = "26.2"
+            apiVersion = "26.3"
             dependencies {
                 // コアの後にロードし、コアのクラス (SPI) を join-classpath で参照する
                 server("MoripaFishing", PaperPluginYaml.Load.BEFORE, required = true)
