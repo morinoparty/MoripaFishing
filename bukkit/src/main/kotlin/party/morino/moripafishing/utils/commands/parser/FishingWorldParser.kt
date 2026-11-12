@@ -36,7 +36,7 @@ class FishingWorldParser<C> :
     override fun stringSuggestions(
         commandContext: CommandContext<CommandSender?>,
         input: CommandInput,
-    ): Iterable<String> = worldManager.getWorldIdList().map { it.value }
+    ): Iterable<String> = worldManager.getWorlds().map { it.getId().value }
 
     companion object {
         fun fishingIdParser(): ParserDescriptor<CommandSender, FishingWorld> =

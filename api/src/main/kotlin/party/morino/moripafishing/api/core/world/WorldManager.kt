@@ -1,87 +1,99 @@
 package party.morino.moripafishing.api.core.world
 
+import net.kyori.adventure.key.Key
+import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
 /**
- * 釣りワールドの管理を行うインターフェース
+ * 釣りワールドを管理する。
+ *
+ * 釣りワールドは設定ファイル (`world/<id>.json`) が存在すれば「定義済み」であり、
+ * 対応する Bukkit ワールドがロードされているかどうかに関わらず取得できる。
+ *
+ * コアは Bukkit ワールドを直接変更しない。ワールドの作成・アンロードは `WorldLifecycle`、
+ * 天候・時刻・ボーダー・スポーンの適用は `WorldStateApplier` を実装した Integration が行う。
+ *
+ * 取得系のメソッドは任意のスレッドから呼べる。変更系のメソッドはメインスレッドから呼ぶこと
+ * (それ以外から呼ぶと `IllegalStateException` を投げる)。
+ *
+ * 釣りワールドの運用 (Integration への適用・ワールドの作成) はサーバーの起動完了 (`ServerLoadEvent`) 後に始まる。
+ * それまでは定義の読み書きのみ行う。
  */
 interface WorldManager {
     /**
-     * デフォルトのワールドIDを取得する
-     * @return デフォルトのワールドID
+     * デフォルトのワールド ID を返す。
      */
     fun getDefaultWorldId(): FishingWorldId
 
     /**
-     * 登録されているワールドIDのリストを取得する
-     * @return ワールドIDのリスト
-     */
-    fun getWorldIdList(): List<FishingWorldId>
-
-    /**
-     * 指定されたIDのワールドが登録されているか判定する
-     * @param fishingWorldId ワールドID
-     * @return 登録されている場合 `true`
-     */
-    fun hasWorld(fishingWorldId: FishingWorldId): Boolean
-
-    /**
-     * ワールドを取得する
-     * @param fishingWorldId ワールドID
-     * @return ワールド。未登録またはロードされていない場合は `null`
-     */
-    fun getWorld(fishingWorldId: FishingWorldId): FishingWorld?
-
-    /**
-     * ロード済みのワールドの一覧を取得する
-     * @return ワールドのリスト
+     * 定義済みの全ワールドを ID 順で返す。
      */
     fun getWorlds(): List<FishingWorld>
 
     /**
-     * ワールドを作成する。
+     * 定義済みのワールドを返す。未定義の場合は `null`。
      *
-     * カスタムジェネレータでの作成は `MoripaFishing-Integration-WorldLifecycle` Integration が
-     * 導入されている必要がある。未導入時は `false` を返す。
-     *
-     * @param fishingWorldId ワールドID
-     * @return 作成に成功した場合 `true`
+     * @param id ワールド ID
      */
-    fun createWorld(fishingWorldId: FishingWorldId): Boolean
+    fun getWorld(id: FishingWorldId): FishingWorld?
 
     /**
-     * 指定されたジェネレータIDでワールドを作成する。
+     * Bukkit ワールドのキーから定義済みの釣りワールドを返す。該当しない場合は `null`。
+     * Bukkit ワールドから釣りワールドを引く唯一の窓口。
      *
-     * `MoripaFishing-Integration-WorldLifecycle` Integration が導入されている必要がある。
-     * 未導入またはジェネレータIDが存在しない場合は `false` を返す。
+     * @param worldKey Bukkit ワールドのキー
+     */
+    fun getWorldByKey(worldKey: Key): FishingWorld?
+
+    /**
+     * 利用可能なジェネレーター ID を返す。`WorldLifecycle` が未登録の場合は空。
+     */
+    fun getGeneratorIds(): Set<String>
+
+    /**
+     * 釣りワールドを定義し、Bukkit ワールドを作成する。メインスレッドから呼ぶこと。
      *
-     * @param fishingWorldId ワールドID
-     * @param generatorId ジェネレータID
+     * `WorldLifecycle` が必要。運用開始前 (`ServerLoadEvent` 前)・既に定義済み・不正な ID・
+     * 同じキーの Bukkit ワールドがロード済み・ジェネレーターが不明・作成失敗の場合は何も残さず `false` を返す。
+     * 成功時は `FishingWorldLoadEvent` の後に `FishingWorldCreateEvent` を発火する。
+     *
+     * @param id ワールド ID
+     * @param generatorId ジェネレーター ID
      * @return 作成に成功した場合 `true`
      */
     fun createWorld(
-        fishingWorldId: FishingWorldId,
+        id: FishingWorldId,
         generatorId: String,
     ): Boolean
 
     /**
-     * 利用可能なワールドジェネレータIDの一覧を取得する。
-     * `MoripaFishing-Integration-WorldLifecycle` Integration 未導入時は空リストを返す。
+     * 釣りワールドの定義を削除する。メインスレッドから呼ぶこと。
      *
-     * @return ジェネレータIDのリスト
-     */
-    fun getGeneratorIds(): List<String>
-
-    /**
-     * ワールドを削除する
-     * @param fishingWorldId ワールドID
+     * Bukkit ワールドがロード済みの場合は `WorldLifecycle` によるアンロードが必要で、
+     * 未登録またはアンロード失敗時は定義を残して `false` を返す。
+     * 未ロードのワールドは Integration なしで削除できる。ワールドフォルダは削除しない。
+     *
+     * @param id ワールド ID
      * @return 削除に成功した場合 `true`
      */
-    fun deleteWorld(fishingWorldId: FishingWorldId): Boolean
+    fun deleteWorld(id: FishingWorldId): Boolean
 
     /**
-     * 登録されているすべてのワールドを初期化する
-     * 存在しないワールドは作成され、すでに存在するワールドはスキップされる
+     * `config.id` のワールドの設定を保存し、即座に適用させる。メインスレッドから呼ぶこと。
+     *
+     * 運用開始前は保存のみ行い、適用は運用開始時に行われる。
+     * `generator` は作成時のみ参照されるため、既存ワールドで変更しても効果はない。
+     *
+     * @param config 新しい設定
+     * @return 未定義のワールドの場合 `false`
      */
-    fun initializeWorlds()
+    fun updateWorldConfig(config: FishingWorldConfig): Boolean
+
+    /**
+     * `world/` 配下の設定ファイルを読み直す。メインスレッドから呼ぶこと。
+     *
+     * ファイルが消えたワールドは定義から外すのみで、Bukkit ワールドのアンロードやイベントの発火は行わない。
+     * 運用開始後は、未ロードの定義済みワールドの作成を再試行し、全ワールドの状態を即座に適用させる。
+     */
+    fun reload()
 }

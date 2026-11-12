@@ -5,10 +5,11 @@ import org.bukkit.event.HandlerList
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
 /**
- * このイベントは、釣りワールドがロードされ利用可能になった後に発生します。
+ * 定義済みの釣りワールドの Bukkit ワールドがロードされ、利用可能になった後に発生します。
  *
- * サーバー起動時の既存ワールドの読み込みと、ワールド新規作成の両方で発火します。
- * ポストイベントであり、キャンセルはできません。
+ * Bukkit の `WorldLoadEvent` に追従して発火します。サーバー起動時 (`ServerLoadEvent`) に既にロード済みのワールドと、
+ * `WorldManager.reload` で新たに定義されたワールドのうち既にロード済みのものについても発火します。
+ * コアがワールドの状態を Integration に適用させた後に発火するポストイベントであり、キャンセルはできません。
  *
  * @param worldId ロードされた釣りワールドのID
  */

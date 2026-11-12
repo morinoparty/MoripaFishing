@@ -15,7 +15,6 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
     private val rarityDirectoryFile: File by lazy { File(rootDirectoryFile, "rarity") }
     private val fishDirectoryFile: File by lazy { File(rootDirectoryFile, "fish") }
     private val worldDirectoryFile: File by lazy { File(rootDirectoryFile, "world") }
-    private val generatorDirectoryFile: File by lazy { File(rootDirectoryFile, "generator") }
     private val translationDirectoryFile: File by lazy { File(rootDirectoryFile, "translation") }
     /**
      * プラグインのルートディレクトリを取得する
@@ -59,17 +58,6 @@ class PluginDirectoryImpl : PluginDirectory, KoinComponent {
             worldDirectoryFile.mkdirs()
         }
         return worldDirectoryFile
-    }
-
-    /**
-     * ジェネレーターの設定ファイルが格納されているディレクトリを取得する
-     * @return ジェネレーターの設定ファイルが格納されているディレクトリ
-     */
-    override fun getGeneratorDirectory(): File {
-        if (!generatorDirectoryFile.exists()) {
-            generatorDirectoryFile.mkdirs()
-        }
-        return generatorDirectoryFile
     }
 
     override fun getTranslationDirectory(): File {

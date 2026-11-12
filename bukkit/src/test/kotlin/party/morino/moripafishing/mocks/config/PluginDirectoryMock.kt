@@ -11,7 +11,6 @@ class PluginDirectoryMock : PluginDirectory {
     private val rarityDirectory: File = File(rootDirectory, "rarity")
     private val fishDirectory: File = File(rootDirectory, "fish")
     private val worldDirectory: File = File(rootDirectory, "world")
-    private val generatorDirectory: File = File(rootDirectory, "generator")
     private val translationDirectory: File = File(rootDirectory, "translation")
     /**
      * プラグインのルートディレクトリを取得する
@@ -55,13 +54,6 @@ class PluginDirectoryMock : PluginDirectory {
             worldDirectory.mkdirs()
         }
         return worldDirectory
-    }
-
-    override fun getGeneratorDirectory(): File {
-        if (!generatorDirectory.exists()) {
-            generatorDirectory.mkdirs()
-        }
-        return generatorDirectory
     }
 
     override fun getTranslationDirectory(): File {

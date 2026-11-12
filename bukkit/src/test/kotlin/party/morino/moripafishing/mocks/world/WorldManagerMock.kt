@@ -1,96 +1,57 @@
 package party.morino.moripafishing.mocks.world
 
+import net.kyori.adventure.key.Key
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigManager
 import party.morino.moripafishing.api.config.PluginDirectory
-import party.morino.moripafishing.api.config.world.WorldConfig
+import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.core.world.WorldConfigStore
+import party.morino.moripafishing.core.world.WorldKeys
+import java.util.logging.Logger
 
 /**
- * WorldManagerのモッククラス
+ * ワールド設定ディレクトリの設定ファイルから定義済みワールドを決める [WorldManager] のモック。
+ * 変更系の操作はすべて失敗 (`false`) を返す。
  */
 class WorldManagerMock :
     WorldManager,
     KoinComponent {
     private val configManager: ConfigManager by inject()
     private val pluginDirectory: PluginDirectory by inject()
-    private val worldConfig: WorldConfig
-        get() = configManager.getConfig().world
 
-    private lateinit var worldIdList: List<FishingWorldId>
+    private var worlds: Map<FishingWorldId, FishingWorldMock> = loadWorlds()
 
-    init {
-        loadWorldIds()
-    }
+    private fun loadWorlds(): Map<FishingWorldId, FishingWorldMock> =
+        WorldConfigStore(pluginDirectory.getWorldDirectory(), Logger.getLogger("WorldManagerMock"))
+            .loadAll()
+            .sortedBy { it.id.value }
+            .associate { it.id to FishingWorldMock(it.id, config = it) }
 
-    private fun loadWorldIds() {
-        val worldDirectory = pluginDirectory.getWorldDirectory()
-        if (!worldDirectory.exists()) {
-            worldDirectory.mkdirs()
-        }
-        worldIdList = pluginDirectory.getWorldDirectory().listFiles()?.mapNotNull { file ->
-            if (file.name.endsWith(".json")) {
-                val worldId = file.nameWithoutExtension
-                FishingWorldId(worldId)
-            } else {
-                null
-            }
-        } ?: emptyList()
-    }
+    override fun getDefaultWorldId(): FishingWorldId = configManager.getConfig().world.defaultId
 
-    /**
-     * デフォルトのワールドIdを返す (モック用)
-     */
-    override fun getDefaultWorldId(): FishingWorldId = worldConfig.defaultId
+    override fun getWorlds(): List<FishingWorld> = worlds.values.toList()
 
-    /**
-     * ワールドIDのリストを返す (モック用)
-     */
-    override fun getWorldIdList(): List<FishingWorldId> = worldIdList
+    override fun getWorld(id: FishingWorldId): FishingWorld? = worlds[id]
 
-    /**
-     * ワールドが登録されているか判定する (モック用)
-     */
-    override fun hasWorld(fishingWorldId: FishingWorldId): Boolean = fishingWorldId in worldIdList
+    override fun getWorldByKey(worldKey: Key): FishingWorld? =
+        worlds.values.firstOrNull { it.getWorldKey() == WorldKeys.normalize(worldKey) }
 
-    /**
-     * ワールドを取得する (モック用)
-     */
-    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld? =
-        if (fishingWorldId in worldIdList) FishingWorldMock(fishingWorldId) else null
-
-    /**
-     * ロード済みのワールドの一覧を取得する (モック用)
-     */
-    override fun getWorlds(): List<FishingWorld> = worldIdList.map { FishingWorldMock(it) }
-
-    /**
-     * ワールドを作成する (モック用、常にnull)
-     */
-    override fun createWorld(fishingWorldId: FishingWorldId): Boolean {
-        worldIdList.plus(fishingWorldId)
-        return true
-    }
+    override fun getGeneratorIds(): Set<String> = emptySet()
 
     override fun createWorld(
-        fishingWorldId: FishingWorldId,
+        id: FishingWorldId,
         generatorId: String,
-    ): Boolean {
-        worldIdList.plus(fishingWorldId)
-        return true
-    }
+    ): Boolean = false
 
-    override fun getGeneratorIds(): List<String> = emptyList()
+    override fun deleteWorld(id: FishingWorldId): Boolean = false
 
-    override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
-        worldIdList.minus(fishingWorldId)
-        return true
-    }
+    override fun updateWorldConfig(config: FishingWorldConfig): Boolean = false
 
-    override fun initializeWorlds() {
-        // モックなので何もしないのだ
+    override fun reload() {
+        worlds = loadWorlds()
     }
 }

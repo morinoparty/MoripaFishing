@@ -13,33 +13,27 @@ icon: FileCog
 {
     "world": {
         "defaultId": "default",
-        "defaultWorldSize": 100.0,
-        "defaultClimateConfig": {
-            "weatherSource": "moripafishing:internal",
-            "applyWeatherEffects": true,
-            "enableDayCycle": true,
-            "constant": {
-                "weather": null,
-                "dayCycle": null
-            },
-            "dayCycle": {
-                "offset": 0
-            },
+        "timeZone": "Asia/Tokyo",
+        "refreshIntervalSeconds": 60,
+        "defaultClimate": {
             "weather": {
-                "weight": {
+                "type": "random",
+                "weights": {
                     "SUNNY": 4,
                     "CLOUDY": 1,
                     "RAINY": 2,
                     "THUNDERSTORM": 1
                 },
-                "offset": 0,
-                "interval": 8,
-                "maxInclination": 30
+                "intervalHours": 8,
+                "offsetHours": 0,
+                "maxInclination": 30,
+                "seed": "pepper"
             },
-            "hashPepper": "pepper"
-        },
-        "refreshInterval": 60,
-        "defaultTimeZone": "Asia/Tokyo"
+            "time": {
+                "type": "real_time",
+                "offsetHours": 0
+            }
+        }
     },
     "defaultLocale": "ja_JP"
 }
@@ -51,20 +45,17 @@ icon: FileCog
 
 ワールド関連の設定です。
 
-- `defaultId`: デフォルトの釣り場ワールドIDを指定します（デフォルト: `default`）
-- `defaultWorldSize`: デフォルトのワールドボーダーサイズを指定します（デフォルト: `100.0`）
-- `defaultClimateConfig`: デフォルトの天候設定です。詳細は[天候](/docs/format/config/climate)を参照
-- `refreshInterval`: ワールドの状態更新間隔を秒単位で指定します（デフォルト: `60`）
-- `defaultTimeZone`: デフォルトのタイムゾーンIDを指定します。`Asia/Tokyo`、`UTC`、`America/New_York`等のIANAタイムゾーンIDが使用可能です（デフォルト: `Asia/Tokyo`）
+- `defaultId`: デフォルトの釣りワールドIDを指定します（デフォルト: `default`）
+- `timeZone`: 天候カレンダーと実時刻同期に使うタイムゾーンIDを指定します。`Asia/Tokyo`、`UTC`、`America/New_York`等のIANAタイムゾーンIDが使用可能です（デフォルト: `Asia/Tokyo`）
+- `refreshIntervalSeconds`: 釣りワールドの状態を決め直して適用させる間隔を秒単位で指定します。1 以上（デフォルト: `60`）
+- `defaultClimate`: ワールドごとの `climate` が `null` の場合に使う気候設定です。詳細は[気候](/docs/format/config/climate)を参照
 
-`defaultWorldSize`はフォールバック値です。`world/<fishing_world_name>.json`の`borderSize`が設定されている場合はそちらが優先され、未設定のワールドにのみこの値が適用されます。
+`refreshIntervalSeconds`ごとに、Core はメインスレッドで各釣りワールドの天候・時刻などを決め直し、ロード済みのワールドへ Integration（[Weather](/docs/integration/weather) / [WorldLifecycle](/docs/integration/world-lifecycle)）を通じて適用させます。天候の変化（`FishingWorldWeatherChangeEvent`）もこの間隔で検知されます。`/mf reload` で値を変えると、新しい間隔でループを開始し直します。
 
-`defaultClimateConfig`は`null`を許容しません。省略した場合も自動生成時にはすべての項目が展開された状態で書き出されます。個別のワールドで`climateConfig`が指定されている場合はそちらが優先され、未指定のワールドではこの設定がフォールバックとして使用されます。
-
-`refreshInterval`は天候や時間を同期するワールド更新処理のループ間隔として使われ、内部では秒からティック（1秒 = 20ティック）に換算されます。
+ワールドボーダーの既定値は `config.json` ではなく、ワールドごとの設定（[ワールド設定](/docs/format/data/world)の `border`）で指定します。
 
 :::warning[注意]
-`defaultTimeZone`の値はそのままIANAタイムゾーンIDとして解決されるため、不正な文字列を指定すると天候計算やワールド更新の実行時に例外が発生します。
+`timeZone`の値はそのままIANAタイムゾーンIDとして解決されるため、不正な文字列を指定すると天候や時刻の計算時に例外が発生します。
 :::
 
 ### defaultLocale
@@ -86,5 +77,4 @@ i18nの翻訳ファイルと対応しており、プレイヤーへのメッセ�
 - `rarity/`: レアリティの定義ファイル
 - `fish/`: 魚の定義ファイル
 - `world/`: 釣り場ワールドごとの詳細設定ファイル
-- `generator/`: ワールドジェネレータの設定ファイル
 - `translation/`: 翻訳メッセージのファイル

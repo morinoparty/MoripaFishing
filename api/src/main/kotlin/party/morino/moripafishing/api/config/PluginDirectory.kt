@@ -31,13 +31,6 @@ interface PluginDirectory {
     fun getWorldDirectory(): File
 
     /**
-     * ジェネレータの設定ファイルが格納されているディレクトリを取得する
-     * @return ジェネレータの設定ファイルが格納されているディレクトリ
-     */
-    fun getGeneratorDirectory(): File
-
-
-    /**
      * 翻訳メッセージの設定ファイルが格納されているディレクトリを取得する
      * @return メッセージの設定ファイルが格納されているディレクトリ
      */

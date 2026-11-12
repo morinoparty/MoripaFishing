@@ -5,151 +5,78 @@ icon: CloudRain
 
 # MoripaFishing-Integration-Weather
 
-MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integration。
-釣りワールドへの **天候の適用（破壊的処理）** を一手に担う。
+Core (`MoripaFishing`) に依存する公式 Integration。
+Core が決めた **天候とゲームルール `DO_WEATHER_CYCLE`** を釣りワールドへ適用する。
 
-Core は天候の **決定・参照** のみを行い、ワールドの実体を改変する処理は本 Integration に委譲される。
-これにより、Integration を導入しない限り Core 単体ではワールドを書き換えない安全な構成になる。
+Core は天候を **決定** するだけで、Bukkit ワールドへは書き込まない。
+本 Integration は `WorldStateApplier` (`WeatherApplier`) を `ServicesManager` に登録し、
+Core から届く `WorldState` のうち `weather` と `doWeatherCycle` だけを適用する。
+時刻・`DO_DAYLIGHT_CYCLE`・スポーン・ボーダーは [WorldLifecycle](/docs/integration/world-lifecycle) が担う。
 
-天候の決定は `WeatherSource` / `WeatherProvider` が担い、`FishingWorld.setWeather` は
-プロバイダーの決定が次に変わるまで有効な **手動上書き** として扱われる。上書きされた実効天候も
-魚の抽選条件に反映され、`applyWeatherEffects` が有効であれば本 Integration 経由でワールドにも適用される。
-
-提供する処理は次のとおり。
-
-- `WeatherType` に応じた **天候の適用**: `World.setStorm` / `isThundering` の切り替え
-- `CLOUDY` の **クライアント側バリア天井**: 各プレイヤーの頭上に Paper の
-  `Player.sendMultiBlockChange` で **見た目だけのバリア** を送り、「屋根の下」と判定させて
-  雨粒だけを止める。空は暗いまま曇り空になり、嵐 (`setStorm(true)`) も併用する。
-  **実ブロックもバイオームも一切変更しない**ため、草・水・空の色は変化しない。
+仕組みの全体像は [Integration とは](/docs/integration/overview) を参照してほしい。
 
 ## 天候ごとの適用内容
 
-| `weatherType` | `setStorm` | `isThundering` | バリア天井 |
+| `weather` | `setStorm` | `isThundering` | バリア天井 |
 |---|---|---|---|
 | `THUNDERSTORM` | `true` | `true` | なし |
 | `RAINY` | `true` | `false` | なし |
 | `CLOUDY` | `true` | `false` | あり |
-| `SUNNY` およびその他（`SNOWY` / `FOGGY` 等） | `false` | `false` | なし |
+| `SUNNY` | `false` | `false` | なし |
+| `FOGGY` | `false` | `false` | なし |
+| `SNOWY` | `false` | `false` | なし |
 
-`SUNNY` はそのまま晴れとして適用され、Bukkit の天候表現を持たない `FOGGY` / `SNOWY` も明示的に晴れへ
-フォールバックする。これら以外の未知の値が渡された場合は、警告ログを出したうえで晴れに戻す。
+`FOGGY` と `SNOWY` は Bukkit の天候で表現できないため、晴れとして適用する。
 
-## バリア天井の挙動
+## `DO_WEATHER_CYCLE`
 
-天井の高さは y=200 を基準とし、ワールドが低い場合は `maxHeight - 1` に丸められる。
-バリアはプレイヤーを中心とした水平半径 12 ブロックのパッチとして送られ、20 tick（1 秒）ごとに
-再送されるため、移動やチャンク再読込にも追従する。パッチが移動して外れたセルには本来のブロックが
-送り直される。
+`WorldState.doWeatherCycle` の値を、状態が届くたびにそのまま書き込む。
+値は Core が決め、ワールドへ天候を適用させるとき (`weather` が `null` でないとき) は `false`、
+それ以外は `true` になる。どの方針でどちらになるかは [気候の設定](/docs/format/config/climate) を参照してほしい。
 
-天井が送られるのは **`CLOUDY` を適用中のワールドにいるプレイヤーだけ** で、`RAINY` や
-`THUNDERSTORM` には天井を併用しない。別の天候へ切り替わったり、プレイヤーが `CLOUDY` 以外の
-ワールドへ移動したりした時点で天井は取り消される。退出したプレイヤーのパッチ状態は
-`PlayerQuitEvent` で破棄される。
+## `weather` が `null` のとき
+
+天候の方針が `vanilla` の場合などは、`weather` が `null` (天候を変更しない) で届く。
+このとき本 Integration は嵐・雷の状態には触れず、バニラや他のプラグインに任せる。
+直前まで自分が `CLOUDY` を駆動していたワールドでは、バリア天井だけを取り消す。
+
+## CLOUDY のバリア天井
+
+`CLOUDY` は嵐 (`setStorm(true)`) として適用しつつ、各プレイヤーの頭上に Paper の
+`Player.sendMultiBlockChange` で **見た目だけのバリア** を送る。クライアントは屋根の下にいると判定するため、
+空は暗いまま雨粒だけが当たらなくなる。**実ブロックもバイオームも変更しない**ため、草・水・空の色は変化しない。
+
+- 天井の高さは y=200 を基準とし、ワールドが低い場合は `maxHeight - 1` に丸める。
+- プレイヤーを中心とした水平半径 12 ブロックのパッチとして送り、20 tick (1 秒) ごとに送り直す。
+  パッチから外れたセルには本来のブロックを送り直す。
+- 天井を送るのは `CLOUDY` を駆動中のワールドにいるプレイヤーだけ。別の天候へ切り替わったり、
+  プレイヤーが別のワールドへ移動したりした時点で取り消す。退出したプレイヤーのパッチ状態は破棄する。
+
+:::info
+バリア天井は **見た目のみ** で、サーバーのワールドには存在しない。`ProtocolLib` 等は不要で、Paper 標準 API のみで完結する。
+:::
+
+## 無効化時の後片付け
+
+本 Integration の無効化時 (`onDisable`) に、天候を駆動していたワールドの嵐と雷を止め、バリア天井を取り消す。
+ゲームルールはそのままにする。Core が次の起動時に改めて正しい値を送るためである。
+`ServicesManager` の登録は Bukkit が自動で解除する。
 
 ## 導入
 
-1. サーバーの `plugins/` にリリースの `MoripaFishing-weather-<version>.jar` を配置する。
-   （プラグイン名は `MoripaFishing-Integration-Weather`、ビルド成果物は `weather-<version>.jar`）
-2. サーバーを起動する。Integration → Core の順でロードされる。
-3. Core のログに以下が出ていれば検出済み。
+1. `plugins/` に Core とリリースの `weather-<version>.jar` を配置する
+   (プラグイン名は `MoripaFishing-Integration-Weather`)。
+2. サーバーを起動する。本 Integration は Core に必須依存しているため、Core の後にロードされる。
+   Core が無いと本 Integration は起動しない。
+3. 起動時に次のログが出る。
 
    ```
-   [MoripaFishing] Weather integration detected: MoripaFishing-Integration-Weather
+   [MoripaFishing-Integration-Weather] MoripaFishing-Integration-Weather enabled.
    ```
 
-未導入時は Core のログに以下が出て、天候の適用は自動的にスキップされる。
-
-```
-[MoripaFishing] Weather integration not installed; weather application to worlds is disabled.
-```
+本 Integration はコマンド・権限ノード・設定ファイルを持たない。
 
 ## 未導入時の Core の振る舞い
 
-| 機能 | 未導入時の挙動 |
-|---|---|
-| 天候の適用（`FishingWorldImpl` の実効天候適用、`moripafishing:internal` ソース） | スキップ（`fine` ログのみ） |
-| 天候のリセット（`FishingWorldImpl.effectFinish`） | ワールド改変のみスキップ（`INFO` ログは出力される） |
-| 天候の決定（`WeatherProvider`）・参照（`getCurrentWeather`） | 影響なし（Core 単体で完結） |
-| `FishingWorldWeatherChangeEvent` の発火 | 影響なし（実効天候の変化時に常に発火） |
-| 魚の抽選条件への天候反映 | 影響なし |
-
-天候は Core が決定・追跡し続けるため、Integration が無くても釣りの抽選条件には天候が反映される。
-実際にワールドの嵐やバリアが現れるのは Integration 導入時のみ。
-
-## Integration が呼ばれない条件
-
-Integration を導入していても、次の場合は `applyWeather` が呼ばれない、あるいは何も起きない。
-
-- ワールドの `weatherSource` が `managesWorldWeather = false` のソース（`moripafishing:vanilla` や
-  読み取り専用の外部ソース）の場合、`FishingWorld.setWeather` は `fine` ログを出して早期 return する。
-  MoripaFishing がワールド天候を支配しない設定では、Integration があってもワールドは改変されない。
-- ワールドの `applyWeatherEffects` が `false` の場合、天候は魚の抽選条件にのみ使われ、
-  Integration への適用要求は行われない。
-- Core は最後に適用した実効天候を保持しており、値が変わらない限り再適用を省略する。この重複抑制は
-  `WeatherProvider` の実装に依存せず、どのソースでも同じように働く。
-- 対象ワールドが Bukkit にロードされていない（`Bukkit.getWorld` が `null`）場合、Integration 側は
-  黙って何もしない。
-
-`weatherSource` と `applyWeatherEffects` の設定方法は [天候の設定](/docs/format/config/climate) を参照してほしい。
-
-なお `applyWeather` / `resetWeather` は Core の非同期リフレッシュループからも呼ばれるため、
-Integration 内部では常に `BukkitScheduler.runTask` でメインスレッドへ委譲してからワールドを改変する。
-
-本 Integration はコマンド・権限ノード・設定ファイルを一切持たない。単体でロードしても副作用はなく、
-起動時に次のログを出すのみ。
-
-```
-[MoripaFishing-Integration-Weather] MoripaFishing-Integration-Weather enabled.
-```
-
-## SPI
-
-Integration は `party.morino.moripafishing.integrations.weather.api.WeatherControlProvider` を実装する。
-SPI は独立モジュール `:integrations:weather-api` として切り出され、`:api`（`moripafishing-api`）にも
-Bukkit にも依存しない。Maven Central には `party.morino:moripafishing-weather-api` として公開される。
-
-```kotlin title="build.gradle.kts"
-dependencies {
-    compileOnly("party.morino:moripafishing-weather-api:<version>")
-}
-```
-
-```kotlin
-interface WeatherControlProvider {
-    fun applyWeather(worldKey: String, weatherType: String)
-
-    fun resetWeather(worldKey: String)
-}
-```
-
-境界をまたぐ型は `String` のみで、classloader 間の class identity 問題が起きない。
-`worldKey` は対象 Bukkit ワールドのキー文字列（`moripafishing:<ワールドID>`）で、Integration 側は `NamespacedKey.fromString` で解決して `Bukkit.getWorld` に渡す。
-`weatherType` は `WeatherType` の enum 名（`SUNNY` / `RAINY` / `THUNDERSTORM` / `CLOUDY` 等）で渡される。
-`CLOUDY` の天井はプレイヤー位置を基準に Integration 側で生成・追従させるため、座標やサイズは受け取らない。
-
-:::info
-クライアント側バリア天井は **見た目のみ** で、サーバーのワールドには存在しない。そのため
-草・水・空の色やブロックは一切変化しないが、`ProtocolLib` 等は不要で Paper 標準 API のみで完結する。
-:::
-
-独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
-`MoripaFishing-Integration-Weather` の名前でビルドして配置すれば Core はそちらを利用する。
-
-Core は `PluginManager.getPlugin("MoripaFishing-Integration-Weather")` で得たインスタンスが
-`WeatherControlProvider` にキャストできる場合にのみ採用する。同名のプラグインが存在しても SPI を
-実装していなければ次の警告を出して provider は `null` のままになる。
-
-```
-[MoripaFishing] MoripaFishing-Integration-Weather is installed but does not implement WeatherControlProvider.
-```
-
-Core 側は `paper-plugin.yml` でこのプラグインを `load: BEFORE` / `required: false` /
-`join-classpath: true` として宣言している。Integration が Core より先にロードされ、かつ SPI の型を
-同一の classloader で共有できるのはこの宣言によるもの。
-
-## 関連
-
-ワールド生成・境界制御を担う [WorldLifecycle](/docs/integration/world-lifecycle) と同じ
-softdepend + SPI パターンで提供される姉妹 Integration。いずれもワールドへの破壊的操作を
-Core から切り離すためのもの。
+天候は Core が決め続けるため、本 Integration が無くても魚の抽選条件には天候が反映され、
+`FishingWorldWeatherChangeEvent` も発火する。ワールドの嵐・雷・`DO_WEATHER_CYCLE` は変更されない。

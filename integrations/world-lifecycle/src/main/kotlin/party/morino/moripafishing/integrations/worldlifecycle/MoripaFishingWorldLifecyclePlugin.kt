@@ -2,69 +2,57 @@ package party.morino.moripafishing.integrations.worldlifecycle
 
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
-import org.bukkit.Bukkit
-import org.bukkit.NamespacedKey
-import org.bukkit.WorldCreator
-import org.bukkit.WorldType
+import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
-import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
-import party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider
-import party.morino.moripafishing.integrations.worldlifecycle.biome.ConstBiomeGenerator
+import party.morino.moripafishing.api.core.world.spi.WorldLifecycle
+import party.morino.moripafishing.api.core.world.spi.WorldStateApplier
+import party.morino.moripafishing.integrations.worldlifecycle.generator.GeneratorRepository
 import java.io.File
 
 /**
  * MoripaFishing の WorldLifecycle Integration プラグイン。
  *
- * コア側の `MoripaFishing` (softdepend) が Bukkit の `PluginManager` 経由で本プラグインを
- * `WorldLifecycleProvider` として検出・利用する。
+ * コア (`MoripaFishing`) に依存してその後にロードされ、`ServicesManager` に次を登録する。
+ * 登録は本プラグインの無効化時に自動で解除される。
  *
- * プラグイン自体はコアに依存しないため、単体でも無害にロードされる。
+ * - [BukkitWorldLifecycle] (`WorldLifecycle`): ジェネレーター定義を使った釣りワールドの作成・アンロード
+ * - [EnvironmentApplier] (`WorldStateApplier`): 時刻・`DO_DAYLIGHT_CYCLE`・ワールドボーダー・スポーンの適用
+ *
+ * あわせて、参加時に釣りワールドのスポーンへテレポートする機能 ([JoinTeleportListener]) を提供する。
  */
-@OptIn(ExperimentalSerializationApi::class)
-open class MoripaFishingWorldLifecyclePlugin :
-    JavaPlugin(),
-    WorldLifecycleProvider {
-    private val json =
-        Json {
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            isLenient = true
-            prettyPrint = true
-        }
-
-    // 未知キーを無視する寛容な YAML。ジェネレーター用 JSON (ignoreUnknownKeys) と方針を揃える。
+open class MoripaFishingWorldLifecyclePlugin : JavaPlugin() {
+    // 未知キーを無視する寛容な YAML
     private val yaml = Yaml(configuration = YamlConfiguration(strictMode = false))
 
-    private val generators = mutableListOf<GeneratorData>()
-
     override fun onEnable() {
-        loadGenerators()
-        registerJoinTeleport()
-        logger.info(
-            "MoripaFishing-Integration-WorldLifecycle enabled (generators: ${generators.map { it.id }}).",
+        val repository = GeneratorRepository(File(dataFolder, "generator"), logger)
+        repository.load()
+        server.servicesManager.register(
+            WorldLifecycle::class.java,
+            BukkitWorldLifecycle(repository, logger),
+            this,
+            ServicePriority.Normal,
         )
+        server.servicesManager.register(
+            WorldStateApplier::class.java,
+            EnvironmentApplier(),
+            this,
+            ServicePriority.Normal,
+        )
+        registerJoinTeleport()
+        logger.info("MoripaFishing-Integration-WorldLifecycle enabled (generators: ${repository.ids().sorted()}).")
     }
 
     /**
      * 参加時テレポート機能を設定に応じて登録する。
-     * コア (`MoripaFishing`) はテレポート先スポーンの参照にのみ必要で、実行時に解決するため、
-     * コア未導入でも本 Integration 自体は無害にロードされる。
      */
     private fun registerJoinTeleport() {
         val config = loadJoinTeleportConfig()
-        if (!config.enabled) {
-            return
-        }
-        server.pluginManager.registerEvents(JoinTeleportListener(config), this)
+        if (config.enabled) server.pluginManager.registerEvents(JoinTeleportListener(config), this)
     }
 
     private fun loadJoinTeleportConfig(): JoinTeleportConfig {
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs()
-        }
+        dataFolder.mkdirs()
         val file = File(dataFolder, "join-teleport.yml")
         if (!file.exists()) {
             file.writeText(yaml.encodeToString(JoinTeleportConfig.serializer(), JoinTeleportConfig()))
@@ -77,86 +65,5 @@ open class MoripaFishingWorldLifecyclePlugin :
             logger.warning("Failed to parse join-teleport.yml (${error.message}); falling back to defaults.")
             JoinTeleportConfig()
         }
-    }
-
-    private fun loadGenerators() {
-        val generatorDir = File(dataFolder, "generator")
-        if (!generatorDir.exists()) {
-            generatorDir.mkdirs()
-        }
-        val defaultIds = listOf("terra", "void", "normal")
-        defaultIds.forEach { id ->
-            val resource =
-                this::class.java.getResourceAsStream("/generator/$id.json")
-                    ?: throw IllegalStateException("bundled generator resource not found: $id.json")
-            val defaultGenerator = json.decodeFromStream<GeneratorData>(resource)
-            val file = File(generatorDir, "$id.json")
-            if (!file.exists()) {
-                file.createNewFile()
-                file.writeText(json.encodeToString(GeneratorData.serializer(), defaultGenerator))
-            }
-        }
-
-        generators.clear()
-        generatorDir.listFiles { f -> f.extension == "json" }?.forEach { file ->
-            generators.add(json.decodeFromString(GeneratorData.serializer(), file.readText()))
-        }
-    }
-
-    override fun applyBorder(
-        worldKey: String,
-        centerX: Double,
-        centerZ: Double,
-        size: Double,
-    ) {
-        val world = NamespacedKey.fromString(worldKey)?.let { Bukkit.getWorld(it) } ?: return
-        Bukkit.getScheduler().runTask(
-            this,
-            Runnable {
-                world.worldBorder.setCenter(centerX, centerZ)
-                world.worldBorder.size = size
-            },
-        )
-    }
-
-    override fun createBukkitWorld(
-        worldKey: String,
-        generatorData: GeneratorData,
-    ): Boolean {
-        val namespacedKey =
-            NamespacedKey.fromString(worldKey) ?: run {
-                logger.warning("Invalid world key: $worldKey")
-                return false
-            }
-        if (Bukkit.getWorld(namespacedKey) != null) {
-            return false
-        }
-        val biomeProvider = generatorData.biomeProvider?.let { ConstBiomeGenerator(it) }
-        val creator =
-            WorldCreator(namespacedKey)
-                .generator(generatorData.generator)
-                .let { c -> generatorData.generatorSetting?.let { c.generatorSettings(it) } ?: c }
-                .let { c -> generatorData.type?.let { c.type(WorldType.valueOf(it)) } ?: c }
-                .biomeProvider(biomeProvider)
-        val world = Bukkit.createWorld(creator)
-        if (world == null) {
-            logger.warning("Failed to create world $worldKey")
-            return false
-        }
-        logger.info("World ${world.key} created via integration")
-        return true
-    }
-
-    override fun getGenerator(id: String): GeneratorData? = generators.find { it.id == id }
-
-    override fun listGenerators(): List<GeneratorData> = generators.toList()
-
-    override fun addGenerator(generator: GeneratorData) {
-        generators.add(generator)
-        val file = File(File(dataFolder, "generator"), "${generator.id}.json")
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-        file.writeText(json.encodeToString(GeneratorData.serializer(), generator))
     }
 }

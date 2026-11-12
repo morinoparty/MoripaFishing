@@ -1,125 +1,128 @@
 ---
-title: 天候
+title: 気候
 icon: CloudRain
 ---
 
 :::warning[注意]
-この設定は、`config.json`及び、`world/<fishing_world_name>.json`に存在するデータであり、独立して存在するものではありません。
-`config.json`では`world.defaultClimateConfig`、ワールドごとの JSON では`climateConfig`がこの設定に対応します。ワールド側の`climateConfig`が`null`の場合は、`config.json`の`world.defaultClimateConfig`が使用されます。
+この設定は `config.json` 及び `world/<fishing_world_name>.json` の一部であり、独立したファイルではありません。
+`config.json` では `world.defaultClimate`、ワールドごとの JSON では `climate` がこの設定に対応します。
+ワールド側の `climate` が `null` の場合は、`config.json` の `world.defaultClimate` が使われます。
 :::
+
+気候の設定は、天候の決め方 (`weather`) と時刻の決め方 (`time`) からなります。
+Core は設定に従って値を **決める** だけで、Bukkit ワールドへの **適用** は Integration が行います
+(天候は [Weather](/docs/integration/weather)、時刻は [WorldLifecycle](/docs/integration/world-lifecycle))。
+Integration が未導入でも、決めた天候は魚の抽選条件に使われます。
 
 ## Format
 
 ```json
 {
-    "weatherSource": "moripafishing:internal",
-    "applyWeatherEffects": true,
-    "enableDayCycle": true,
-    "constant" : {
-        "weather": "SUNNY",
-        "dayCycle": 1
-    },
-    "dayCycle" : {
-        "offset": 0
-    },
     "weather": {
-       "weight": {
-        "SUNNY": 4,
-        "CLOUDY": 1,
-        "RAINY": 2,
-        "THUNDERSTORM": 1
-       },
-        "offset": 0,
-        "interval": 8,
-        "maxInclination": 30
+        "type": "random",
+        "weights": {
+            "SUNNY": 4,
+            "CLOUDY": 1,
+            "RAINY": 2,
+            "THUNDERSTORM": 1
+        },
+        "intervalHours": 8,
+        "offsetHours": 0,
+        "maxInclination": 30,
+        "seed": "pepper"
     },
-    "hashPepper": "pepper"
+    "time": {
+        "type": "real_time",
+        "offsetHours": 0
+    }
 }
 ```
 
-## 各設定の説明
+`weather` と `time` は、`type` で種類を選びます。各項目を省略した場合は上の既定値になります。
 
-### weatherSource
+## weather
 
-ワールドの天候を「誰が決定するか」を、名前空間キー (`namespace:value`) で指定します（デフォルト: `moripafishing:internal`）。指定したキーは `WeatherSourceRegistry` に登録された `WeatherSource` から解決されます。未登録のキーを指定した場合は `moripafishing:internal` にフォールバックします。
+天候の決め方です。
 
-組み込みのソースは次の2つです。
+### random
 
-- `moripafishing:internal`: プラグイン内蔵のランダマイザーが天候を決定し、Bukkit ワールドにも適用します。`DO_WEATHER_CYCLE` は `false` になります。
-- `moripafishing:vanilla`: Bukkit のバニラ天候状態 (`hasStorm` / `isThundering`) を読み取り、魚の抽選条件にのみ反映します。`constant.weather` や `weather` の設定は無視され、`DO_WEATHER_CYCLE` は `true` のままになります。バニラ天候は `SUNNY` / `RAINY` / `THUNDERSTORM` の3値しか表現できないため、`CLOUDY` / `FOGGY` / `SNOWY` を条件に持つ魚はこのソースでは出現しません。
+内蔵の天候カレンダーで天候を決め、ワールドへ適用させます (既定)。
+同じ設定・ワールド ID・時刻からは常に同じ天候が決まります。計算の詳細は [天候ノイズ](/docs/utilities/weather-noise) を参照してください。
 
-なお `moripafishing:vanilla` では、対象ワールドがまだロードされていない、あるいは天候イベントを一度も受け取っていない間は `SUNNY` として扱われます。
+```json
+{ "type": "random", "weights": { "SUNNY": 4, "CLOUDY": 1, "RAINY": 2, "THUNDERSTORM": 1 },
+  "intervalHours": 8, "offsetHours": 0, "maxInclination": 30, "seed": "pepper" }
+```
 
-外部プラグインは `MoripaFishingAPI.registerWeatherSource` で独自キー（例: `myplugin:realistic`）の `WeatherSource` を登録し、`MoripaFishingAPI.unregisterWeatherSource` で解除できます。そのソースを使うには、`weatherSource` にそのキーを指定します。`WeatherSource.managesWorldWeather` が `false` のソースは MoripaFishing 側でワールドの天候を変更せず、魚の抽選条件にのみ反映されます。この場合 `FishingWorld.setWeather` や `/mf` による天候変更の操作は無視され、ログに記録されるだけになります。
+- `weights`: 各天候の出現しやすさを 0 以上の整数の重みで指定します。合計で正規化され、JSON に書いた順に累積して判定します。空にすることや、合計を 0 にすることはできません
+- `intervalHours`: 天候が切り替わる間隔 (時間)。1 以上 (既定: `8`)
+- `offsetHours`: 切り替わりのタイミングをずらす時間。負の値も指定できます (既定: `0`)
+- `maxInclination`: 天候の変化の急さ。`1..100` (既定: `30`)。大きいほど天候が急に変わります
+- `seed`: ノイズのハッシュに混ぜる文字列 (既定: `pepper`)。変えると天候の並び全体が変わります
 
-ゲームルール `DO_WEATHER_CYCLE` は `WeatherSource.usesVanillaWeatherCycle` に従って設定されます。これが `true` になるのは `moripafishing:vanilla` のみで、サードパーティのソースを含むそれ以外のソースでは `false` になります。
+:::info
+`WeatherType` には `SUNNY` / `CLOUDY` / `RAINY` / `THUNDERSTORM` / `SNOWY` / `FOGGY` の 6 種類があります。既定の `weights` には `SNOWY` と `FOGGY` が含まれていませんが、`weights` に追加すれば抽選の対象になります。
+:::
 
-### applyWeatherEffects
+### fixed
 
-決定した天候を Bukkit ワールドへ実際に反映するかどうかを指定します（デフォルト: `true`）。
+常に同じ天候にし、ワールドへ適用させます。
 
-- `true`: `managesWorldWeather` が `true` のソース（`moripafishing:internal` など）が決定した天候をワールドに適用し、`DO_WEATHER_CYCLE` をソースに応じて制御します
-- `false`: MoripaFishing はワールドの天候と `DO_WEATHER_CYCLE` を一切変更しません。天候は魚の抽選条件にのみ使用され、見た目の天候はバニラや他プラグインに委ねられます
+```json
+{ "type": "fixed", "weather": "RAINY" }
+```
 
-天候カレンダー（`weather` の設定）は `false` でも動作し続けるため、「抽選条件は内蔵ランダマイザーで決めつつ、演出は別プラグインに任せる」構成をワールド単位で実現できます。
+### vanilla
 
-### ユースケース別の設定
+バニラの天候 (`hasStorm` / `isThundering`) を読み取り、魚の抽選条件にのみ使います。ワールドの天候は変更させず、`DO_WEATHER_CYCLE` は `true` になります。
 
-`weatherSource` と `applyWeatherEffects` を組み合わせることで、天候の「決定」と「適用」を独立して制御できます。
+```json
+{ "type": "vanilla" }
+```
 
-| # | 天候の決定 | 見た目への適用 | 設定 |
+バニラの天候は `SUNNY` / `RAINY` / `THUNDERSTORM` の 3 種類しか表せないため、`CLOUDY` / `FOGGY` / `SNOWY` を条件に持つ魚は出現しません。
+ワールドが未ロードの間は `SUNNY` として扱います。
+
+### external
+
+外部プラグインが `ServicesManager` に登録した `WeatherSource` のうち、`key` が `source` と一致するものに天候を任せます。
+
+```json
+{ "type": "external", "source": "myplugin:realistic" }
+```
+
+ソースの `appliesToWorld` が `true` なら、その天候をワールドへ適用させます。`false` なら魚の抽選条件にのみ使い、ワールドの天候は変更させません。
+一致するソースが登録されていない間は、`random` の既定値で天候を決め、警告を一度だけ出します。ソースの登録方法は [API ガイド](/docs/addons/api-guide#weathersource-の登録) を参照してください。
+
+### 魚の天候とワールドへの適用
+
+| `weather.type` | 魚の抽選条件に使う天候 | `WorldState.weather` (ワールドへ適用) | `DO_WEATHER_CYCLE` |
 |---|---|---|---|
-| 1 | 内蔵ランダマイザー | する | `weatherSource: "moripafishing:internal"` + `applyWeatherEffects: true`（デフォルト） |
-| 2 | 内蔵ランダマイザー | しない | `weatherSource: "moripafishing:internal"` + `applyWeatherEffects: false` |
-| 3 | 外部プラグイン | する | `weatherSource: "<外部キー>"`（`managesWorldWeather = true` なソース）+ `applyWeatherEffects: true` |
-| 4 | 外部プラグイン | しない | `weatherSource: "<外部キー>"` + `applyWeatherEffects: false`（または `managesWorldWeather = false` なソース） |
-| 5 | バニラ天候の読み取り | しない | `weatherSource: "moripafishing:vanilla"`（`applyWeatherEffects` は影響しない） |
+| `random` | 天候カレンダー | 天候カレンダーと同じ | `false` |
+| `fixed` | `weather` の値 | `weather` の値 | `false` |
+| `vanilla` | バニラの天候 | `null` (変更しない) | `true` |
+| `external` (`appliesToWorld = true`) | ソースの天候 | ソースの天候 | `false` |
+| `external` (`appliesToWorld = false`) | ソースの天候 | `null` (変更しない) | `true` |
+| `external` (ソース未登録) | 天候カレンダー (`random` の既定値) | 天候カレンダーと同じ | `false` |
 
-いずれの構成でも、魚の抽選条件への天候の反映（消費側）は変わりません。決定と適用だけが差し替わります。
-
-:::info
-実効天候が変化すると `FishingWorldWeatherChangeEvent` が発火します。イベントの一覧は [API利用ガイド](/docs/addons/api-guide#イベント) を参照してください。
-:::
-
-### enableDayCycle
-
-プラグインによる時間同期を有効にするかどうかを指定します（デフォルト: `true`）。
-
-- `true`: `DO_DAYLIGHT_CYCLE`を`false`に設定し、プラグインがリアルタイム同期または固定時間を管理します（従来の動作）
-- `false`: `DO_DAYLIGHT_CYCLE`を`true`に設定し、バニラの昼夜サイクルに委ねます。`constant.dayCycle`や`dayCycle`の設定は無視されます
+天候は見た目の天候と同じ値を魚の条件にも使うのが基本です。魚の条件だけを内蔵カレンダーで決め、見た目はバニラや別のプラグインに任せたい場合は、
+Weather Integration を導入しないでください。
 
 :::info
-この設定はワールドの状態更新（デフォルト60秒間隔）ごとに再評価されるため、`/mf reload`後に自動で反映されます。
+魚の抽選条件に使う天候が変わると `FishingWorldWeatherChangeEvent` が発火します。変化はリフレッシュ間隔 (`refreshIntervalSeconds`) ごとに検知されます。
 :::
 
-### constant
+## time
 
-天候を固定する場合の設定です。
+時刻の決め方です。時刻と `DO_DAYLIGHT_CYCLE` を Bukkit ワールドへ適用するのは [WorldLifecycle Integration](/docs/integration/world-lifecycle) です。
 
-- `constant.weather`: 固定する天候を指定します。nullの場合は`weather`の設定に従って天候が変化します（デフォルト: null）
-- `constant.dayCycle`: 固定する時間を「時」（0〜23）で指定します。nullの場合は現実世界の時刻に同期した時間になります（デフォルト: null）
+| `time.type` | 例 | ワールド時刻 | `DO_DAYLIGHT_CYCLE` |
+|---|---|---|---|
+| `real_time` | `{"type":"real_time","offsetHours":0}` | `config.json` の `world.timeZone` の現在時刻に `offsetHours` を足した時刻 (既定) | `false` |
+| `fixed` | `{"type":"fixed","hour":6}` | `hour` 時 (`0..23`) に固定 | `false` |
+| `vanilla` | `{"type":"vanilla"}` | 変更しない | `true` |
 
-### weather
+ワールド時刻は「0 時 = 18000 tick、6 時 = 0 tick」として換算し、分は 1 分あたり `1000 / 60` tick で反映します。
+`offsetHours` は負の値も指定でき、日をまたぐ場合は 0〜23999 tick に折り返します。
 
-天候が変化する場合の設定です。
-
-- `weather.weight`: 各天候の出現しやすさを整数の重みで指定します。確率（%）ではなく、指定した重みの合計で正規化されて抽選されます。判定はマップに書かれた順に重みを累積していくため、JSON でのキーの並び順が結果の割り当てに影響します。どの重みにも当たらなかった場合は `THUNDERSTORM` にフォールバックします
-- `weather.offset`: 天気予報を生成する際の開始時刻のオフセット（時間）を指定します。現在の天候そのものには影響しません
-- `weather.interval`: 天気予報を何時間刻みでサンプリングするかを指定します。実際の天候が切り替わる間隔は 8 時間で固定されているため、この値を変えても切り替わりの間隔は変わりません
-- `weather.maxInclination`: 天候の内部値を補間する際のキーフレーム間隔を決める値です（間隔は `100 / maxInclination` の小数点以下切り捨て）。値を大きくするほど補間区間が短くなり、天候の振れ幅が急になります
-
-:::info
-`WeatherType` には `SUNNY` / `CLOUDY` / `RAINY` / `THUNDERSTORM` / `SNOWY` / `FOGGY` の6種類があります。デフォルトの `weight` には `SNOWY` と `FOGGY` が含まれていませんが、`weight` に追加すればそれらも抽選の対象になります。
-:::
-
-### hashPepper
-
-天気予測のハッシュ生成に使用するペッパー文字列を指定します。ハッシュは「ワールドID + hashPepper + 経過ブロック番号」を SHA-256 にかけ、その先頭8桁を用いて計算されるため、同じ設定でもワールドごとに異なる天候になります。この値を変更すると、そのワールドの天候の並び全体が変わります。
-
-### dayCycle
-
-日周期の設定です。設定されたタイムゾーンに従って日周期を制御します。
-
-日時の更新は、`config.json`の`world.refreshInterval`で指定された間隔で定期的に実行され、現実世界の日時に同期して日周期を設定します。
-
-- `dayCycle.offset`: 日周期のオフセット（時間）を指定します。`config.json`の`world.defaultTimeZone`に基づいて取得された値に対して、`dayCycle.offset`を加算した値が使用されます。
+設定はリフレッシュのたびに評価されます。`/mf reload` を実行すると、その場で全ワールドがリフレッシュされて反映されます。

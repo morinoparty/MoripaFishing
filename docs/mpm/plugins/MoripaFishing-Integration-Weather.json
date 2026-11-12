@@ -16,5 +16,8 @@
         "useUpstreamLabel": true
       }
     }
+  ],
+  "dependencies": [
+    "MoripaFishing"
   ]
 }

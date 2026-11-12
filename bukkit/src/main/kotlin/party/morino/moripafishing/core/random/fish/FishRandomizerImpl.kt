@@ -46,7 +46,7 @@ class FishRandomizerImpl :
         fishingWorldId: FishingWorldId,
     ): FishData {
         // 現在の天気を取得。未登録ワールドの場合は天候条件なしとして扱う
-        val weatherType = worldManager.getWorld(fishingWorldId)?.getCurrentWeather()
+        val weatherType = worldManager.getWorld(fishingWorldId)?.getWeather()
         // 条件に合致する魚データをフィルタリング
         val fishesData =
             fishManager.getFishesWithRarity(rarity).filter {
