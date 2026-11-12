@@ -1,43 +1,32 @@
 package party.morino.moripafishing.config
 
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import party.morino.moripafishing.api.config.ConfigData
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.api.config.PluginDirectory
-import party.morino.moripafishing.utils.Utils
+import java.io.File
+
 /**
- * ConfigManagerのモッククラス
- * テスト用の設定値を提供する
+ * `config.json` を読み込む [ConfigManager] の実装。
+ *
+ * @property file 設定ファイル
  */
-class ConfigManagerImpl : ConfigManager, KoinComponent {
-    private lateinit var config: ConfigData
-    private val pluginDirectory: PluginDirectory by inject()
+internal class ConfigManagerImpl(
+    private val file: File,
+) : ConfigManager {
+    @Volatile
+    private var config: ConfigData = ConfigData()
 
-    init {
-        reload()
-    }
-
-    override fun reload() {
-        val file = pluginDirectory.getRootDirectory().resolve("config.json")
+    /**
+     * 設定ファイルを読み込む。ファイルが無いか空の場合は既定値で作成する (ディレクトリは [PluginPaths.createDirectories] で作成済みとする)。
+     * 読み込みに失敗した場合は例外を投げ、以前の設定を保つ。
+     *
+     * @throws IllegalArgumentException 設定ファイルが不正な場合 (`SerializationException` を含む)
+     */
+    fun reload() {
         if (!file.exists() || file.length() == 0L) {
-            file.parentFile.mkdirs()
-            file.createNewFile()
-            val defaultConfig = ConfigData()
-            val data = Utils.json.encodeToString(ConfigData.serializer(), defaultConfig)
-            file.writeText(data)
+            file.writeText(ConfigJson.encodeToString(ConfigData.serializer(), ConfigData()))
         }
-        val text = file.readText()
-        config = Utils.json.decodeFromString(text)
+        config = ConfigJson.decodeConfig(ConfigData.serializer(), file.readText())
     }
 
-    override fun getConfig(): ConfigData {
-        return config
-    }
-
-    override fun applyConfig(configData: ConfigData) {
-        config = configData
-        val file = pluginDirectory.getRootDirectory().resolve("config.json")
-        file.writeText(Utils.json.encodeToString(config))
-    }
+    override fun getConfig(): ConfigData = config
 }

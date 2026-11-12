@@ -1,82 +1,70 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-
 plugins {
-    java
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.shadow) apply false
+    alias(libs.plugins.resource.factory) apply false
+    alias(libs.plugins.run.paper) apply false
+    alias(libs.plugins.maven.publish) apply false
+    // ルートの build.gradle.kts / settings.gradle.kts を検査するため、ルートにも適用する
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt) apply false
     alias(libs.plugins.dokka)
     alias(libs.plugins.dokka.javadoc)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.detekt)
 }
 
-val version: String by project
-group = "party.morino.moripafishing"
+// Paper プラグインとして配布するモジュール (shadowJar を配布物にする)
+val paperPluginModules = setOf(":bukkit", ":integrations:weather", ":integrations:world-lifecycle", ":addons:catch-announce")
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
+// subprojects {} 内の `libs` はサブプロジェクト側のアクセサに解決され、評価前で未登録のため、ルートのカタログを捕捉しておく
+val catalog = libs
 
-allprojects {
-
-    apply(plugin = "java")
-    apply(plugin = "org.jetbrains.dokka")
-    apply(plugin = "org.jetbrains.dokka-javadoc")
+subprojects {
+    if (childProjects.isNotEmpty()) return@subprojects // :addons / :integrations はコンテナ
+    group = "party.morino"
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
-
-    repositories {
-        mavenCentral()
-        maven("https://repo.papermc.io/repository/maven-public/")
-        maven("https://oss.sonatype.org/content/groups/public/")
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
-        maven("https://jitpack.io")
-        maven("https://plugins.gradle.org/m2/")
-        maven("https://repo.codemc.io/repository/maven-public/")
-    }
-
-    kotlin {
-        jvmToolchain {
-            (this).languageVersion.set(JavaLanguageVersion.of(25))
-        }
+    apply(plugin = "dev.detekt")
+    extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
         jvmToolchain(25)
+        compilerOptions.javaParameters = true
     }
-
-    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        debug.set(true)
-        ignoreFailures.set(true)
-        filter {
-            include("bukkit/**")
-            include("api/**")
-            exclude("**/config/**")
-        }
+    extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
+        buildUponDefaultConfig = true
+        allRules = false
+        parallel = true
+        config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     }
-
-    tasks {
-        register("hello") {
-            doLast {
-                println("I'm ${this.project.name}")
-            }
+    dependencies {
+        "testImplementation"(platform(catalog.junit.bom))
+        "testImplementation"(catalog.junit.jupiter)
+        "testRuntimeOnly"(catalog.junit.platform.launcher)
+        "testImplementation"(catalog.allure.junit5)
+    }
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+        systemProperty(
+            "allure.results.directory",
+            layout.buildDirectory
+                .dir("allure-results")
+                .get()
+                .asFile.path,
+        )
+    }
+    tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
+    if (path in paperPluginModules) {
+        apply(plugin = "com.gradleup.shadow")
+        dependencies {
+            "compileOnly"(catalog.paper.api)
+            "testImplementation"(catalog.paper.api)
+            "testImplementation"(catalog.mock.bukkit)
         }
-        compileKotlin {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
-            compilerOptions.javaParameters = true
-            compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_0)
-        }
-        compileTestKotlin {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
-        }
-
-        withType<JavaCompile>().configureEach {
-            options.encoding = "UTF-8"
-        }
+        tasks.named<Jar>("jar") { archiveClassifier = "plain" }
+        tasks.named<Jar>("shadowJar") { archiveClassifier = "" }
+        tasks.named("build") { dependsOn("shadowJar") }
     }
 }
 
 dependencies {
-    dokka(project(":bukkit"))
     dokka(project(":api"))
 }
 
@@ -90,34 +78,4 @@ dokka {
     dokkaPublications.javadoc {
         outputDirectory.set(file("${project.rootDir}/docs/public/javadoc"))
     }
-}
-
-detekt {
-    // The directories where detekt looks for source files.
-    // Defaults to `files("src/main/java", "src/test/java", "src/main/kotlin", "src/test/kotlin")`.
-    source.setFrom("api/src/main/java", "api/src/main/kotlin", "bukkit/src/main/java", "bukkit/src/main/kotlin")
-
-    // Builds the AST in parallel. Rules are always executed in parallel.
-    // Can lead to speedups in larger projects. `false` by default.
-    parallel = true
-
-    // Applies the config files on top of detekt's default config file. `false` by default.
-    buildUponDefaultConfig = true
-
-    // Turns on all the rules. `false` by default.
-    allRules = true
-
-    // Specifying a baseline file. All findings stored in this file in subsequent runs of detekt.
-    baseline = file("./detekt-baseline.xml")
-
-    // Disables all default detekt rulesets and will only run detekt with custom rules
-    // defined in plugins passed in with `detektPlugins` configuration. `false` by default.
-    disableDefaultRuleSets = false
-
-    // Adds debug output during task execution. `false` by default.
-    debug = false
-
-    // If set to `true` the build does not fail when there are any issues.
-    // Defaults to `false`.
-    ignoreFailures = true
 }

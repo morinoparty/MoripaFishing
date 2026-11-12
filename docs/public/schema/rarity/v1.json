@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fishing.plugin.morino.party/schema/rarity/v1.json",
+  "title": "MoripaFishing Rarity Definition",
+  "description": "MoripaFishing におけるレアリティ (rarity/**/*.json) の定義スキーマ (v1)。未知のキーは読み込み時にエラーになります。",
+  "type": "object",
+  "required": ["id", "displayName", "weight", "worth"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "JSON Schema への URL 参照。エディタでの補完・検証に使用され、読み込み時には無視されます。"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "レアリティを一意に識別する ID (例: \"common\")。"
+    },
+    "displayName": {
+      "type": "object",
+      "description": "ロケールごとの表示名 (MiniMessage)。キーはロケールコード (例: \"en_US\", \"ja_JP\") を使用します。",
+      "additionalProperties": { "type": "string" }
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "description": "レアリティの抽選に使用される相対的な重み。"
+    },
+    "worth": {
+      "type": "string",
+      "minLength": 1,
+      "description": "価値の計算式 (exp4j)。変数 length_rate を使えます。魚側に worth が無い場合に使用されます。"
+    }
+  }
+}

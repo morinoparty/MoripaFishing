@@ -24,17 +24,15 @@ Release artifacts are signed with GitHub Attestations, so their SLSA provenance 
 | `integrations/world-lifecycle` | Add-on plugin for world generation integration |
 | `addons/catch-announce` | Catch-announcement feature split out as an Addon |
 | `docs` | Documentation site built with Fumadocs (Next.js) |
-| `buildSrc` | Gradle helper tasks and build logic |
 
 ## Tech stack
 
 - **Kotlin** 2.4 / **Java** 25 (Temurin)
 - **Paper API** - Minecraft server API
 - **Cloud** - command framework (Incendo)
-- **Koin** - dependency injection
-- **Arrow** - functional programming
 - **kotlinx.serialization / KAML** - config file serialization
-- **JUnit 5 / MockK / MockBukkit** - testing
+- **JUnit / MockBukkit** - testing
+- **ktlint / detekt** - formatting and static analysis
 - **Fumadocs** - documentation site (Next.js)
 
 ## Requirements
@@ -57,8 +55,11 @@ sudo snap install task --classic
 # or with Task
 task build
 task test
-task check   # ktlintFormat + detekt + test
+task check   # ktlint + detekt + test (same as ./gradlew check)
+task fmt     # ktlintFormat
 ```
+
+`./gradlew check` runs ktlint and detekt on every module together with the tests. Lint findings fail the build, so run `task fmt` first and fix what remains.
 
 ## Run a dev server
 
@@ -86,11 +87,11 @@ task docs
 |---------|-------------|
 | `task build` | Build all modules |
 | `task test` | Run tests |
-| `task check` | Format + lint + test |
+| `task check` | Lint + test (`./gradlew check`); lint findings fail the build |
+| `task fmt` | Format the code with ktlint (`./gradlew ktlintFormat`) |
 | `task run` | Start a dev server |
 | `task docs` | Start the docs dev server |
 | `task dokka` | Generate Dokka API docs |
-| `task commit` | Format, then create a commit message (`git-cz`) |
 | `task unlock` | Remove the `session.lock` file |
 
 ## License

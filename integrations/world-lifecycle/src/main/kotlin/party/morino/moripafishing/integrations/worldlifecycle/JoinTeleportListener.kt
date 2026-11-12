@@ -6,9 +6,10 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import party.morino.moripafishing.api.MoripaFishingAPIProvider
+import party.morino.moripafishing.api.event.angler.AnglerJoinTeleportEvent
+import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
-import party.morino.moripafishing.event.angler.AnglerJoinTeleportEvent
 
 /**
  * プレイヤー参加時に釣りワールドのスポーン地点へテレポートする。
@@ -36,7 +37,7 @@ class JoinTeleportListener(
         if (Bukkit.getWorld(fishingWorld.getWorldKey()) == null) return
         val spawn = fishingWorld.getConfig().spawn
 
-        val angler = api.getAnglerManager().getAnglerByMinecraftUniqueId(player.uniqueId) ?: return
+        val angler = api.getAnglerManager().getAngler(AnglerId(player.uniqueId))
         // :api のクラスのコンストラクタは既定引数を省略せずに呼ぶ (WorldState の型の制約を参照)
         val destination =
             LocationData(fishingWorld.getId(), spawn.x, spawn.y, spawn.z, spawn.yaw.toDouble(), spawn.pitch.toDouble())

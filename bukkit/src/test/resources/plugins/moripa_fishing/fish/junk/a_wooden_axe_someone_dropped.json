@@ -1,31 +1,11 @@
 {
   "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
-  "id": "wooden_axe",
-  "catchCommands": [],
-  "conditions": {
-    "weather": [],
-    "world": [],
-    "time": []
-  },
+  "id": "a_wooden_axe_someone_dropped",
+  "rarity": "junk",
   "displayName": {
     "en_US": "Wooden Axe dropped by Admin",
     "ja_JP": "管理人が落とした木の斧"
   },
-  "icon": "",
-  "itemStack": {
-    "material": "WOODEN_AXE",
-    "itemMeta": {
-      "customModelData": [
-        1.0
-      ]
-    }
-  },
-  "size": {
-    "min": 80.0,
-    "max": 90.0
-  },
-  "rarity": "junk",
-  "weight": 10.0,
   "lore": {
     "en_US": [
       "//cut"
@@ -33,5 +13,16 @@
     "ja_JP": [
       "//cut"
     ]
-  }
+  },
+  "item": {
+    "material": "WOODEN_AXE",
+    "customModelData": [
+      1.0
+    ]
+  },
+  "size": {
+    "min": 80.0,
+    "max": 90.0
+  },
+  "weight": 10.0
 }

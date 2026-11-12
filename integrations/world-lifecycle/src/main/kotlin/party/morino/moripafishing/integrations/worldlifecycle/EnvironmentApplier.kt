@@ -1,7 +1,7 @@
 package party.morino.moripafishing.integrations.worldlifecycle
 
 import org.bukkit.Bukkit
-import org.bukkit.GameRule
+import org.bukkit.GameRules
 import org.bukkit.Location
 import org.bukkit.World
 import party.morino.moripafishing.api.core.world.spi.WorldState
@@ -9,13 +9,13 @@ import party.morino.moripafishing.api.core.world.spi.WorldStateApplier
 import party.morino.moripafishing.api.model.world.SpawnPoint
 
 /**
- * [WorldState] のうちゲームルール `DO_DAYLIGHT_CYCLE`・時刻・ワールドボーダー・スポーンを Bukkit ワールドへ適用する。
+ * [WorldState] のうちゲームルール `ADVANCE_TIME`・時刻・ワールドボーダー・スポーンを Bukkit ワールドへ適用する。
  * メインスレッドから呼ばれる。
  */
 internal class EnvironmentApplier : WorldStateApplier {
     override fun apply(state: WorldState) {
         val world = Bukkit.getWorld(state.worldKey) ?: return
-        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, state.doDaylightCycle)
+        world.setGameRule(GameRules.ADVANCE_TIME, state.doDaylightCycle)
         state.time?.let { world.time = it }
         state.border?.let {
             world.worldBorder.setCenter(it.centerX, it.centerZ)

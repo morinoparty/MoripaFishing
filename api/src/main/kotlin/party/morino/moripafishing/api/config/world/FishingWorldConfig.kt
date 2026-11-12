@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.SpawnPoint
-import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
+import party.morino.moripafishing.api.serialization.LocaleSerializer
 import java.util.Locale
 
 /**
@@ -29,7 +29,10 @@ data class FishingWorldConfig(
         String,
     > = emptyMap(),
     val generator: String = "void",
-    val spawn: SpawnPoint = SpawnPoint(0.0, 64.0, 0.0, 90f, 0f),
+    val spawn: SpawnPoint = DEFAULT_SPAWN,
     val border: BorderConfig? = BorderConfig(),
     val climate: ClimateConfig? = null,
 )
+
+/** 既定のスポーン地点 (原点の Y=64、西向き)。 */
+private val DEFAULT_SPAWN = SpawnPoint(0.0, 64.0, 0.0, 90f, 0f)

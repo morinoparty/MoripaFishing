@@ -1,11 +1,10 @@
 {
-    "id" : "common",
-    "color" : "#ffffff",
-    "cacheCommand" : [],
-    "displayName" : {
-        "ja-JP" : "コモン",
-        "en-US" : "Common"
-    },
-    "weight": 70.0,
-    "worthExpression" : "(<length_rate> ^ 2) * 5 + 5"
+  "$schema": "https://fishing.plugin.morino.party/schema/rarity/v1.json",
+  "id": "common",
+  "displayName": {
+    "ja_JP": "コモン",
+    "en_US": "Common"
+  },
+  "weight": 70.0,
+  "worth": "(length_rate ^ 2) * 5 + 5"
 }

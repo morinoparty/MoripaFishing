@@ -14,14 +14,19 @@ import { atom, useAtom, useAtomValue } from "jotai";
 type Rarity = "common" | "rare" | "epic" | "legendary" | "mythic" | "junk";
 
 const sizeAtom = atom<[number, number]>([20, 60]);
+// 同梱のレアリティ定義 (rarity/*.json の worth) と同じ式。変数は length_rate、累乗は ^
 const raretyExpressionAtom = atom<[Rarity, string][]>([
-    ["common", "(<length_rate> ** 2) * 5 + 5"],
-    ["rare", "(<length_rate> ** 2) * 10 + 10"],
-    ["epic", "(<length_rate> ** 2) * 50 + 100"],
-    ["legendary", "(<length_rate> ** 2) * 1000 + 500"],
-    ["mythic", "(<length_rate> ** 2) * 2000 + 2000"],
+    ["common", "(length_rate ^ 2) * 5 + 5"],
+    ["rare", "(length_rate ^ 2) * 10 + 10"],
+    ["epic", "(length_rate ^ 2) * 50 + 100"],
+    ["legendary", "(length_rate ^ 2) * 1000 + 500"],
+    ["mythic", "(length_rate ^ 2) * 2000 + 2000"],
     ["junk", "1"],
 ]);
+
+// exp4j の式を JavaScript で評価する (累乗の ^ を ** に置き換え、length_rate を引数で渡す)
+const evaluateWorth = (expression: string, lengthRate: number): number =>
+    new Function("length_rate", `return ${expression.replaceAll("^", "**")};`)(lengthRate);
 
 const rarityAtom = atom<Rarity>("common");
 
@@ -144,7 +149,7 @@ const DisplayScore = () => {
         ([r]) => r === rarity,
     )?.[1] ?? "";
     const score: number[] = list.map((size) => {
-        return eval(expression.replace("<length_rate>", cdf(size).toString()));
+        return evaluateWorth(expression, cdf(size));
     });
 
     return (

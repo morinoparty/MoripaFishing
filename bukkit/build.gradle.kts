@@ -1,8 +1,4 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import party.morino.moripafishing.GenerateCommandListTask
-
 plugins {
-    java
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow)
@@ -10,62 +6,23 @@ plugins {
     alias(libs.plugins.resource.factory)
 }
 
-group = "party.morino"
-version = project.version.toString()
-
 dependencies {
     implementation(project(":api"))
-
-    compileOnly(libs.paper.api)
-
-    implementation(libs.arrow.core)
-    implementation(libs.arrow.fx.coroutines)
-
     implementation(libs.bundles.commands)
-
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kaml)
-
-    implementation(libs.bundles.coroutines)
-
-    implementation(libs.bundles.database)
-
-    implementation(libs.koin.core)
-
-    implementation(libs.uuid.creator)
-
-    implementation(libs.bundles.kyori)
-
     implementation(libs.exp4j)
-
-    implementation(libs.noise)
-
-    testImplementation(libs.paper.api)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockk)
-    testImplementation(libs.mock.bukkit)
-
-    testImplementation(platform("org.junit:junit-bom:6.1.3"))
-    testImplementation(libs.bundles.junit.jupiter)
-    testImplementation(libs.bundles.koin.test)
-    testImplementation(libs.junit.platform.launcher)
-    testImplementation(libs.allure.junit5)
 }
 
-// JARに同梱する依存。これ以外のruntimeClasspathの外部依存はPaperに実行時に取得させる
-// （paper-plugin.yml では MoripaFishingLoader、plugin.yml では libraries を使う）
+// JAR に同梱する依存。これ以外の runtimeClasspath の外部依存は MoripaFishingLoader が Paper に実行時に取得させる
 fun isBundled(
     group: String,
     version: String,
 ): Boolean =
-    // apiモジュール
+    // api モジュール
     group == "party.morino" ||
-        // Adventure / MiniMessage は従来どおり同梱する（Paper本体が提供するものが優先される）
-        group == "net.kyori" ||
-        // スナップショット版はMaven Centralにない
+        // スナップショット版は Maven Central にない
         version.endsWith("-SNAPSHOT")
 
-// runtimeClasspathのうち同梱しない外部依存（KMPは解決済みの -jvm アーティファクトになる）
+// runtimeClasspath のうち同梱しない外部依存 (KMP は解決済みの -jvm アーティファクトになる)
 val runtimeLibraries =
     configurations.runtimeClasspath.map { configuration ->
         configuration.incoming.artifacts.artifacts
@@ -76,46 +33,34 @@ val runtimeLibraries =
     }
 
 // MoripaFishingLoader が読み込むライブラリ一覧をリソースとして生成する
-val generatePaperLibraries by tasks.registering {
-    val libraries = runtimeLibraries
-    val outputDirectory = layout.buildDirectory.dir("generated/paper-libraries")
-    inputs.property("libraries", libraries)
-    outputs.dir(outputDirectory)
-    doLast {
-        outputDirectory
-            .get()
-            .file("paper-libraries.txt")
-            .asFile
-            .writeText(libraries.get().joinToString("\n"))
+val generatePaperLibraries =
+    tasks.register("generatePaperLibraries") {
+        val libraries = runtimeLibraries
+        val outputDirectory = layout.buildDirectory.dir("generated/paper-libraries")
+        inputs.property("libraries", libraries)
+        outputs.dir(outputDirectory)
+        doLast {
+            outputDirectory
+                .get()
+                .file("paper-libraries.txt")
+                .asFile
+                .writeText(libraries.get().joinToString("\n"))
+        }
     }
-}
 
 sourceSets.main {
     resources.srcDir(generatePaperLibraries)
 }
 
 tasks {
-    build {
-        dependsOn("shadowJar")
-    }
-    test {
-        useJUnitPlatform()
-        // Allure結果の出力先を指定
-        systemProperty("allure.results.directory", "${project.layout.buildDirectory.get().asFile}/allure-results")
-        testLogging {
-            showStandardStreams = true
-            events("passed", "skipped", "failed")
-            exceptionFormat = TestExceptionFormat.FULL
-        }
-    }
     shadowJar {
-        // Paperが実行時に取得するので同梱しない
+        // Paper が実行時に取得するので同梱しない
         dependencies {
             exclude { !isBundled(it.moduleGroup, it.moduleVersion) }
         }
     }
     runServer {
-        minecraftVersion("26.1.2")
+        minecraftVersion("26.2")
         val plugins =
             runPaper.downloadPluginsSpec {
                 modrinth("terra", "6.6.5-BETA-bukkit")
@@ -133,34 +78,9 @@ sourceSets.main {
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
-            apiVersion = "1.20"
+            apiVersion = "26.2"
             bootstrapper = "$group.moripafishing.MoripaFishingBootstrap"
             loader = "$group.moripafishing.MoripaFishingLoader"
         }
-        bukkitPluginYaml {
-            name = rootProject.name
-            version = project.version.toString()
-            website = "https://fishing.plugin.morino.party"
-            main = "$group.moripafishing.MoripaFishing"
-            apiVersion = "1.20"
-            // Spigot など paper-plugin.yml を使わないサーバー向け
-            libraries.set(runtimeLibraries)
-        }
     }
-}
-
-tasks.register<GenerateCommandListTask>("generateCommandList") {
-    // タスクの説明
-    description = "Detects classes annotated with @Command using reflection."
-    // タスクのグループ
-    group = "verification"
-
-    // appモジュールのメインソースセットを取得
-    val mainSourceSet = sourceSets.main.get()
-
-    // タスクの入力プロパティに値を設定する
-    // コンパイルされたクラスが出力されるディレクトリを指定
-    classesDirectories.from(mainSourceSet.output.classesDirs)
-    // 実行に必要な依存関係を含むクラスパスを指定
-    runtimeClasspath.from(mainSourceSet.runtimeClasspath)
 }

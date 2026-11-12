@@ -16,7 +16,7 @@ import java.io.File
  * 登録は本プラグインの無効化時に自動で解除される。
  *
  * - [BukkitWorldLifecycle] (`WorldLifecycle`): ジェネレーター定義を使った釣りワールドの作成・アンロード
- * - [EnvironmentApplier] (`WorldStateApplier`): 時刻・`DO_DAYLIGHT_CYCLE`・ワールドボーダー・スポーンの適用
+ * - [EnvironmentApplier] (`WorldStateApplier`): 時刻・`ADVANCE_TIME`・ワールドボーダー・スポーンの適用
  *
  * あわせて、参加時に釣りワールドのスポーンへテレポートする機能 ([JoinTeleportListener]) を提供する。
  */

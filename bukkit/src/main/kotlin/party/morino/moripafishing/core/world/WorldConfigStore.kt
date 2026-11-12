@@ -4,7 +4,8 @@ import kotlinx.serialization.json.Json
 import net.kyori.adventure.key.InvalidKeyException
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.utils.Utils
+import party.morino.moripafishing.config.ConfigJson
+import party.morino.moripafishing.config.decodeConfig
 import java.io.File
 import java.util.logging.Logger
 
@@ -18,7 +19,7 @@ import java.util.logging.Logger
 internal class WorldConfigStore(
     private val directory: File,
     private val logger: Logger,
-    private val json: Json = Utils.json,
+    private val json: Json = ConfigJson,
 ) {
     /**
      * すべての設定ファイルを読み込む。
@@ -49,7 +50,7 @@ internal class WorldConfigStore(
     private fun load(file: File): FishingWorldConfig? {
         val config =
             try {
-                json.decodeFromString(FishingWorldConfig.serializer(), file.readText())
+                json.decodeConfig(FishingWorldConfig.serializer(), file.readText())
             } catch (e: IllegalArgumentException) {
                 // SerializationException と設定値の require 違反の両方を含む
                 logger.warning("Skipping world config ${file.name}: ${e.message}")

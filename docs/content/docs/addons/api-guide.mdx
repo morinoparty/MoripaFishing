@@ -81,41 +81,21 @@ SNAPSHOTビルドやコミットハッシュ指定は開発中のため不安定
 
 ### プラグイン定義ファイルの設定
 
-MoripaFishing 本体は Paper プラグイン形式で読み込まれるため、アドオン側も `paper-plugin.yml` で
-依存を宣言するのが基本です。リポジトリ内の参照アドオン `MoripaFishing-Addon-CatchAnnounce` は、
-`paper-plugin.yml` と互換用の `plugin.yml` の両方を出力しています。
+MoripaFishing 本体は Paper プラグイン (`paper-plugin.yml`) として配布しているため、アドオンも `paper-plugin.yml` で
+Core への必須依存を宣言します。こうすると Core が先に有効化されるため、`onEnable` からそのまま API を取得できます。
 
 ```yaml title="paper-plugin.yml"
 dependencies:
   server:
     MoripaFishing:
       load: BEFORE
-      required: false
-```
-
-```yaml title="plugin.yml"
-softdepend:
-  - MoripaFishing
-```
-
-依存を `required: false` / `softdepend` にしておくと、コア未導入のサーバーでもアドオンの読み込み自体は
-失敗しません。その代わり、有効化時にコアの存在を確認して自分を無効化する処理を入れてください。
-
-```kotlin
-override fun onEnable() {
-    if (MoripaFishingAPIProvider.getOrNull() == null) {
-        logger.warning("MoripaFishing is not installed; disabling this addon.")
-        server.pluginManager.disablePlugin(this)
-        return
-    }
-    // 以降で API を利用する初期化を行う
-}
+      required: true
 ```
 
 ## APIの取得
 
-APIの取得口は`MoripaFishingAPIProvider`です。コア（`MoripaFishing`）が有効化時に登録し、無効化時に解除します。
-プラグイン名でのキャスト（`getPlugin("MoripaFishing") as MoripaFishingAPI`）には依存しないでください。
+APIの取得口は`MoripaFishingAPIProvider`です。コア（`MoripaFishing`）は有効化時にAPIをBukkitの`ServicesManager`へ登録し、無効化時に解除します。`MoripaFishingAPIProvider`はその登録を引くだけの状態を持たないファサードです。
+プラグイン名でのキャスト（`getPlugin("MoripaFishing")`）には依存しないでください。
 
 ### Kotlin
 
@@ -135,13 +115,13 @@ val apiOrNull = MoripaFishingAPIProvider.getOrNull()
 import party.morino.moripafishing.api.MoripaFishingAPI;
 import party.morino.moripafishing.api.MoripaFishingAPIProvider;
 
-// Kotlin の object のため、Java からは INSTANCE 経由で呼び出します
-MoripaFishingAPI api = MoripaFishingAPIProvider.INSTANCE.get();
+// @JvmStatic のため、Java からも静的メソッドとして呼び出せます
+MoripaFishingAPI api = MoripaFishingAPIProvider.get();
 ```
 
 ### ServicesManager 経由の取得
 
-同じインスタンスがBukkitの`ServicesManager`にも登録されているため、そちらから取得することもできます。
+`MoripaFishingAPIProvider`と同じく、Bukkitの`ServicesManager`から直接取得することもできます。
 
 ```kotlin
 val api = Bukkit.getServicesManager().load(MoripaFishingAPI::class.java)
@@ -154,20 +134,22 @@ APIインスタンスから以下のマネージャーを取得できます。
 
 | マネージャー | メソッド | 説明 |
 |---|---|---|
-| `ConfigManager` | `getConfigManager()` | プラグイン設定の取得・変更 |
+| `ConfigManager` | `getConfigManager()` | プラグイン設定（`config.json`）の取得 |
 | `FishManager` | `getFishManager()` | 魚の登録・取得 |
+| `RarityManager` | `getRarityManager()` | レアリティの登録・取得 |
+| `FishDrawer` | `getFishDrawer()` | 魚の抽選 |
 | `WorldManager` | `getWorldManager()` | 釣り場ワールドの管理 |
-| `AnglerManager` | `getAnglerManager()` | つりびと（プレイヤー）データの管理 |
-| `RarityManager` | `getRarityManager()` | レアリティの管理 |
-| `RandomizeManager` | `getRandomizeManager()` | 魚のランダム化 |
-| `LogManager` | `getLogManager()` | ログ出力 |
-| `PluginDirectory` | `getPluginDirectory()` | プラグインディレクトリの取得 |
+| `AnglerManager` | `getAnglerManager()` | つりびと（プレイヤー）の取得 |
 
 主なマネージャーのメソッドは次のとおりです。
 
-- `FishManager`: `getFish()` / `getFishWithId(id)` / `getFishesWithRarity(rarity)` / `registerFish(fish)` / `unregisterFish(id)` / `loadFishes()` / `unloadFishes()`
+- `FishManager`: `getAll()` / `get(id)` / `getByRarity(rarity)` / `register(fish)` / `unregister(id)`
+- `RarityManager`: `getAll()` / `get(id)` / `register(rarity)` / `unregister(id)`
+- `FishDrawer`: `draw(worldId)` / `roll(fishData)`
 - `WorldManager`: `getDefaultWorldId()` / `getWorlds()` / `getWorld(id)` / `getWorldByKey(key)` / `getGeneratorIds()` / `createWorld(id, generatorId)` / `deleteWorld(id)` / `updateWorldConfig(config)` / `reload()`
-- `AnglerManager`: `getAnglerByMinecraftUniqueId(uuid)` / `getAnglerByAnglerUniqueId(anglerId)` / `getOnlineAnglers()`
+- `AnglerManager`: `getAngler(anglerId)` / `getOnlineAnglers()`
+
+`FishManager` / `RarityManager` の `register` は検証に失敗すると `IllegalArgumentException` を投げます。`register` で追加した定義は `/mf reload` で破棄されるため、必要なら `MoripaFishingReloadedEvent` で登録し直してください。
 
 `WorldManager` の取得系メソッドは任意のスレッドから呼べます。変更系 (`createWorld` / `deleteWorld` / `updateWorldConfig` / `reload`) はメインスレッドから呼んでください。
 独自の天候ソースは `ServicesManager` に登録します。詳細は [WeatherSource の登録](#weathersource-の登録) を参照してください。
@@ -178,7 +160,7 @@ APIインスタンスから以下のマネージャーを取得できます。
 
 ```kotlin
 val fishManager = api.getFishManager()
-val allFish = fishManager.getFish()
+val allFish = fishManager.getAll()
 allFish.forEach { fish ->
     // displayName は Map<Locale, String> なので、ロケールを指定して取り出す
     val name = fish.displayName[Locale.JAPAN] ?: fish.id.value
@@ -191,18 +173,26 @@ allFish.forEach { fish ->
 ```kotlin
 val fishManager = api.getFishManager()
 val rarityId = RarityId("legendary")
-val legendaryFish = fishManager.getFishesWithRarity(rarityId)
+val legendaryFish = fishManager.getByRarity(rarityId)
 ```
 
 ### つりびとの情報を取得する
 
+`AnglerId` はプレイヤーの Minecraft UUID そのもので、JSON では UUID 文字列になります。
+`getAngler` は存在確認をせずに常に `Angler` を返します。オフラインのつりびとでは `getWorld()` と `getLocation()` が `null` になります。
+
 ```kotlin
 val anglerManager = api.getAnglerManager()
-val angler = anglerManager.getAnglerByMinecraftUniqueId(player.uniqueId)
-angler?.let {
-    println("Name: ${it.getName()}")
-    println("World: ${it.getWorld()?.getId()?.value}")
-}
+val angler = anglerManager.getAngler(AnglerId(player.uniqueId))
+println("Name: ${angler.getName()}")
+println("World: ${angler.getWorld()?.getId()?.value}")
+```
+
+### 魚を抽選する
+
+```kotlin
+val fish = api.getFishDrawer().draw(FishingWorldId("default")) ?: return
+println("${fish.data.id.value} (${fish.rarity.id.value}): ${fish.size}cm, worth ${fish.worth}")
 ```
 
 ### ワールドの一覧を取得する
@@ -302,18 +292,18 @@ MoripaFishingは、釣果・ワールド・天候・設定に関するBukkitイ�
 
 | イベント | パッケージ | Cancellable | 発火タイミング |
 |---|---|---|---|
-| `AnglerFishCaughtEvent` | `event.fishing` | ✔ | 釣り上げの確定直前。キャンセルするとバニラの釣り上げごと取り消される。`setCaughtFish`で釣果を差し替え可能 |
-| `AnglerFishCaughtResultEvent` | `event.fishing` | ✘ | 釣り上げ処理の完了後。通知・記録などの副作用はこちらを購読する |
-| `AnglerJoinTeleportEvent` | `event.angler` | ✔ | 参加時テレポートの実行直前（WorldLifecycle Integration が発火）。`setDestination`で移動先を変更可能 |
-| `FishingWorldLoadEvent` | `event.world` | ✘ | 定義済みの釣りワールドの Bukkit ワールドがロードされ、状態の適用を終えた後（Bukkit の `WorldLoadEvent` に追従。サーバー起動時点でロード済みのワールドと、`/mf reload` で新たに定義されたロード済みのワールドにも発火） |
-| `FishingWorldUnloadEvent` | `event.world` | ✘ | 定義済みの釣りワールドの Bukkit ワールドのアンロード時（Bukkit の `WorldUnloadEvent` に追従。プラグイン無効化時には発火しない） |
-| `FishingWorldCreateEvent` | `event.world` | ✘ | `createWorld` の成功後（作成したワールドの `FishingWorldLoadEvent` の後） |
-| `FishingWorldDeleteEvent` | `event.world` | ✔ | `deleteWorld` による削除の直前。キャンセルで削除中止 |
-| `FishingWorldDeletedEvent` | `event.world` | ✘ | 削除の完了後（ロード済みだった場合は `FishingWorldUnloadEvent` の後） |
-| `FishingWorldWeatherChangeEvent` | `event.world` | ✘ | 魚の抽選条件に使う天候 (`getWeather()`) の変化時。常にメインスレッドで発火し、リフレッシュ間隔ごとに検知する。初回の観測では発火しない |
-| `ConfigReloadedEvent` | `event.config` | ✘ | `/mf reload`などによる設定再読み込みの完了後。設定由来の値をキャッシュしている場合はここで再取得する |
+| `AnglerFishCaughtEvent` | `api.event.fishing` | ✔ | 釣り上げの確定直前。キャンセルするとバニラの釣り上げごと取り消される。`setCaughtFish`で釣果を差し替え可能 |
+| `AnglerFishCaughtResultEvent` | `api.event.fishing` | ✘ | 釣り上げ処理の完了後。通知・記録などの副作用はこちらを購読する |
+| `AnglerJoinTeleportEvent` | `api.event.angler` | ✔ | 参加時テレポートの実行直前（WorldLifecycle Integration が発火）。`setDestination`で移動先を変更可能 |
+| `FishingWorldLoadEvent` | `api.event.world` | ✘ | 定義済みの釣りワールドの Bukkit ワールドがロードされ、状態の適用を終えた後（Bukkit の `WorldLoadEvent` に追従。サーバー起動時点でロード済みのワールドと、`/mf reload` で新たに定義されたロード済みのワールドにも発火） |
+| `FishingWorldUnloadEvent` | `api.event.world` | ✘ | 定義済みの釣りワールドの Bukkit ワールドのアンロード時（Bukkit の `WorldUnloadEvent` に追従。プラグイン無効化時には発火しない） |
+| `FishingWorldCreateEvent` | `api.event.world` | ✘ | `createWorld` の成功後（作成したワールドの `FishingWorldLoadEvent` の後） |
+| `FishingWorldDeleteEvent` | `api.event.world` | ✔ | `deleteWorld` による削除の直前。キャンセルで削除中止 |
+| `FishingWorldDeletedEvent` | `api.event.world` | ✘ | 削除の完了後（ロード済みだった場合は `FishingWorldUnloadEvent` の後） |
+| `FishingWorldWeatherChangeEvent` | `api.event.world` | ✘ | 魚の抽選条件に使う天候 (`getWeather()`) の変化時。常にメインスレッドで発火し、リフレッシュ間隔ごとに検知する。初回の観測では発火しない |
+| `MoripaFishingReloadedEvent` | `api.event` | ✘ | `/mf reload`で設定・ワールド・レアリティ・魚・翻訳の再読み込みがすべて完了した後。設定由来の値をキャッシュしている場合はここで再取得する |
 
-パッケージはいずれも`party.morino.moripafishing.`配下です（例: `party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent`）。
+パッケージはいずれも`party.morino.moripafishing.`配下です（例: `party.morino.moripafishing.api.event.fishing.AnglerFishCaughtEvent`）。
 
 ### AnglerFishCaughtEvent
 
@@ -321,7 +311,7 @@ MoripaFishingは、釣果・ワールド・天候・設定に関するBukkitイ�
 差し替えた釣果はアイテム化と後続の`AnglerFishCaughtResultEvent`に反映されます。
 
 ```kotlin
-import party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent
+import party.morino.moripafishing.api.event.fishing.AnglerFishCaughtEvent
 
 class MyListener : Listener {
     @EventHandler(ignoreCancelled = true)
@@ -354,7 +344,7 @@ class MyListener : Listener {
 アナウンスやログ記録などの副作用はこちらを購読してください。
 
 ```kotlin
-import party.morino.moripafishing.event.fishing.AnglerFishCaughtResultEvent
+import party.morino.moripafishing.api.event.fishing.AnglerFishCaughtResultEvent
 
 class MyListener : Listener {
     @EventHandler
@@ -365,22 +355,7 @@ class MyListener : Listener {
 }
 ```
 
-#### CaughtFish のフィールド
-
-| フィールド | 型 | 説明 |
-|---|---|---|
-| `uniqueId` | `UUID` | 釣果の一意ID |
-| `fish` | `FishId` | 魚のID |
-| `size` | `Double` | 魚のサイズ |
-| `rarity` | `RarityId` | レアリティID |
-| `worth` | `Double` | 魚の価値 |
-| `cfd` | `Double` | 累積分布関数（0〜1） |
-| `angler` | `AnglerId` | つりびとID |
-| `world` | `FishingWorldId` | 釣り場ワールドID |
-| `timestamp` | `ZonedDateTime` | 釣った日時 |
-
-`FishId` / `RarityId` / `FishingWorldId` はいずれも `value: String` を持つ単純な値型で、
-`kotlinx.serialization` に対応しています。表示名は `toTranslateKey()` が返す翻訳キーから解決してください。
+`CaughtFish` のフィールドは [CaughtFish](/docs/addons/caught-fish) を参照してください。
 
 ### ワールド関連のイベント
 
@@ -392,7 +367,7 @@ class MyListener : Listener {
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
+import party.morino.moripafishing.api.event.world.FishingWorldDeleteEvent
 
 class ProtectWorldListener : Listener {
     private val protected = setOf(FishingWorldId("protected_world"))
@@ -415,7 +390,7 @@ class ProtectWorldListener : Listener {
 テレポート自体を中止できるほか、`setDestination(LocationData)` で行き先を差し替えることもできます。
 
 ```kotlin
-import party.morino.moripafishing.event.angler.AnglerJoinTeleportEvent
+import party.morino.moripafishing.api.event.angler.AnglerJoinTeleportEvent
 
 @EventHandler
 fun onJoinTeleport(event: AnglerJoinTeleportEvent) {
@@ -429,10 +404,10 @@ fun onJoinTeleport(event: AnglerJoinTeleportEvent) {
 }
 ```
 
-### ConfigReloadedEvent
+### MoripaFishingReloadedEvent
 
-`/mf reload` などで設定が再読み込みされた直後に発火します。設定由来の値をキャッシュしている
-アドオンは、このイベントで再取得してください。
+`/mf reload` で設定・ワールド・レアリティ・魚・翻訳の再読み込みがすべて完了した後に、メインスレッドで発火します。
+設定由来の値をキャッシュしているアドオンや、API の `register` で魚・レアリティを追加しているアドオンは、このイベントで再取得・再登録してください。
 
 ## Dokka APIリファレンス
 

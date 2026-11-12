@@ -7,7 +7,7 @@ icon: Globe
 
 Core (`MoripaFishing`) に依存する公式 Integration。以下の機能を提供します。
 
-- **環境の適用** (`EnvironmentApplier`): Core が決めた時刻・ゲームルール `DO_DAYLIGHT_CYCLE`・ワールドボーダー・スポーン地点を Bukkit ワールドへ適用
+- **環境の適用** (`EnvironmentApplier`): Core が決めた時刻・ゲームルール `ADVANCE_TIME`・ワールドボーダー・スポーン地点を Bukkit ワールドへ適用
 - **ワールドの作成・アンロード** (`BukkitWorldLifecycle`): ジェネレーター定義を使った釣りワールドの作成と、削除時のアンロード
 - プレイヤーの **参加時テレポート**: 参加したプレイヤーを釣りワールドのスポーン地点へ移動
 
@@ -17,10 +17,10 @@ Core 自体は Bukkit ワールドへ一切書き込みません。本 Integrati
 
 ## 導入
 
-1. `plugins/` に Core と `world-lifecycle-<version>.jar` を配置する
+1. `plugins/` に Core とリリースの `MoripaFishing-world-lifecycle-<version>.jar` を配置する
    (プラグイン名は `MoripaFishing-Integration-WorldLifecycle`)。
 2. サーバーを起動する。本 Integration は Core に必須依存しているため
-   (`server("MoripaFishing", Load.BEFORE, required = true)` / `depend: [MoripaFishing]`)、Core の後にロードされます。
+   (`paper-plugin.yml` の `server("MoripaFishing", Load.BEFORE, required = true)`)、Core の後にロードされます。
    Core が無いと本 Integration は起動しません。
 3. 起動時に次のログが出ます。
 
@@ -37,7 +37,7 @@ Core 自体は Bukkit ワールドへ一切書き込みません。本 Integrati
 
 | 項目 | 適用内容 |
 |---|---|
-| `doDaylightCycle` | ゲームルール `DO_DAYLIGHT_CYCLE` に毎回書き込む |
+| `doDaylightCycle` | ゲームルール `ADVANCE_TIME` に毎回書き込む |
 | `time` | `null` でなければワールド時刻に設定する。`null` なら時刻に触れない |
 | `border` | `null` でなければワールドボーダーの中心とサイズを設定する。`null` ならボーダーに触れない |
 | `spawn` | ワールドのスポーン地点がブロック座標または向き (yaw) で異なる場合だけ設定する (Paper はスポーンをブロック単位で保持するため) |
@@ -125,7 +125,6 @@ onlyFirstJoin: false
 
 - `worldId` が未定義の場合は何もしません (設定ミスの典型例)
 - 対象の Bukkit ワールドがロードされていない場合も何もしません
-- 対象プレイヤーに対応する `Angler` が取得できない場合も何もしません
 - `join-teleport.yml` の読み込みに失敗した場合は警告を出して既定値で続行します
 - `enabled` が `false` の場合はリスナー自体を登録しません
 
@@ -139,7 +138,7 @@ class DaylightOnlyApplier : WorldStateApplier {
     override fun apply(state: WorldState) {
         // メインスレッドで呼ばれる。未ロードのワールドは無視する
         val world = Bukkit.getWorld(state.worldKey) ?: return
-        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, state.doDaylightCycle)
+        world.setGameRule(GameRules.ADVANCE_TIME, state.doDaylightCycle)
         // null は「変更しない」
         state.time?.let { world.time = it }
     }

@@ -1,0 +1,40 @@
+---
+title: 管理コマンド
+icon: Wrench
+---
+
+プラグイン全体を管理するコマンドです。
+
+export const commandList = [
+    {
+        command: "/mf reload",
+        description: "設定・ワールド・レアリティ・魚・翻訳を再読み込みします",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripafishing.command.reload",
+        status: "stable"
+    }
+];
+
+import { CommandList } from "@/components/commands/command-list";
+
+# コマンド
+
+<CommandList list={commandList} />
+
+## 再読み込みについて
+
+`/mf reload` は次の順に再読み込みを行います。
+
+1. メイン設定 (`config.json`)
+2. 各釣りワールドの設定と状態 (`world/`)
+3. レアリティ (`rarity/`)
+4. 魚 (`fish/`)
+5. 翻訳 (`translation/`)
+
+すべて完了すると `Reloaded MoripaFishing.` を返し、`MoripaFishingReloadedEvent` を発火します。
+
+`config.json` が不正な場合（未知のキー・不正な値など）は `Reload failed: <理由>` を返し、以前の設定のまま以降の再読み込みを行いません。詳細はサーバーログに出ます。
+レアリティ・魚・ワールドの不正なファイルは、警告をログに出してそのファイルだけをスキップし、再読み込み自体は続行します。
+
+API の `register` で追加した魚・レアリティは再読み込みで破棄されます。

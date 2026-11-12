@@ -16,7 +16,7 @@ class MoripaFishingWeatherPluginTest {
     @BeforeEach
     fun setUp() {
         server = MockBukkit.mock()
-        // plugin.yml の depend を満たすため、コアの代わりのプラグインを先に用意する
+        // paper-plugin.yml の必須依存 (MoripaFishing) を満たすため、コアの代わりのプラグインを先に用意する
         MockBukkit.createMockPlugin("MoripaFishing")
         plugin = MockBukkit.load(MoripaFishingWeatherPlugin::class.java)
     }

@@ -1,36 +1,20 @@
 {
   "$schema": "https://fishing.plugin.morino.party/schema/fish/v1.json",
   "id": "bigfin_reef_squid",
-  "catchCommands": [
-    "minecraft:effect give <angler> minecraft:blindness 5 1",
-    "tellraw <angler> {\\\"text\\\":\\\" イカがあなたにお祝いのスミを吐いた!\\\"}"
-  ],
-  "conditions": {
-    "weather": [],
-    "world": [],
-    "time": []
-  },
+  "rarity": "rare",
   "displayName": {
     "en_US": "Bigfin Reef Squid",
     "ja_JP": "アオリイカ"
   },
-  "icon": "",
-  "itemStack": {
+  "item": {
     "material": "COD",
-    "itemMeta": {
-      "customModelData": [
-        101.0
-      ]
-    }
+    "customModelData": [
+      101.0
+    ]
   },
   "size": {
     "min": 25.0,
     "max": 60.0
   },
-  "rarity": "rare",
-  "weight": 10.0,
-  "lore": {
-    "en_US": [],
-    "ja_JP": []
-  }
+  "weight": 10.0
 }

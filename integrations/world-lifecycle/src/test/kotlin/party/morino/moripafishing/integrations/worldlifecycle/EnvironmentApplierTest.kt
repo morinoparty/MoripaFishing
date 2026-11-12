@@ -1,7 +1,7 @@
 package party.morino.moripafishing.integrations.worldlifecycle
 
 import net.kyori.adventure.key.Key
-import org.bukkit.GameRule
+import org.bukkit.GameRules
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.WorldCreator
@@ -56,9 +56,9 @@ class EnvironmentApplierTest {
     @Test
     fun `daylight cycle gamerule follows the state`() {
         applier.apply(state(time = 6000L))
-        assertEquals(false, world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE))
+        assertEquals(false, world.getGameRuleValue(GameRules.ADVANCE_TIME))
         applier.apply(state(time = null))
-        assertEquals(true, world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE))
+        assertEquals(true, world.getGameRuleValue(GameRules.ADVANCE_TIME))
     }
 
     @Test

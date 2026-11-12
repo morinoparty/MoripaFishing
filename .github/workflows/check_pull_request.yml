@@ -40,7 +40,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test
 
-      # MoripaFishingLoader (paper-plugin.yml) と plugin.yml の libraries は、Paper がサーバー起動時に
+      # MoripaFishingLoader (paper-plugin.yml) が読み込むライブラリは、Paper がサーバー起動時に
       # Maven Central のミラー (Google) から取得する。ミラーへの反映は Maven Central より遅れるため、
       # 未反映のバージョンが入ると起動できなくなる
       - name: Check plugin libraries are available on Paper's Maven Central mirror

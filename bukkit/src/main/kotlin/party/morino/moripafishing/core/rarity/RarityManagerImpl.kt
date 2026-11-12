@@ -1,77 +1,58 @@
 package party.morino.moripafishing.core.rarity
 
-import kotlinx.serialization.json.Json
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import party.morino.moripafishing.api.config.PluginDirectory
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.rarity.RarityId
+import party.morino.moripafishing.config.readDefinitions
+import party.morino.moripafishing.core.fish.WorthFormula
+import java.io.File
+import java.util.logging.Logger
 
 /**
- * レアリティの管理を行う実装クラス
+ * `rarity/` 配下の JSON からレアリティを読み込む [RarityManager] の実装。
+ *
+ * 定義はコピーオンライトのマップで保持し、任意のスレッドから読める。生成時は I/O を行わない。
+ *
+ * @property directory レアリティの定義を置くディレクトリ
+ * @property logger 不正なファイルの警告の出力先
  */
-class RarityManagerImpl :
-    RarityManager,
-    KoinComponent {
-    private val rarities = arrayListOf<RarityData>()
-    private val pluginDirectory: PluginDirectory by inject()
+internal class RarityManagerImpl(
+    private val directory: File,
+    private val logger: Logger,
+) : RarityManager {
+    @Volatile
+    private var rarities: Map<RarityId, RarityData> = emptyMap()
 
-    init {
-        loadRarities()
+    /**
+     * 定義を読み直す。不正なファイルは警告してスキップする。[register] で追加した定義は破棄される。
+     */
+    @Synchronized
+    fun reload() {
+        rarities =
+            readDefinitions(directory, "rarity", logger, RarityData.serializer(), { it.id.value }, ::validate)
+                .associateBy { it.id }
+        logger.info("Loaded ${rarities.size} rarities")
     }
 
-    /**
-     * レアリティを登録する
-     * @param rarity 登録するレアリティ
-     */
-    override fun registerRarity(rarity: RarityData) {
-        rarities.add(rarity)
+    @Synchronized
+    override fun register(rarity: RarityData) {
+        validate(rarity)
+        rarities = LinkedHashMap(rarities).apply { put(rarity.id, rarity) }
     }
 
-    /**
-     * 登録されているレアリティを解除する
-     * @param id 解除するレアリティのID
-     * @return 解除した場合 true、登録されていなかった場合 false
-     */
-    override fun unregisterRarity(id: RarityId): Boolean = rarities.removeIf { it.id == id }
-
-    /**
-     * レアリティを取得する
-     * @param id レアリティのID
-     * @return レアリティ
-     */
-    override fun getRarity(id: RarityId): RarityData? = rarities.find { it.id == id }
-
-    /**
-     * 登録されているレアリティの一覧を取得する
-     * @return レアリティの一覧
-     */
-    override fun getRarities(): List<RarityData> = rarities.toList()
-
-    /**
-     * レアリティを読み込む
-     */
-    override fun loadRarities() {
-        val rarityDir = pluginDirectory.getRarityDirectory()
-        if (!rarityDir.exists()) {
-            rarityDir.mkdirs()
-        }
-
-        val json =
-            Json {
-                ignoreUnknownKeys = true
-                prettyPrint = true
-                encodeDefaults = true
-                isLenient = true
-            }
-        rarityDir.listFiles { file -> file.extension == "json" }?.forEach { file ->
-            val rarity = json.decodeFromString<RarityData>(file.readText())
-            registerRarity(rarity)
-        }
+    @Synchronized
+    override fun unregister(id: RarityId): Boolean {
+        if (id !in rarities) return false
+        rarities = LinkedHashMap(rarities).apply { remove(id) }
+        return true
     }
 
-    override fun unloadRarities() {
-        rarities.clear()
+    override fun get(id: RarityId): RarityData? = rarities[id]
+
+    override fun getAll(): List<RarityData> = rarities.values.toList()
+
+    /** 価値式を検証する。不正なら `IllegalArgumentException` を投げる。 */
+    private fun validate(rarity: RarityData) {
+        WorthFormula(rarity.worth)
     }
 }

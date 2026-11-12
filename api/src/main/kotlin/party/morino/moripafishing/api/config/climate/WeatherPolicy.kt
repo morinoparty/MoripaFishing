@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.key.Key
 import party.morino.moripafishing.api.model.world.WeatherType
-import party.morino.moripafishing.api.utils.serializer.KeySerializer
+import party.morino.moripafishing.api.serialization.KeySerializer
 
 /**
  * 釣りワールドの天候の決め方。JSON では `type` で種類を指定する。
@@ -23,13 +23,7 @@ sealed interface WeatherPolicy {
     @Serializable
     @SerialName("random")
     data class Random(
-        val weights: Map<WeatherType, Int> =
-            mapOf(
-                WeatherType.SUNNY to 4,
-                WeatherType.CLOUDY to 1,
-                WeatherType.RAINY to 2,
-                WeatherType.THUNDERSTORM to 1,
-            ),
+        val weights: Map<WeatherType, Int> = DEFAULT_WEIGHTS,
         val intervalHours: Int = 8,
         val offsetHours: Int = 0,
         val maxInclination: Int = 30,
@@ -40,7 +34,7 @@ sealed interface WeatherPolicy {
                 "weights must be non-empty, non-negative and have a positive sum: $weights"
             }
             require(intervalHours > 0) { "intervalHours must be positive: $intervalHours" }
-            require(maxInclination in 1..100) { "maxInclination must be in 1..100: $maxInclination" }
+            require(maxInclination in 1..MAX_INCLINATION) { "maxInclination must be in 1..100: $maxInclination" }
         }
     }
 
@@ -56,7 +50,7 @@ sealed interface WeatherPolicy {
     ) : WeatherPolicy
 
     /**
-     * バニラの天候を読み取り、魚の条件にのみ使う。ワールドの天候は変更させない (`DO_WEATHER_CYCLE = true`)。
+     * バニラの天候を読み取り、魚の条件にのみ使う。ワールドの天候は変更させない (`ADVANCE_WEATHER = true`)。
      */
     @Serializable
     @SerialName("vanilla")
@@ -75,3 +69,14 @@ sealed interface WeatherPolicy {
         val source: Key,
     ) : WeatherPolicy
 }
+
+private const val MAX_INCLINATION = 100
+
+/** 既定の天候の重み (晴れ 4 : 曇り 1 : 雨 2 : 雷雨 1)。 */
+private val DEFAULT_WEIGHTS =
+    mapOf(
+        WeatherType.SUNNY to 4,
+        WeatherType.CLOUDY to 1,
+        WeatherType.RAINY to 2,
+        WeatherType.THUNDERSTORM to 1,
+    )

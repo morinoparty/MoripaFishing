@@ -67,7 +67,7 @@ jobs:
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
-      - name: change plugin.yml version
+      - name: Set project version
         run: |
           sed -i "s/VersionPlaceholder/${{ env.COMMIT_SHORT_SHA }}/" ./gradle.properties
 
@@ -112,17 +112,12 @@ jobs:
           mkdir -p ./gradle-artifacts/junit
           mkdir -p ./gradle-artifacts/detekt
           mkdir -p ./gradle-artifacts/allure
-          mv ./bukkit/build/libs/bukkit-*-all.jar "./gradle-artifacts/jars/${PROJECT_NAME}-bukkit-${SHA}.jar"
+          mv ./bukkit/build/libs/bukkit-${SHA}.jar "./gradle-artifacts/jars/${PROJECT_NAME}-bukkit-${SHA}.jar"
           mv ./api/build/libs/api-${SHA}.jar "./gradle-artifacts/jars/${PROJECT_NAME}-api-${SHA}.jar"
           # 統合/アドオンモジュールの jar は自動収集する。新しい integration/addon を追加しても
-          # ここを編集せずにアーティファクト・コメント表へ自動的に増える。-api の SPI 専用モジュールは
-          # 配布物ではないため除外する。
+          # ここを編集せずにアーティファクト・コメント表へ自動的に増える。
           for dir in ./integrations/*/ ./addons/*/; do
             [ -d "$dir" ] || continue
-            base="$(basename "$dir")"
-            case "$base" in
-              *-api) continue ;;
-            esac
             for jar in "$dir"build/libs/*-${SHA}.jar; do
               [ -e "$jar" ] || continue
               mv "$jar" "./gradle-artifacts/jars/${PROJECT_NAME}-$(basename "$jar")"
@@ -154,7 +149,30 @@ jobs:
           else
             echo "No JUnit reports found"
           fi
-          cp -r ./build/reports/detekt/* ./gradle-artifacts/detekt/ || echo "No Detekt reports found"
+          # detekt はモジュールごとに実行されるため、JUnit と同じくモジュール名のサブフォルダへ集約する。
+          found_detekt=false
+          while IFS= read -r report; do
+            module_path="${report#./}"
+            module="${module_path%%/build/reports/detekt}"
+            module="${module//\//-}"
+            mkdir -p "./gradle-artifacts/detekt/${module}"
+            cp -r "${report}/." "./gradle-artifacts/detekt/${module}/"
+            found_detekt=true
+          done < <(find . -type d -path '*/build/reports/detekt' -not -path '*/gradle-artifacts/*')
+          if [ "$found_detekt" = true ]; then
+            {
+              echo '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>Detekt Reports</title></head><body>'
+              echo '<h1>Detekt Reports</h1><ul>'
+              for dir in ./gradle-artifacts/detekt/*/; do
+                [ -d "$dir" ] || continue
+                name="$(basename "$dir")"
+                echo "<li><a href=\"./${name}/detekt.html\">${name}</a></li>"
+              done
+              echo '</ul></body></html>'
+            } > ./gradle-artifacts/detekt/index.html
+          else
+            echo "No Detekt reports found"
+          fi
           cp -r ./build/allure-report/* ./gradle-artifacts/allure/ || echo "No Allure reports found"
 
       # GitHub Attestations で署名
@@ -360,7 +378,7 @@ jobs:
         env:
           JUNIT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/junit/index.html"
           ALLURE_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/allure/index.html"
-          DETEKT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/detekt/detekt.html"
+          DETEKT_REPORT_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/detekt/index.html"
           DOCS_PREVIEW_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/docs/index.html"
           DOKKA_URL: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/docs/dokka/index.html"
           ATTESTATION_URL: "${{ needs.build-gradle.outputs.attestation_url }}"

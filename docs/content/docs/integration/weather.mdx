@@ -6,12 +6,12 @@ icon: CloudRain
 # MoripaFishing-Integration-Weather
 
 Core (`MoripaFishing`) に依存する公式 Integration。
-Core が決めた **天候とゲームルール `DO_WEATHER_CYCLE`** を釣りワールドへ適用する。
+Core が決めた **天候とゲームルール `ADVANCE_WEATHER`** を釣りワールドへ適用する。
 
 Core は天候を **決定** するだけで、Bukkit ワールドへは書き込まない。
 本 Integration は `WorldStateApplier` (`WeatherApplier`) を `ServicesManager` に登録し、
 Core から届く `WorldState` のうち `weather` と `doWeatherCycle` だけを適用する。
-時刻・`DO_DAYLIGHT_CYCLE`・スポーン・ボーダーは [WorldLifecycle](/docs/integration/world-lifecycle) が担う。
+時刻・`ADVANCE_TIME`・スポーン・ボーダーは [WorldLifecycle](/docs/integration/world-lifecycle) が担う。
 
 仕組みの全体像は [Integration とは](/docs/integration/overview) を参照してほしい。
 
@@ -28,7 +28,7 @@ Core から届く `WorldState` のうち `weather` と `doWeatherCycle` だけ�
 
 `FOGGY` と `SNOWY` は Bukkit の天候で表現できないため、晴れとして適用する。
 
-## `DO_WEATHER_CYCLE`
+## `ADVANCE_WEATHER`
 
 `WorldState.doWeatherCycle` の値を、状態が届くたびにそのまま書き込む。
 値は Core が決め、ワールドへ天候を適用させるとき (`weather` が `null` でないとき) は `false`、
@@ -64,7 +64,7 @@ Core から届く `WorldState` のうち `weather` と `doWeatherCycle` だけ�
 
 ## 導入
 
-1. `plugins/` に Core とリリースの `weather-<version>.jar` を配置する
+1. `plugins/` に Core とリリースの `MoripaFishing-weather-<version>.jar` を配置する
    (プラグイン名は `MoripaFishing-Integration-Weather`)。
 2. サーバーを起動する。本 Integration は Core に必須依存しているため、Core の後にロードされる。
    Core が無いと本 Integration は起動しない。
@@ -79,4 +79,4 @@ Core から届く `WorldState` のうち `weather` と `doWeatherCycle` だけ�
 ## 未導入時の Core の振る舞い
 
 天候は Core が決め続けるため、本 Integration が無くても魚の抽選条件には天候が反映され、
-`FishingWorldWeatherChangeEvent` も発火する。ワールドの嵐・雷・`DO_WEATHER_CYCLE` は変更されない。
+`FishingWorldWeatherChangeEvent` も発火する。ワールドの嵐・雷・`ADVANCE_WEATHER` は変更されない。

@@ -1,16 +1,15 @@
 package party.morino.moripafishing.api.model.angler
 
 import kotlinx.serialization.Serializable
-import party.morino.moripafishing.api.utils.serializer.UUIDSerializer
+import party.morino.moripafishing.api.serialization.AnglerIdSerializer
 import java.util.UUID
 
 /**
- * 釣り人のIDを表すデータクラス
- * @property uuid プレイヤーのUUID
+ * 釣り人の ID。プレイヤーの Minecraft UUID と同一で、JSON では UUID 文字列になる。
+ *
+ * @property value プレイヤーの UUID
  */
-@Serializable
+@Serializable(with = AnglerIdSerializer::class)
 data class AnglerId(
-    val uuid:
-        @Serializable(with = UUIDSerializer::class)
-        UUID,
+    val value: UUID,
 )

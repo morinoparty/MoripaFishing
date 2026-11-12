@@ -2,15 +2,7 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, World!
-
 tasks:
-  default:
-    cmds:
-      - echo "{{.GREETING}}"
-    silent: true
-
   docs:
     dir: docs
     cmds:
@@ -20,9 +12,12 @@ tasks:
 
   check:
     cmds:
-      - ./gradlew clean ktlintFormat
-      - ./gradlew clean detekt
-      - ./gradlew clean test
+      - ./gradlew check
+    silent: true
+
+  fmt:
+    cmds:
+      - ./gradlew ktlintFormat
     silent: true
 
   build:
@@ -35,10 +30,6 @@ tasks:
       - ./gradlew clean runServer
     silent: true
 
-  commit:
-    cmds:
-      - task format
-      - pnpm dlx git-cz
   dokka:
     cmds:
       - ./gradlew clean dokkaGenerate
