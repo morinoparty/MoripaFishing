@@ -60,7 +60,7 @@ tasks {
         }
     }
     runServer {
-        minecraftVersion("26.2")
+        minecraftVersion("26.3")
         val plugins =
             runPaper.downloadPluginsSpec {
                 modrinth("terra", "6.6.5-BETA-bukkit")
@@ -78,7 +78,7 @@ sourceSets.main {
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
-            apiVersion = "26.2"
+            apiVersion = "26.3"
             bootstrapper = "$group.moripafishing.MoripaFishingBootstrap"
             loader = "$group.moripafishing.MoripaFishingLoader"
         }
