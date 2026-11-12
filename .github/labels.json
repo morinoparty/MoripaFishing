@@ -67,11 +67,26 @@
   {
     "name": "dependencies",
     "color": "#5319E7",
-    "description": "種別: セキュリティアップデート"
+    "description": "種別: 依存関係の更新"
   },
   {
     "name": "not-reviewed",
     "color": "#F9C1CF",
     "description": "未レビュー"
+  },
+  {
+    "name": "breaking",
+    "color": "#B60205",
+    "description": "種別: 破壊的変更（開発中はマイナーバージョンを上げる）"
+  },
+  {
+    "name": "security",
+    "color": "#EE0701",
+    "description": "種別: セキュリティ関連"
+  },
+  {
+    "name": "skip-changelog",
+    "color": "#EDEDED",
+    "description": "リリースノートに載せない"
   }
 ]
