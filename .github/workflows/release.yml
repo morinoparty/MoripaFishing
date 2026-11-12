@@ -3,20 +3,23 @@ name: Release Drafter
 on:
   push:
     branches:
-      - master
       - main
+  # PR タイトル・ブランチ名・変更ファイルからラベルを付ける（autolabeler）
+  pull_request:
+    types: [ opened, reopened, synchronize, edited ]
 
 permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: release-drafter
-  cancel-in-progress: false
-
 jobs:
+  # main への push ではドラフトリリースだけを更新する
   release-drafter:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-drafter
+      cancel-in-progress: false
     steps:
       # GitHub side sometimes hasn't finished associating the just-merged commit with its
       # pull request yet when this push event fires, which makes release-drafter skip that
@@ -25,5 +28,14 @@ jobs:
       - uses: release-drafter/release-drafter@4d75298e00d9e34c483e5ff8c68d0ea1c1940c1e # v7.5.1
         with:
           publish: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # PR ではラベル付けだけを行う
+  autolabeler:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter/autolabeler@4d75298e00d9e34c483e5ff8c68d0ea1c1940c1e # v7.5.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
