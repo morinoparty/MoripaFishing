@@ -54,15 +54,17 @@ icon: Globe
 
 設定ファイルが存在しないワールドの詳細設定を取得した場合は、`id`にそのワールドID、`name`にデフォルトロケールをキーとしたワールドIDの文字列を持つ設定が返されます。
 
-## ワールドボーダーの適用について
+## ワールドボーダーとスポーン地点の適用について
 
 `enableBorder`が`true`であっても、ワールドボーダーの実際の適用は WorldLifecycle Integration を経由して行われます。Integration が導入されていない環境では、`borderSize`と`borderCentral`はファイルに保存されるものの、ゲーム内のワールドボーダーには反映されません。
+
+`spawnLocation`も同様です。`/mf world config set spawn`などで変更した値はファイルに保存されますが、Bukkit ワールドのスポーン地点への反映は WorldLifecycle Integration が導入されている場合にのみ行われます。
 
 ## ワールドの作成と削除
 
 ワールドの作成と削除はプラグイン側で行います。`/mf world create` を実行すると、定義ファイルの生成と Bukkit ワールドの作成が行われ、新規作成時には `FishingWorldCreateEvent` が発火します。削除時にはワールドのアンロードと定義ファイルの削除が行われ、`FishingWorldDeleteEvent` が発火します。このイベントはキャンセル可能で、キャンセルされた場合は削除処理が中断されます。
 
-なお、ワールドの作成には WorldLifecycle Integration の導入が前提となります。削除については Integration を必要としません。
+なお、ワールドの作成と削除には WorldLifecycle Integration の導入が前提となります。削除時のワールドのアンロードも Integration が行うため、未導入の環境では削除は行われず（`FishingWorldDeleteEvent`も発火しません）、`deleteWorld`は`false`を返します。
 
 ## 関連する `config.json` の設定
 
@@ -70,5 +72,5 @@ icon: Globe
 
 - `defaultId`: デフォルトのワールドID（デフォルト: `default`）
 - `defaultWorldSize`: `borderSize`が`null`のときに使用されるサイズ（デフォルト: `100.0`）
-- `defaultTimeZone`: ワールドの時刻同期に使用するタイムゾーン（デフォルト: `Asia/Tokyo`）
+- `defaultTimeZone`: ワールドの時刻同期に使用するタイムゾーン（デフォルト: `Asia/Tokyo`）。時刻の適用には WorldLifecycle Integration が必要です
 - `refreshInterval`: 全ワールドの状態を定期的に更新する間隔を秒単位で指定します（デフォルト: `60`）

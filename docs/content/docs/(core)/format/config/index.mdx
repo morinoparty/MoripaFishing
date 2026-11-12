@@ -61,7 +61,7 @@ icon: FileCog
 
 `defaultClimateConfig`は`null`を許容しません。省略した場合も自動生成時にはすべての項目が展開された状態で書き出されます。個別のワールドで`climateConfig`が指定されている場合はそちらが優先され、未指定のワールドではこの設定がフォールバックとして使用されます。
 
-`refreshInterval`は天候や時間を同期するワールド更新処理のループ間隔として使われ、内部では秒からティック（1秒 = 20ティック）に換算されます。
+`refreshInterval`は天候や時間を同期するワールド更新処理のループ間隔として使われ、内部では秒からティック（1秒 = 20ティック）に換算されます。Core はこのループで値を決定するだけで、実際の Bukkit ワールドへの適用は各 Integration（[Weather](/docs/integration/weather) / [WorldLifecycle](/docs/integration/world-lifecycle)）が行います。
 
 :::warning[注意]
 `defaultTimeZone`の値はそのままIANAタイムゾーンIDとして解決されるため、不正な文字列を指定すると天候計算やワールド更新の実行時に例外が発生します。

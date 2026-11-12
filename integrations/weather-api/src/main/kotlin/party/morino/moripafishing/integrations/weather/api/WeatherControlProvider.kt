@@ -4,7 +4,8 @@ package party.morino.moripafishing.integrations.weather.api
  * 釣りワールドの天候を実際に Bukkit ワールドへ適用する破壊的処理を提供する SPI。
  *
  * MoripaFishing 本体はこのプロバイダーが登録されている場合のみ天候をワールドに適用する。
- * プロバイダー未登録時は天候の適用はスキップされ、コアはワールドを改変しない
+ * 天候 (`setStorm` / `isThundering`) に加え、ゲームルール `DO_WEATHER_CYCLE` の変更も本 SPI が担う。
+ * プロバイダー未登録時は天候・ゲームルールの適用はスキップされ、コアはワールドを改変しない
  * (天候の決定・参照は引き続きコアが担う)。
  *
  * 本 SPI は **Integration** パターンとして提供され、通常は別 jar
@@ -45,4 +46,24 @@ interface WeatherControlProvider {
      * @param worldKey 対象 Bukkit ワールドのキー文字列 (例: `moripafishing:default`)
      */
     fun resetWeather(worldKey: String)
+
+    /**
+     * 指定された釣りワールドのバニラ天候サイクル (ゲームルール `DO_WEATHER_CYCLE`) を設定する。
+     *
+     * コアは `ClimateConfig.applyWeatherEffects` が有効な場合、天候ソースの
+     * `usesVanillaWeatherCycle` に従った値を渡す。`applyWeatherEffects` を無効化した際は、
+     * ワールドデータに強制値が残らないよう一度だけ `true` (バニラ既定値) を渡す。
+     *
+     * 既定実装は何もしない。本メソッドを持たない旧版の実装との互換性のためであり、
+     * 実装側はゲームルールを変更する場合にオーバーライドする。
+     *
+     * @param worldKey 対象 Bukkit ワールドのキー文字列 (例: `moripafishing:default`)
+     * @param enabled バニラの天候サイクルを有効にする場合 `true`
+     */
+    fun setWeatherCycle(
+        worldKey: String,
+        enabled: Boolean,
+    ) {
+        // 既定では何もしない
+    }
 }

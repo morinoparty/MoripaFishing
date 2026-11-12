@@ -1,5 +1,6 @@
 package party.morino.moripafishing.integrations.weather
 
+import org.bukkit.GameRule
 import org.bukkit.NamespacedKey
 import org.bukkit.WorldCreator
 import org.junit.jupiter.api.AfterEach
@@ -90,5 +91,25 @@ class MoripaFishingWeatherPluginTest {
         tick()
         assertFalse(world.hasStorm())
         assertFalse(world.isThundering)
+    }
+
+    @Test
+    fun `setWeatherCycle updates the weather cycle gamerule`() {
+        plugin.setWeatherCycle(worldKey, false)
+        tick()
+        assertEquals(false, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
+
+        plugin.setWeatherCycle(worldKey, true)
+        tick()
+        assertEquals(true, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
+    }
+
+    @Test
+    fun `setWeatherCycle ignores unknown worlds`() {
+        plugin.setWeatherCycle(worldKey, false)
+        tick()
+        plugin.setWeatherCycle("moripafishing:missing", true)
+        tick()
+        assertEquals(false, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
     }
 }

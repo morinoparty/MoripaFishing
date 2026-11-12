@@ -6,7 +6,10 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import org.bukkit.Bukkit
+import org.bukkit.GameRule
+import org.bukkit.Location
 import org.bukkit.NamespacedKey
+import org.bukkit.World
 import org.bukkit.WorldCreator
 import org.bukkit.WorldType
 import org.bukkit.plugin.java.JavaPlugin
@@ -19,7 +22,13 @@ import java.io.File
  * MoripaFishing の WorldLifecycle Integration プラグイン。
  *
  * コア側の `MoripaFishing` (softdepend) が Bukkit の `PluginManager` 経由で本プラグインを
- * `WorldLifecycleProvider` として検出・利用する。
+ * `WorldLifecycleProvider` として検出・利用する。本プラグインが釣りワールドの
+ * ワールドボーダー、ゲームルール `DO_DAYLIGHT_CYCLE`、時刻、スポーンの適用と、
+ * ワールドの作成・アンロードを担うことで、コア単体では Bukkit ワールドを改変しない構成を実現する。
+ *
+ * `applyBorder` / `setDaylightCycle` / `setTime` / `setSpawnLocation` はコアの非同期リフレッシュループからも
+ * 呼ばれるため、ワールド改変は `BukkitScheduler.runTask` でメインスレッドへ委譲する。
+ * `createBukkitWorld` / `unloadBukkitWorld` は結果を同期的に返すため、メインスレッドから呼び出す必要がある。
  *
  * プラグイン自体はコアに依存しないため、単体でも無害にロードされる。
  */
@@ -109,7 +118,7 @@ open class MoripaFishingWorldLifecyclePlugin :
         centerZ: Double,
         size: Double,
     ) {
-        val world = NamespacedKey.fromString(worldKey)?.let { Bukkit.getWorld(it) } ?: return
+        val world = resolveWorld(worldKey) ?: return
         Bukkit.getScheduler().runTask(
             this,
             Runnable {
@@ -118,6 +127,67 @@ open class MoripaFishingWorldLifecyclePlugin :
             },
         )
     }
+
+    override fun setDaylightCycle(
+        worldKey: String,
+        enabled: Boolean,
+    ) {
+        val world = resolveWorld(worldKey) ?: return
+        Bukkit.getScheduler().runTask(
+            this,
+            Runnable {
+                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, enabled)
+            },
+        )
+    }
+
+    override fun setTime(
+        worldKey: String,
+        time: Long,
+    ) {
+        val world = resolveWorld(worldKey) ?: return
+        Bukkit.getScheduler().runTask(
+            this,
+            Runnable {
+                world.time = time
+            },
+        )
+    }
+
+    override fun setSpawnLocation(
+        worldKey: String,
+        x: Double,
+        y: Double,
+        z: Double,
+        yaw: Float,
+        pitch: Float,
+    ) {
+        val world = resolveWorld(worldKey) ?: return
+        Bukkit.getScheduler().runTask(
+            this,
+            Runnable {
+                world.spawnLocation = Location(world, x, y, z, yaw, pitch)
+            },
+        )
+    }
+
+    /**
+     * ワールドをアンロードする。結果を同期的に返すため、メインスレッドからのみ実行する。
+     * メインスレッド以外から呼ばれた場合はアンロードせずに `false` を返す。
+     */
+    override fun unloadBukkitWorld(
+        worldKey: String,
+        save: Boolean,
+    ): Boolean {
+        val world = resolveWorld(worldKey) ?: return false
+        if (!Bukkit.isPrimaryThread()) {
+            logger.warning("unloadBukkitWorld($worldKey) must be called on the main thread; skipped.")
+            return false
+        }
+        return Bukkit.unloadWorld(world, save)
+    }
+
+    private fun resolveWorld(worldKey: String): World? = NamespacedKey.fromString(worldKey)?.let { Bukkit.getWorld(it) }
 
     override fun createBukkitWorld(
         worldKey: String,

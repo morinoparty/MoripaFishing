@@ -272,6 +272,10 @@ Integration とアドオンが別々の classloader に読み込まれても型�
 | `getGenerator(id)` | 登録済みジェネレーターを取得する（未登録なら `null`） |
 | `listGenerators()` | 登録済みジェネレーターの一覧を取得する |
 | `addGenerator(generator)` | ジェネレーターを登録する |
+| `setDaylightCycle(worldKey, enabled)` | ゲームルール `DO_DAYLIGHT_CYCLE` を設定する（既定実装は何もしない） |
+| `setTime(worldKey, time)` | ワールド時刻を設定する（既定実装は何もしない） |
+| `setSpawnLocation(worldKey, x, y, z, yaw, pitch)` | Bukkit ワールドのスポーン地点を設定する（既定実装は何もしない） |
+| `unloadBukkitWorld(worldKey, save)` | Bukkit ワールドをアンロードする。メインスレッドから呼び出す（既定実装は `false` を返す） |
 
 天候適用の `WeatherControlProvider`（`moripafishing-weather-api`）も同様に `MoripaFishingAPI` には
 公開されておらず、`MoripaFishing-Integration-Weather` プラグインを直接キャストして取得します。
@@ -289,7 +293,7 @@ import party.morino.moripafishing.api.core.world.weather.WeatherSource
 class MyWeatherSource : WeatherSource {
     override val key: Key = Key.key("myplugin", "realistic")
 
-    // true の場合、コアが決定した天候をワールドに適用し DO_WEATHER_CYCLE を制御する
+    // true の場合、コアが決定した天候をワールドに適用し DO_WEATHER_CYCLE を制御する (Weather Integration 導入時)
     override val managesWorldWeather: Boolean = true
 
     // true の場合、バニラの天候サイクル (DO_WEATHER_CYCLE) を有効に保つ

@@ -54,12 +54,16 @@ icon: CloudRain
 
 ゲームルール `DO_WEATHER_CYCLE` は `WeatherSource.usesVanillaWeatherCycle` に従って設定されます。これが `true` になるのは `moripafishing:vanilla` のみで、サードパーティのソースを含むそれ以外のソースでは `false` になります。
 
+:::info
+天候と `DO_WEATHER_CYCLE` を実際に Bukkit ワールドへ適用するのは [Weather Integration](/docs/integration/weather) です。Core は値を決定するだけで、ワールドには書き込みません。Integration が未導入の場合、天候は魚の抽選条件にのみ使用され、ワールドの天候と `DO_WEATHER_CYCLE` は変更されません。
+:::
+
 ### applyWeatherEffects
 
 決定した天候を Bukkit ワールドへ実際に反映するかどうかを指定します（デフォルト: `true`）。
 
 - `true`: `managesWorldWeather` が `true` のソース（`moripafishing:internal` など）が決定した天候をワールドに適用し、`DO_WEATHER_CYCLE` をソースに応じて制御します
-- `false`: MoripaFishing はワールドの天候と `DO_WEATHER_CYCLE` を一切変更しません。天候は魚の抽選条件にのみ使用され、見た目の天候はバニラや他プラグインに委ねられます
+- `false`: MoripaFishing はワールドの天候と `DO_WEATHER_CYCLE` を変更しません。天候は魚の抽選条件にのみ使用され、見た目の天候はバニラや他プラグインに委ねられます。ただし `true` から `false` へ切り替えた直後は、過去に設定した `false` がワールドデータに残らないよう `DO_WEATHER_CYCLE` を一度だけ `true` に戻します
 
 天候カレンダー（`weather` の設定）は `false` でも動作し続けるため、「抽選条件は内蔵ランダマイザーで決めつつ、演出は別プラグインに任せる」構成をワールド単位で実現できます。
 
@@ -87,6 +91,8 @@ icon: CloudRain
 
 - `true`: `DO_DAYLIGHT_CYCLE`を`false`に設定し、プラグインがリアルタイム同期または固定時間を管理します（従来の動作）
 - `false`: `DO_DAYLIGHT_CYCLE`を`true`に設定し、バニラの昼夜サイクルに委ねます。`constant.dayCycle`や`dayCycle`の設定は無視されます
+
+時刻と `DO_DAYLIGHT_CYCLE` を実際に Bukkit ワールドへ適用するのは [WorldLifecycle Integration](/docs/integration/world-lifecycle) です。Integration が未導入の場合、この設定に関わらずワールドの時刻と `DO_DAYLIGHT_CYCLE` は変更されません。
 
 :::info
 この設定はワールドの状態更新（デフォルト60秒間隔）ごとに再評価されるため、`/mf reload`後に自動で反映されます。

@@ -17,6 +17,7 @@ import party.morino.moripafishing.event.world.FishingWorldDeletedEvent
 import party.morino.moripafishing.event.world.FishingWorldLoadEvent
 import party.morino.moripafishing.event.world.FishingWorldUnloadEvent
 import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
+import party.morino.moripafishing.utils.IntegrationCall
 import party.morino.moripafishing.utils.Utils
 
 @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
@@ -189,16 +190,35 @@ class WorldManagerImpl :
         return createWorld(fishingWorldId, generator)
     }
 
+    /**
+     * 釣りワールドを削除する。
+     *
+     * Bukkit ワールドのアンロードは WorldLifecycle Integration に委ねる。未導入時は
+     * `createWorld` と同様に warning を出して `false` を返す (イベントも発火しない)。
+     * アンロード結果を同期的に受け取るため、メインスレッドから呼び出すこと。
+     */
     override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
-        val world = Bukkit.getWorld(fishingWorldId.toWorldKey()) ?: return false
+        if (Bukkit.getWorld(fishingWorldId.toWorldKey()) == null) return false
+        val provider =
+            plugin.getWorldLifecycleProvider() ?: run {
+                plugin.logger.warning(
+                    "deleteWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
+                )
+                return false
+            }
         val event = FishingWorldDeleteEvent(fishingWorldId)
         if (!event.callEvent()) {
             plugin.logger.info("deleteWorld(${fishingWorldId.value}) was cancelled by an event handler.")
             return false
         }
-        if (!Bukkit.unloadWorld(world, false)) {
+        val unloaded =
+            IntegrationCall.call(plugin.logger, "WorldLifecycleProvider.unloadBukkitWorld", false) {
+                provider.unloadBukkitWorld(fishingWorldId.toWorldKey().asString(), false)
+            }
+        if (!unloaded) {
             plugin.logger.warning(
-                "deleteWorld(${fishingWorldId.value}) aborted: Bukkit.unloadWorld failed (players still in the world?).",
+                "deleteWorld(${fishingWorldId.value}) aborted: the world could not be unloaded " +
+                    "(players still in the world, called off the main thread, or outdated integration?).",
             )
             return false
         }

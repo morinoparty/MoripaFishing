@@ -1,13 +1,8 @@
 package party.morino.moripafishing.core.world
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.decodeFromStream
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
-import org.bukkit.GameRule
-import org.bukkit.World
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import party.morino.moripafishing.MoripaFishing
@@ -25,12 +20,20 @@ import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.core.world.weather.WeatherSourceRegistry
 import party.morino.moripafishing.event.world.FishingWorldWeatherChangeEvent
+import party.morino.moripafishing.utils.IntegrationCall
 import party.morino.moripafishing.utils.Utils
-import party.morino.moripafishing.utils.coroutines.minecraft
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * [FishingWorld] のコア実装。
+ *
+ * コアは天候・時刻・ゲームルール値などを「決定」するだけで、Bukkit ワールドへの書き込みは一切行わない。
+ * 決定した値の適用は Integration (`WeatherControlProvider` / `WorldLifecycleProvider`) に委ね、
+ * 未導入の場合は適用をスキップする。これにより、コアのみを導入したサーバーでは
+ * ワールドの天候・時刻・ゲームルール・スポーン・ボーダーが変更されない。
+ */
 @kotlinx.serialization.ExperimentalSerializationApi
 class FishingWorldImpl(
     private val worldId: FishingWorldId,
@@ -74,7 +77,7 @@ class FishingWorldImpl(
     private var manualWeatherBaseline: WeatherType? = null
 
     /**
-     * `applyWeatherEffects = false` へ切り替えた際に `DO_WEATHER_CYCLE` を
+     * `applyWeatherEffects = false` へ切り替えた際に、Weather Integration 経由で `DO_WEATHER_CYCLE` を
      * バニラ既定値へ戻したかどうか (ワールドデータに強制値が残るのを防ぐ)。
      */
     @Volatile
@@ -172,7 +175,7 @@ class FishingWorldImpl(
         synchronized(weatherProviderLock) {
             val source = resolvedSource
             if (source != null && source.managesWorldWeather && currentClimateConfig().applyWeatherEffects) {
-                plugin.getWeatherControlProvider()?.resetWeather(worldId.toWorldKey().asString())
+                plugin.getWeatherControlProvider()?.resetWeather(worldKey)
             }
             weatherProvider?.dispose()
             weatherProvider = null
@@ -212,10 +215,7 @@ class FishingWorldImpl(
         }
     }
 
-    private val world: World by lazy {
-        Bukkit.getWorld(worldId.toWorldKey())
-            ?: throw IllegalStateException("World not found")
-    }
+    private val worldKey: String by lazy { worldId.toWorldKey().asString() }
 
     override fun getWorldDetails(): WorldDetailConfig = worldDetailConfig
 
@@ -230,7 +230,7 @@ class FishingWorldImpl(
      *
      * ソースがワールド天候を駆動する場合 (`managesWorldWeather == true`) は、プロバイダーの決定が
      * 次に変わるまで有効な手動上書きとして扱い、`getCurrentWeather` (抽選条件) にも反映する。
-     * `ClimateConfig.applyWeatherEffects` が有効であれば Bukkit ワールドにも反映する。
+     * `ClimateConfig.applyWeatherEffects` が有効で Weather Integration が導入されていれば Bukkit ワールドにも反映する。
      * それ以外のソースでは MoripaFishing がワールドを支配しないため no-op。
      * 実効天候が変化した場合は `FishingWorldWeatherChangeEvent` を発火する。
      */
@@ -282,7 +282,7 @@ class FishingWorldImpl(
         lastKnownWeather = weatherType
         if (currentClimateConfig().applyWeatherEffects) {
             plugin.getWeatherControlProvider()?.applyWeather(
-                worldKey = worldId.toWorldKey().asString(),
+                worldKey = worldKey,
                 weatherType = weatherType.name,
             ) ?: plugin.logger.fine(
                 "[${worldId.value}] applyWeather($weatherType) skipped: WeatherControlProvider is not available.",
@@ -322,19 +322,27 @@ class FishingWorldImpl(
 
     override fun getWorldSpawnPosition(): LocationData = worldDetailConfig.spawnLocation
 
+    /**
+     * スポーン位置を設定する。設定ファイルへの保存はコアが行い、Bukkit ワールドのスポーンへの反映は
+     * WorldLifecycle Integration に委ねる (未導入時は保存のみ行う)。
+     */
     override fun setWorldSpawnPosition(location: LocationData) {
-        runBlocking {
-            withContext(Dispatchers.minecraft) {
-                world.spawnLocation =
-                    org.bukkit.Location(
-                        world,
-                        location.x,
-                        location.y,
-                        location.z,
-                        location.yaw.toFloat(),
-                        location.pitch.toFloat(),
-                    )
+        val provider = plugin.getWorldLifecycleProvider()
+        if (provider != null) {
+            IntegrationCall.call(plugin.logger, "WorldLifecycleProvider.setSpawnLocation", Unit) {
+                provider.setSpawnLocation(
+                    worldKey = worldKey,
+                    x = location.x,
+                    y = location.y,
+                    z = location.z,
+                    yaw = location.yaw.toFloat(),
+                    pitch = location.pitch.toFloat(),
+                )
             }
+        } else {
+            plugin.logger.fine(
+                "[${worldId.value}] spawn application skipped: WorldLifecycleProvider is not available.",
+            )
         }
 
         if (worldDetailConfig.spawnLocation != location) {
@@ -343,7 +351,13 @@ class FishingWorldImpl(
         persistWorldDetailConfig(worldDetailConfig.copy(spawnLocation = location))
     }
 
-    override fun getSize(): Double = world.worldBorder.size
+    /**
+     * Bukkit ワールドの現在のボーダーサイズを返す (読み取りのみ)。
+     */
+    override fun getSize(): Double =
+        (Bukkit.getWorld(worldId.toWorldKey()) ?: throw IllegalStateException("World not found"))
+            .worldBorder
+            .size
 
     override fun setSize(size: Double) {
         applyBorder(worldDetailConfig.borderCentral, size)
@@ -389,7 +403,7 @@ class FishingWorldImpl(
             return
         }
         plugin.getWorldLifecycleProvider()?.applyBorder(
-            worldKey = worldId.toWorldKey().asString(),
+            worldKey = worldKey,
             centerX = center.first,
             centerZ = center.second,
             size = size,
@@ -398,28 +412,43 @@ class FishingWorldImpl(
         )
     }
 
+    /**
+     * 設定 (固定時刻または実時刻) から求めたワールド時刻を、WorldLifecycle Integration 経由で適用する。
+     * 未導入時は時刻を変更しない。
+     */
     override fun synchronizeTime() {
-        val timezone = configManager.getConfig().world.defaultTimeZone
-        val zone = ZoneId.of(timezone)
-        val time = LocalDateTime.now(zone)
-        val climateConfig = currentClimateConfig()
-        val offset: Int = climateConfig.dayCycle.offset
-        val hour = time.hour + offset
-        val minute = time.minute
-        runBlocking {
-            withContext(Dispatchers.minecraft) {
-                if (climateConfig.constant.dayCycle != null) {
-                    world.time = (climateConfig.constant.dayCycle!!.toLong() * 1000 + 18000) % 24000
-                } else {
-                    world.time = ((hour * 1000 + minute * 16).toLong() + 18000) % 24000
-                }
+        val time = calculateWorldTime(currentClimateConfig())
+        val provider =
+            plugin.getWorldLifecycleProvider() ?: run {
+                plugin.logger.fine(
+                    "[${worldId.value}] time synchronization skipped: WorldLifecycleProvider is not available.",
+                )
+                return
             }
+        IntegrationCall.call(plugin.logger, "WorldLifecycleProvider.setTime", Unit) {
+            provider.setTime(worldKey, time)
         }
+    }
+
+    /**
+     * 設定から適用すべきワールド時刻 (tick) を計算する。
+     */
+    private fun calculateWorldTime(climateConfig: ClimateConfig): Long {
+        val constantDayCycle = climateConfig.constant.dayCycle
+        if (constantDayCycle != null) {
+            return (constantDayCycle.toLong() * 1000 + 18000) % 24000
+        }
+        val timezone = configManager.getConfig().world.defaultTimeZone
+        val time = LocalDateTime.now(ZoneId.of(timezone))
+        val hour = time.hour + climateConfig.dayCycle.offset
+        val minute = time.minute
+        return ((hour * 1000 + minute * 16).toLong() + 18000) % 24000
     }
 
     /**
      * ワールドの状態 (ボーダー・ゲームルール・天候・時間) を設定へ同期する。
      * コア内部の非同期リフレッシュループおよびリロードから呼ばれる。
+     * コアは値を決定するのみで、適用は各 Integration に委ねる。
      */
     fun updateState() {
         // 設定は変更しない (適用のみ)。永続化は setCenter/setSize 等の設定変更 API が担う。
@@ -447,34 +476,54 @@ class FishingWorldImpl(
     }
 
     /**
-     * ゲームルールを設定する。
+     * ゲームルールの値を決定し、Integration 経由で適用する。
+     *
+     * `DO_DAYLIGHT_CYCLE` は `enableDayCycle` の否定 (コアが時刻を同期する間はバニラの昼夜を止める) とし、
+     * WorldLifecycle Integration に適用を委ねる。
      *
      * `DO_WEATHER_CYCLE` はソースの `usesVanillaWeatherCycle` に従う
      * （`moripafishing:vanilla` のみ true。バニラ天候を読み取るため）。
      * それ以外のソースでは false にして、MoripaFishing または外部プラグインの管理に委ねる。
+     * 適用は Weather Integration に委ねる。
      * `applyWeatherEffects = false` の場合は一度だけバニラ既定値 (true) へ戻した後は触れず、
      * バニラや他プラグインの制御に委ねる。
+     *
+     * 対応する Integration が未導入の場合は何もしない。
      */
     private fun updateGameRule(
         climateConfig: ClimateConfig,
         source: WeatherSource,
     ) {
-        runBlocking {
-            withContext(Dispatchers.minecraft) {
-                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, !climateConfig.enableDayCycle)
-                if (climateConfig.applyWeatherEffects) {
-                    weatherCycleReleased = false
-                    world.setGameRule(
-                        GameRule.DO_WEATHER_CYCLE,
-                        source.usesVanillaWeatherCycle,
-                    )
-                } else if (!weatherCycleReleased) {
-                    // ゲームルールはワールドデータへ永続化されるため、過去に強制した false が
-                    // 残らないよう、管理をやめる際に一度だけバニラ既定値へ戻す。
-                    world.setGameRule(GameRule.DO_WEATHER_CYCLE, true)
-                    weatherCycleReleased = true
-                }
+        val lifecycleProvider = plugin.getWorldLifecycleProvider()
+        if (lifecycleProvider != null) {
+            IntegrationCall.call(plugin.logger, "WorldLifecycleProvider.setDaylightCycle", Unit) {
+                lifecycleProvider.setDaylightCycle(worldKey, !climateConfig.enableDayCycle)
             }
+        } else {
+            plugin.logger.fine(
+                "[${worldId.value}] daylight cycle application skipped: WorldLifecycleProvider is not available.",
+            )
+        }
+
+        val weatherControlProvider = plugin.getWeatherControlProvider()
+        if (weatherControlProvider == null) {
+            plugin.logger.fine(
+                "[${worldId.value}] weather cycle application skipped: WeatherControlProvider is not available.",
+            )
+            return
+        }
+        if (climateConfig.applyWeatherEffects) {
+            weatherCycleReleased = false
+            IntegrationCall.call(plugin.logger, "WeatherControlProvider.setWeatherCycle", Unit) {
+                weatherControlProvider.setWeatherCycle(worldKey, source.usesVanillaWeatherCycle)
+            }
+        } else if (!weatherCycleReleased) {
+            // ゲームルールはワールドデータへ永続化されるため、過去に強制した false が
+            // 残らないよう、管理をやめる際に一度だけバニラ既定値へ戻す。
+            IntegrationCall.call(plugin.logger, "WeatherControlProvider.setWeatherCycle", Unit) {
+                weatherControlProvider.setWeatherCycle(worldKey, true)
+            }
+            weatherCycleReleased = true
         }
     }
 
@@ -484,7 +533,7 @@ class FishingWorldImpl(
             // MoripaFishing がワールド天候を触っていない場合はリセットも行わない
             return
         }
-        plugin.getWeatherControlProvider()?.resetWeather(worldId.toWorldKey().asString())
+        plugin.getWeatherControlProvider()?.resetWeather(worldKey)
         plugin.logger.info("[${worldId.value}] effectFinish called: weather reset requested.")
     }
 

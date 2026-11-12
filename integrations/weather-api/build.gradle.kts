@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -51,6 +52,9 @@ tasks {
     compileKotlin {
         compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
         compilerOptions.javaParameters = true
+        // 既定実装を持つ SPI メソッドを JVM の default メソッドとして出力する。
+        // 後から追加したメソッドを実装していない旧版の Integration でも AbstractMethodError にならないようにするため。
+        compilerOptions.jvmDefault.set(JvmDefaultMode.ENABLE)
     }
 }
 

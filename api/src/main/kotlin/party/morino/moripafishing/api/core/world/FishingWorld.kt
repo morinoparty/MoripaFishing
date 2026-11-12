@@ -7,6 +7,10 @@ import party.morino.moripafishing.api.model.world.WeatherType
 
 /**
  * FishingWorldインターフェースは、釣りワールドに関する情報を提供する。
+ *
+ * 実装 (コア) は Bukkit ワールドへ直接書き込まない。天候の適用は `MoripaFishing-Integration-Weather`、
+ * ボーダー・時刻・スポーンの適用は `MoripaFishing-Integration-WorldLifecycle` に委ね、
+ * 対応する Integration が未導入の場合は適用をスキップする (設定の保存は行う)。
  */
 interface FishingWorld {
     /**
@@ -49,6 +53,7 @@ interface FishingWorld {
 
     /**
      * ワールドのスポーン位置を設定する。
+     * 設定は常に保存され、Bukkit ワールドのスポーンへの反映は WorldLifecycle Integration 導入時のみ行われる。
      * @param location ワールドのスポーン位置
      */
     fun setWorldSpawnPosition(location: LocationData)
@@ -61,6 +66,7 @@ interface FishingWorld {
 
     /**
      * ワールドボーダーの大きさを設定する。
+     * 設定は常に保存され、Bukkit ワールドへの反映は WorldLifecycle Integration 導入時のみ行われる。
      * @param size ワールドボーダーの大きさ
      */
     fun setSize(size: Double)
@@ -73,12 +79,14 @@ interface FishingWorld {
 
     /**
      * ワールドの中心位置 (x, z) を設定する。
+     * 設定は常に保存され、Bukkit ワールドへの反映は WorldLifecycle Integration 導入時のみ行われる。
      * @param center ワールドの中心位置 (x, z)
      */
     fun setCenter(center: Pair<Double, Double>)
 
     /**
-     * ワールドの時間を現実時間と同期する。
+     * ワールドの時間を現実時間 (または固定時刻) と同期する。
+     * 時刻の適用は WorldLifecycle Integration 導入時のみ行われ、未導入時は何もしない。
      */
     fun synchronizeTime()
 

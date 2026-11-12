@@ -80,8 +80,8 @@ open class MoripaFishing :
 
     /**
      * `MoripaFishing-Integration-WorldLifecycle` (softdepend) を検出し、`WorldLifecycleProvider` を実装していれば採用する。
-     * 未導入時は `null` のままで、ワールド境界の同期やカスタムジェネレーターでのワールド作成機能は
-     * スキップされる。
+     * 未導入時は `null` のままで、ワールド境界・昼夜サイクル (`DO_DAYLIGHT_CYCLE`)・時刻・スポーンの適用、
+     * カスタムジェネレーターでのワールド作成、ワールドのアンロード (削除) はスキップされる。
      */
     private fun resolveWorldLifecycleProvider() {
         val integrationName = "MoripaFishing-Integration-WorldLifecycle"
@@ -100,7 +100,8 @@ open class MoripaFishing :
                 }
                 else -> {
                     logger.info(
-                        "WorldLifecycle integration not installed; border sync and custom generators are disabled.",
+                        "WorldLifecycle integration not installed; world border, daylight cycle gamerule, " +
+                            "time, spawn, world creation and world unloading (delete) are disabled.",
                     )
                     null
                 }
@@ -109,7 +110,7 @@ open class MoripaFishing :
 
     /**
      * `MoripaFishing-Integration-Weather` (softdepend) を検出し、`WeatherControlProvider` を実装していれば採用する。
-     * 未導入時は `null` のままで、天候の適用 (ワールド改変) はスキップされる。
+     * 未導入時は `null` のままで、天候とゲームルール `DO_WEATHER_CYCLE` の適用 (ワールド改変) はスキップされる。
      * 天候の決定・参照はコアが行うため、未導入でも釣りの抽選条件には反映され続ける。
      */
     private fun resolveWeatherControlProvider() {
@@ -129,7 +130,8 @@ open class MoripaFishing :
                 }
                 else -> {
                     logger.info(
-                        "Weather integration not installed; weather application to worlds is disabled.",
+                        "Weather integration not installed; " +
+                            "weather and weather cycle gamerule application to worlds is disabled.",
                     )
                     null
                 }

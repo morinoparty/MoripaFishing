@@ -94,10 +94,10 @@ import { CommandList } from "@/components/commands/command-list";
 
 ### ワールドの削除について
 
-`delete` は釣りワールドの管理対象からの削除のみを行い、ディスク上のワールドフォルダーは残したままにします。実行後のメッセージにも、フォルダーが削除されていないことが明示されます。
+`delete` は釣りワールドの管理対象からの削除のみを行い、ディスク上のワールドフォルダーは残したままにします。実行後のメッセージにも、フォルダーが削除されていないことが明示されます。Bukkit ワールドのアンロードは [WorldLifecycle Integration](/docs/integration/world-lifecycle) が行うため、Integration が未導入の環境では削除に失敗します。
 
 ### 設定コマンドについて
 
-`config set spawn` は実行者の現在位置をスポーン座標として保存するため、プレイヤーからのみ実行できます。`config set center` は座標を指定して実行することもできますが、`x` と `z` を省略した場合は実行者の現在位置が使われるため、その形式ではプレイヤー専用となります。
+`config set spawn` は実行者の現在位置をスポーン座標として保存するため、プレイヤーからのみ実行できます。保存した座標を Bukkit ワールドのスポーン地点へ反映するのは WorldLifecycle Integration が導入されている場合のみです。`config set center` は座標を指定して実行することもできますが、`x` と `z` を省略した場合は実行者の現在位置が使われるため、その形式ではプレイヤー専用となります。
 
 `config view` はワールド設定を整形せず、`WorldDetailConfig` を JSON にエンコードした内容をそのまま出力します。

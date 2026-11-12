@@ -10,13 +10,16 @@ import party.morino.moripafishing.api.utils.serializer.LocaleSerializer
 /**
  * ワールドの詳細設定を保持するデータクラス
  *
+ * ボーダー・スポーンの Bukkit ワールドへの適用は `MoripaFishing-Integration-WorldLifecycle` が担う。
+ * 未導入の場合、これらの値は設定として保存・参照されるのみで、Bukkit ワールドには反映されない。
+ *
  * @property id ワールドのID
  * @property name ワールドの名前（ロケール別）
  * @property enableBorder プラグインによるワールドボーダー管理を有効にするかどうか。
  *   `false` の場合、ボーダーサイズ・中心の自動設定をスキップし、手動管理またはバニラのデフォルトに委ねる。
  * @property borderSize ワールドの境界サイズ（`null` の場合はデフォルトサイズを使用）
  * @property borderCentral ワールドの中心座標
- * @property spawnLocation スポーン地点の座標
+ * @property spawnLocation スポーン地点の座標 (Bukkit ワールドのスポーンへの反映は WorldLifecycle Integration 導入時のみ)
  * @property climateConfig 天気設定（`null` の場合はデフォルト設定を使用）
  * @property generator ワールドのジェネレータ ID
  *   (`MoripaFishing-Integration-WorldLifecycle` Integration が管理するジェネレータ定義のキー)

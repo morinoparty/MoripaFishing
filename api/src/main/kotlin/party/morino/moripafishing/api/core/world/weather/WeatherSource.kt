@@ -24,6 +24,7 @@ interface WeatherSource {
      * `true` の場合、プラグインが定期的に天候を決定して `FishingWorld.setWeather` で適用し、
      * バニラの天候サイクル (`DO_WEATHER_CYCLE`) を無効化する（内蔵ランダマイザー相当）。
      * `false` の場合、プラグインはワールドの天候を変更しない。
+     * 実際の適用は `MoripaFishing-Integration-Weather` 導入時のみ行われる。
      */
     val managesWorldWeather: Boolean
 
@@ -31,6 +32,7 @@ interface WeatherSource {
      * バニラの天候サイクル (`DO_WEATHER_CYCLE`) を有効に保つかどうか。
      *
      * `true` の場合、Bukkit のバニラ天候を読み取ることを前提とするためサイクルを止めない。
+     * ゲームルールの適用は `MoripaFishing-Integration-Weather` 導入時のみ行われる。
      */
     val usesVanillaWeatherCycle: Boolean
 

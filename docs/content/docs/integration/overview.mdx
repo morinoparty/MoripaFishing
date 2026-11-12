@@ -8,7 +8,7 @@ MoripaFishing は **Integration** と **Addon** の 2 種類の外部プラグ�
 
 | 区分 | 依存関係 | 代表例 | 特徴 |
 |---|---|---|---|
-| **Core** | — | `MoripaFishing` 本体 | 魚抽選・釣りイベント・天候判定などの最小機能 |
+| **Core** | — | `MoripaFishing` 本体 | 魚抽選・釣りイベント・天候判定などの最小機能。Bukkit ワールドの天候・時刻・ゲームルール・スポーン・ボーダーは変更しない |
 | **Integration** | Core が Integration を参照 | `MoripaFishing-Integration-WorldLifecycle` | Core が SPI 経由で機能の実体を借りる。未導入時は該当機能が無効 |
 | **Addon** | Addon が Core をソフト依存 | `MoripaFishing-Addon-CatchAnnounce` | Core の公開 API とイベントを利用して拡張する外部プラグイン |
 
@@ -103,17 +103,25 @@ if (worldLifecycle == null) {
 Integration が無くても Core は起動し、欠けている機能だけが縮退します。
 未導入時の Core API の挙動は各機能側で吸収されるため、呼び出し側が例外を受け取ることはありません。
 
-- **WorldLifecycle 未導入**: ワールド境界の同期と、カスタムジェネレーターによるワールド作成が無効になります。
-  `WorldManager.createWorld` は警告ログを出したうえで `false` を返し、`WorldManager.getGeneratorIds` は空リストを返します。
+- **WorldLifecycle 未導入**: ワールド境界・時刻・`DO_DAYLIGHT_CYCLE`・スポーン地点の同期と、
+  カスタムジェネレーターによるワールド作成、ワールドの削除（アンロード）が無効になります。
+  `WorldManager.createWorld` / `deleteWorld` は警告ログを出したうえで `false` を返し、`WorldManager.getGeneratorIds` は空リストを返します。
 - **Weather 未導入**: 天候の決定や、天候を条件に含む魚の抽選は Core 側で動き続けます。
-  スキップされるのは「決まった天候を実際のワールドへ適用する」部分だけです。
+  スキップされるのは「決まった天候と `DO_WEATHER_CYCLE` を実際のワールドへ適用する」部分だけです。
+
+Core は Bukkit ワールドへ一切書き込まないため、生活用ワールドなどに釣れる魚を追加する目的で Core だけを導入しても、
+既存ワールドの天候・時刻・ゲームルールが上書きされることはありません。
+
+:::warning[以前のバージョンからの移行]
+以前のバージョンの Core は、釣りワールドに `DO_DAYLIGHT_CYCLE=false` や `DO_WEATHER_CYCLE=false` を直接書き込んでいました。ゲームルールはワールドデータに保存されるため、Integration を導入せずに更新すると、これらの値が残ったまま時刻同期や天候適用が止まり、時刻や天候が固定されたままになります。Core はワールドを変更しないため、この状態を自動では戻しません。釣りワールドで時刻・天候の同期を続ける場合は [WorldLifecycle](/docs/integration/world-lifecycle) と [Weather](/docs/integration/weather) を導入（または最新版へ更新）し、それ以外の場合は `/gamerule` でゲームルールを手動で戻してください。
+:::
 
 ## 提供される Integration
 
 現時点で公式に提供されている Integration は以下です。
 
-- [`MoripaFishing-Integration-WorldLifecycle`](/docs/integration/world-lifecycle): ワールド境界の同期・カスタムジェネレーターでのワールド作成
-- [`MoripaFishing-Integration-Weather`](/docs/integration/weather): 釣りワールドへの天候の適用（嵐の切り替えと CLOUDY のクライアント側バリア天井）
+- [`MoripaFishing-Integration-WorldLifecycle`](/docs/integration/world-lifecycle): ワールド境界・時刻・`DO_DAYLIGHT_CYCLE`・スポーン地点の同期、カスタムジェネレーターでのワールド作成、ワールドのアンロード
+- [`MoripaFishing-Integration-Weather`](/docs/integration/weather): 釣りワールドへの天候と `DO_WEATHER_CYCLE` の適用（嵐の切り替えと CLOUDY のクライアント側バリア天井）
 
 ## 提供される Addon
 

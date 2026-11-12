@@ -95,7 +95,11 @@ val generatePaperLibraries by tasks.registering {
     inputs.property("libraries", libraries)
     outputs.dir(outputDirectory)
     doLast {
-        outputDirectory.get().file("paper-libraries.txt").asFile.writeText(libraries.get().joinToString("\n"))
+        outputDirectory
+            .get()
+            .file("paper-libraries.txt")
+            .asFile
+            .writeText(libraries.get().joinToString("\n"))
     }
 }
 

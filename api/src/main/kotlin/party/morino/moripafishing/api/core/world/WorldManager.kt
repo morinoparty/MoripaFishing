@@ -74,6 +74,10 @@ interface WorldManager {
 
     /**
      * ワールドを削除する
+     *
+     * Bukkit ワールドのアンロードは `MoripaFishing-Integration-WorldLifecycle` が担うため、
+     * 未導入の場合は削除せずに `false` を返す。アンロード結果を同期的に受け取るため、
+     * メインスレッドから呼び出すこと。
      * @param fishingWorldId ワールドID
      * @return 削除に成功した場合 `true`
      */

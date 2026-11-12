@@ -2,6 +2,7 @@ package party.morino.moripafishing.integrations.weather
 
 import io.papermc.paper.math.Position
 import org.bukkit.Bukkit
+import org.bukkit.GameRule
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.World
@@ -20,12 +21,12 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * コア側の `MoripaFishing` (softdepend) が Bukkit の `PluginManager` 経由で本プラグインを
  * `WeatherControlProvider` として検出・利用する。本プラグインが天候の破壊的適用
- * (`World.setStorm` / `isThundering`) を一手に担うことで、コア単体ではワールドを改変しない
- * 安全な構成を実現する。
+ * (`World.setStorm` / `isThundering` とゲームルール `DO_WEATHER_CYCLE`) を一手に担うことで、
+ * コア単体ではワールドを改変しない安全な構成を実現する。
  *
  * プラグイン自体はコアに依存しないため、単体でも無害にロードされる。
  *
- * `applyWeather` / `resetWeather` はコアの非同期リフレッシュループからも呼ばれるため、
+ * `applyWeather` / `resetWeather` / `setWeatherCycle` はコアの非同期リフレッシュループからも呼ばれるため、
  * ワールド改変は常に `BukkitScheduler.runTask` でメインスレッドへ委譲する。
  *
  * ### CLOUDY のクライアント側バリア天井
@@ -96,6 +97,19 @@ open class MoripaFishingWeatherPlugin :
                 if (cloudyWorlds.remove(world.key.asString())) {
                     world.players.forEach { clearPatch(it) }
                 }
+            },
+        )
+    }
+
+    override fun setWeatherCycle(
+        worldKey: String,
+        enabled: Boolean,
+    ) {
+        val world = resolveWorld(worldKey) ?: return
+        Bukkit.getScheduler().runTask(
+            this,
+            Runnable {
+                world.setGameRule(GameRule.DO_WEATHER_CYCLE, enabled)
             },
         )
     }

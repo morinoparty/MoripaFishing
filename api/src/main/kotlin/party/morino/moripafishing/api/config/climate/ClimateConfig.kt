@@ -9,6 +9,11 @@ import party.morino.moripafishing.api.utils.serializer.KeySerializer
  * 天候に関する設定を保持するデータクラス
  *
  * ワールドごとの天候制御・時間同期の有効/無効を管理する。
+ *
+ * MoripaFishing 本体 (コア) は天候・時刻・ゲームルールの値を決定するのみで、Bukkit ワールドへは書き込まない。
+ * 天候と `DO_WEATHER_CYCLE` の適用には `MoripaFishing-Integration-Weather` が、
+ * 時刻と `DO_DAYLIGHT_CYCLE` の適用には `MoripaFishing-Integration-WorldLifecycle` が必要で、
+ * 未導入の場合は該当する適用がスキップされる (天候は魚の抽選条件にのみ使用される)。
  * `WorldDetailConfig.climateConfig` でワールドごとにオーバーライド可能で、
  * 未設定の場合は `WorldConfig.defaultClimateConfig` がフォールバックとして使用される。
  *
@@ -21,12 +26,13 @@ import party.morino.moripafishing.api.utils.serializer.KeySerializer
  *   未登録のキーが指定された場合は `moripafishing:internal` にフォールバックする。
  * @property applyWeatherEffects 決定した天候を Bukkit ワールドへ反映するかどうか。
  *   `true` の場合、`managesWorldWeather = true` なソースの天候をワールドに適用し、
- *   `DO_WEATHER_CYCLE` をソースに応じて制御する。
+ *   `DO_WEATHER_CYCLE` をソースに応じて制御する (Weather Integration 導入時のみ)。
  *   `false` の場合、MoripaFishing はワールドの天候・`DO_WEATHER_CYCLE` を一切変更せず、
  *   天候は魚の抽選条件にのみ使用される（演出はバニラや他プラグインに委ねる）。
  * @property enableDayCycle プラグインによる時間同期を有効にするかどうか。
  *   `true` の場合、`DO_DAYLIGHT_CYCLE` を `false` に設定しプラグインがリアルタイム同期または固定時間を管理する。
  *   `false` の場合、`DO_DAYLIGHT_CYCLE` を `true` に設定しバニラの昼夜サイクルに委ねる。
+ *   いずれも WorldLifecycle Integration 導入時のみ適用され、未導入時は時刻・ゲームルールを変更しない。
  * @property constant 固定の天候・時間設定
  * @property dayCycle 昼夜サイクルの設定
  * @property weather 天候変化の設定
