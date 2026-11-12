@@ -1,51 +1,18 @@
 package party.morino.moripafishing.api.config.climate
 
 import kotlinx.serialization.Serializable
-import net.kyori.adventure.key.Key
-import party.morino.moripafishing.api.core.world.weather.WeatherSource
-import party.morino.moripafishing.api.utils.serializer.KeySerializer
 
 /**
- * 天候に関する設定を保持するデータクラス
+ * 釣りワールドの気候 (天候と時刻) の方針。
  *
- * ワールドごとの天候制御・時間同期の有効/無効を管理する。
+ * コアは方針に従って値を決定するだけで、Bukkit ワールドへの適用は Integration が行う。
+ * `FishingWorldConfig.climate` でワールドごとに上書きでき、未設定の場合は `WorldConfig.defaultClimate` を使う。
  *
- * MoripaFishing 本体 (コア) は天候・時刻・ゲームルールの値を決定するのみで、Bukkit ワールドへは書き込まない。
- * 天候と `DO_WEATHER_CYCLE` の適用には `MoripaFishing-Integration-Weather` が、
- * 時刻と `DO_DAYLIGHT_CYCLE` の適用には `MoripaFishing-Integration-WorldLifecycle` が必要で、
- * 未導入の場合は該当する適用がスキップされる (天候は魚の抽選条件にのみ使用される)。
- * `WorldDetailConfig.climateConfig` でワールドごとにオーバーライド可能で、
- * 未設定の場合は `WorldConfig.defaultClimateConfig` がフォールバックとして使用される。
- *
- * @property weatherSource 天候を決定するソースの名前空間キー。`WeatherSourceRegistry` に登録された
- *   `WeatherSource` から解決される。
- *   組み込みでは `moripafishing:internal`（内蔵ランダマイザーで決定し Bukkit にも適用、
- *   `DO_WEATHER_CYCLE = false`）と `moripafishing:vanilla`（バニラ天候を読み取り魚の抽選条件に
- *   のみ使用、`DO_WEATHER_CYCLE = true`）を提供する。
- *   外部プラグインは `MoripaFishingAPI.registerWeatherSource` で独自キーのソースを登録できる。
- *   未登録のキーが指定された場合は `moripafishing:internal` にフォールバックする。
- * @property applyWeatherEffects 決定した天候を Bukkit ワールドへ反映するかどうか。
- *   `true` の場合、`managesWorldWeather = true` なソースの天候をワールドに適用し、
- *   `DO_WEATHER_CYCLE` をソースに応じて制御する (Weather Integration 導入時のみ)。
- *   `false` の場合、MoripaFishing はワールドの天候・`DO_WEATHER_CYCLE` を一切変更せず、
- *   天候は魚の抽選条件にのみ使用される（演出はバニラや他プラグインに委ねる）。
- * @property enableDayCycle プラグインによる時間同期を有効にするかどうか。
- *   `true` の場合、`DO_DAYLIGHT_CYCLE` を `false` に設定しプラグインがリアルタイム同期または固定時間を管理する。
- *   `false` の場合、`DO_DAYLIGHT_CYCLE` を `true` に設定しバニラの昼夜サイクルに委ねる。
- *   いずれも WorldLifecycle Integration 導入時のみ適用され、未導入時は時刻・ゲームルールを変更しない。
- * @property constant 固定の天候・時間設定
- * @property dayCycle 昼夜サイクルの設定
- * @property weather 天候変化の設定
- * @property hashPepper ハッシュ計算用のペッパー値
+ * @property weather 天候の決め方
+ * @property time 時刻の決め方
  */
 @Serializable
 data class ClimateConfig(
-    @Serializable(with = KeySerializer::class)
-    val weatherSource: Key = WeatherSource.INTERNAL,
-    val applyWeatherEffects: Boolean = true,
-    val enableDayCycle: Boolean = true,
-    val constant: ConstantConfig = ConstantConfig(),
-    val dayCycle: DayCycleConfig = DayCycleConfig(),
-    val weather: WeatherConfig = WeatherConfig(),
-    val hashPepper: String = "pepper",
+    val weather: WeatherPolicy = WeatherPolicy.Random(),
+    val time: TimePolicy = TimePolicy.RealTime(),
 )

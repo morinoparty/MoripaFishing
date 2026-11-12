@@ -1,32 +1,27 @@
 {
     "world": {
         "defaultId": "default",
-        "defaultWorldSize": 100.0,
-        "defaultWorldGenerator": "Terra:OVERWORLD",
-        "defaultWorldBiome": null,
-        "defaultClimateConfig": {
-            "constant": {
-                "weather": null,
-                "dayCycle": null
-            },
-            "dayCycle": {
-                "offset": 0
-            },
+        "timeZone": "Asia/Tokyo",
+        "refreshIntervalSeconds": 60,
+        "defaultClimate": {
             "weather": {
-                "weight": {
+                "type": "random",
+                "weights": {
                     "SUNNY": 4,
-                    "CLOUDY": 2,
+                    "CLOUDY": 1,
                     "RAINY": 2,
                     "THUNDERSTORM": 1
                 },
-                "offset": 0,
-                "interval": 8,
-                "maxInclination": 30
+                "intervalHours": 8,
+                "offsetHours": 0,
+                "maxInclination": 30,
+                "seed": "pepper"
             },
-            "hashPepper": "pepper"
-        },
-        "refreshInterval": 60,
-        "defaultTimeZone": "Asia/Tokyo"
+            "time": {
+                "type": "real_time",
+                "offsetHours": 0
+            }
+        }
     },
     "defaultLocale": "ja_JP"
 }

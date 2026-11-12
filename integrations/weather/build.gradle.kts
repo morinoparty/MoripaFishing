@@ -1,3 +1,5 @@
+import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
+
 plugins {
     java
     alias(libs.plugins.kotlin.jvm)
@@ -9,12 +11,11 @@ group = "party.morino"
 version = project.version.toString()
 
 dependencies {
-    // SPI モジュール: `WeatherControlProvider` を提供する。
-    // core 側は compileOnly のみなので、本プラグインが唯一 shaded する責任を持つ。
-    implementation(project(":integrations:weather-api"))
+    // コアの公開 API (SPI を含む)。実行時は導入済みのコア本体のクラスを使うため、同梱しない。
+    compileOnly(project(":api"))
     compileOnly(libs.paper.api)
 
-    testImplementation(project(":integrations:weather-api"))
+    testImplementation(project(":api"))
     testImplementation(libs.paper.api)
     testImplementation(libs.mock.bukkit)
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
@@ -26,6 +27,10 @@ dependencies {
 tasks {
     build {
         dependsOn("shadowJar")
+    }
+    jar {
+        // 依存を同梱しない jar。配布物 (shadowJar) と同名にならないよう分類子を付ける
+        archiveClassifier.set("plain")
     }
     shadowJar {
         archiveClassifier.set("")
@@ -45,6 +50,10 @@ sourceSets.main {
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.integrations.weather.MoripaFishingWeatherPlugin"
             apiVersion = "1.20"
+            dependencies {
+                // コアの後にロードし、コアのクラス (SPI) を join-classpath で参照する
+                server("MoripaFishing", PaperPluginYaml.Load.BEFORE, required = true)
+            }
         }
         bukkitPluginYaml {
             name = "MoripaFishing-Integration-Weather"
@@ -52,6 +61,7 @@ sourceSets.main {
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.integrations.weather.MoripaFishingWeatherPlugin"
             apiVersion = "1.20"
+            depend.set(listOf("MoripaFishing"))
         }
     }
 }

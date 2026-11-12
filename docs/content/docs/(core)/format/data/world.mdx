@@ -5,72 +5,95 @@ icon: Globe
 
 ## 配置場所
 
-ワールドの定義ファイルは `plugins/MoripaFishing/world/<ワールドID>.json` に配置します。ファイル名は必ずワールドIDと一致させてください。既存のワールドを読み込む際にファイルが見つからない場合は例外となり、そのワールドの初期化に失敗します。
+釣りワールドの設定ファイルは `plugins/MoripaFishing/world/<ワールドID>.json` に配置します。
+**このファイルが存在するワールドが「定義済み」の釣りワールドになります。** 対応する Bukkit ワールドがロードされているかどうかには関係しません。
 
-このファイルはプラグイン側からも書き換えられます。スポーン地点の変更、ボーダーサイズの変更、ボーダー中心の変更を行うと、その時点の設定内容でファイル全体が上書きされます。また `/mf world create` でワールドを作成した際、対応するファイルが存在しなければデフォルト値で自動生成されます。手動で編集した内容が実行中に上書きされる場合がある点に注意してください。
+ファイル名はワールドIDと一致させてください。次のファイルは警告を出して読み飛ばします。
+
+- JSON として不正なファイル、または値が範囲外のファイル (例: `border.size` が 0 以下)
+- ファイル名と `id` が一致しないファイル
+- `id` が Bukkit ワールドのキー (`moripafishing:<id>`) として使えないファイル。使える文字は `[a-z0-9_.-/]` です
+
+このファイルはプラグイン側からも書き換えられます。`/mf world config set ...` などで設定を変えると、その時点の内容でファイル全体が上書きされます。
+手動で編集した内容は `/mf reload` で読み直されます。
 
 ## Format
 
 ```json title="plugins/MoripaFishing/world/default.json"
 {
-    "id" : "default",
-    "name" : {
-        "ja_JP" : "つりとぴあ",
-        "en_US" : "Tsuritopia"
+    "id": "default",
+    "name": {
+        "ja_JP": "つりとぴあ",
+        "en_US": "Tsuritopia"
     },
-    "enableBorder" : true,
-    "borderSize" : null,
-    "borderCentral" : {
-        "first" : 0.0,
-        "second" : 0.0
+    "generator": "void",
+    "spawn": {
+        "x": 0.0,
+        "y": 64.0,
+        "z": 0.0,
+        "yaw": 90.0,
+        "pitch": 0.0
     },
-    "spawnLocation" : {
-        "worldId" : "default",
-        "x" : 0.0,
-        "y" : 64.0,
-        "z" : 0.0,
-        "yaw" : 90.0,
-        "pitch" : 0.0
+    "border": {
+        "centerX": 0.0,
+        "centerZ": 0.0,
+        "size": 100.0
     },
-    "climateConfig" : null,
-    "generator" : "void"
+    "climate": null
 }
 ```
 
 ## 各設定の説明
 
-- `id`: ワールドのIDを指定します
-- `name`: ワールドの表示名をロケールごとに指定します。キーには `ja_JP` や `en_US` のような言語タグを指定でき、アンダースコア区切り・ハイフン区切りのどちらも受理されます
-- `enableBorder`: プラグインによるワールドボーダーの自動管理を有効にするかどうかを指定します（デフォルト: `true`）。`false`の場合、`borderSize`と`borderCentral`の自動設定をスキップし、手動管理またはバニラのデフォルトに委ねます
-- `borderSize`: ワールドボーダーのサイズを指定します。`null`の場合は`config.json`の`world.defaultWorldSize`（デフォルト: `100.0`）が使用されます
-- `borderCentral`: ワールドボーダーの中心座標を指定します
-- `spawnLocation`: プレイヤーのスポーン地点を指定します。`worldId`は省略できないため、通常はこのファイルの`id`と同じ値を指定します
-- `climateConfig`: ワールド固有の天候設定です。`null`の場合は`config.json`の`world.defaultClimateConfig`が使用されます。詳細は[天候](/docs/format/config/climate)を参照
-- `generator`: ワールド生成に使用するジェネレーターの定義キーを指定します（デフォルト: `void`）。値は WorldLifecycle Integration が管理するジェネレーター定義に対応します。詳細は[ワールドジェネレーター](/docs/format/data/generator)を参照
+- `id`: ワールドのIDです。省略できません。対応する Bukkit ワールドのキーは `moripafishing:<id>` になります
+- `name`: ワールドの表示名をロケールごとに指定します。キーには `ja_JP` や `en_US` のような言語タグを指定でき、アンダースコア区切り・ハイフン区切りのどちらも受理されます (既定: 空)
+- `generator`: ワールドを作成するときに使うジェネレーター ID です (既定: `void`)。**作成時にのみ参照する** ため、作成後に変えても既存のワールドには影響しません。ID は [WorldLifecycle Integration](/docs/integration/world-lifecycle) が管理するジェネレーター定義に対応します。詳細は [ワールドジェネレーター](/docs/format/data/generator) を参照
+- `spawn`: スポーン地点です。`yaw` と `pitch` は省略すると `0` になります (既定: `{x: 0, y: 64, z: 0, yaw: 90, pitch: 0}`)
+- `border`: ワールドボーダーの中心 (`centerX` / `centerZ`) とサイズ (`size`、0 より大きい値) です (既定: `{centerX: 0, centerZ: 0, size: 100}`)。**`null` にすると MoripaFishing はボーダーを管理しません**。他のプラグインやバニラでボーダーを管理したい場合に使います
+- `climate`: ワールド固有の気候設定です。`null` の場合は `config.json` の `world.defaultClimate` が使われます。詳細は [気候](/docs/format/config/climate) を参照
 
 ## 表示名の解決について
 
-`name`に指定した表示名のほかに、ワールド名は`<lang:moripa_fishing.world.<ワールドID>.name>`という翻訳キー経由でも解決されます。翻訳リソース側で名前を管理したい場合はこちらを利用してください。
+`name` の表示名は、`<lang:moripa_fishing.world.<ワールドID>.name>` という翻訳キー経由で解決されます。
+翻訳はプラグインの有効化時と `/mf reload` で読み込まれるため、`/mf world create` で作ったワールドの表示名は次の `/mf reload` から使われます。
 
-設定ファイルが存在しないワールドの詳細設定を取得した場合は、`id`にそのワールドID、`name`にデフォルトロケールをキーとしたワールドIDの文字列を持つ設定が返されます。
+## Bukkit ワールドへの適用について
 
-## ワールドボーダーとスポーン地点の適用について
-
-`enableBorder`が`true`であっても、ワールドボーダーの実際の適用は WorldLifecycle Integration を経由して行われます。Integration が導入されていない環境では、`borderSize`と`borderCentral`はファイルに保存されるものの、ゲーム内のワールドボーダーには反映されません。
-
-`spawnLocation`も同様です。`/mf world config set spawn`などで変更した値はファイルに保存されますが、Bukkit ワールドのスポーン地点への反映は WorldLifecycle Integration が導入されている場合にのみ行われます。
+`spawn`・`border` と、`climate` から決まる時刻・天候を Bukkit ワールドへ適用するのは Integration です
+([WorldLifecycle](/docs/integration/world-lifecycle) / [Weather](/docs/integration/weather))。
+Integration が導入されていない環境では、設定はファイルに保存され魚の抽選に使われますが、ゲーム内のワールドには反映されません。
 
 ## ワールドの作成と削除
 
-ワールドの作成と削除はプラグイン側で行います。`/mf world create` を実行すると、定義ファイルの生成と Bukkit ワールドの作成が行われ、新規作成時には `FishingWorldCreateEvent` が発火します。削除時にはワールドのアンロードと定義ファイルの削除が行われ、`FishingWorldDeleteEvent` が発火します。このイベントはキャンセル可能で、キャンセルされた場合は削除処理が中断されます。
+### 作成
 
-なお、ワールドの作成と削除には WorldLifecycle Integration の導入が前提となります。削除時のワールドのアンロードも Integration が行うため、未導入の環境では削除は行われず（`FishingWorldDeleteEvent`も発火しません）、`deleteWorld`は`false`を返します。
+`/mf world create <id> <generator>` で、設定ファイルを書き出してから WorldLifecycle Integration で Bukkit ワールドを作成します。
+次の場合は何も残さずに失敗し、理由をサーバーログに出します。
+
+- サーバーの起動が完了していない (`ServerLoadEvent` 前)
+- 同じ ID が既に定義されている、または ID がキーとして不正
+- 同じキーの Bukkit ワールドが既にロードされている
+- WorldLifecycle Integration が導入されていない、またはジェネレーター ID が不明
+- ワールドの作成に失敗した (書き出した設定ファイルは削除します)
+
+成功すると `FishingWorldLoadEvent`、続いて `FishingWorldCreateEvent` が発火します。
+
+サーバーの起動後 (全プラグインの有効化後) と `/mf reload` の後にも、定義済みで未ロードのワールドを `generator` の設定で作成します。
+ジェネレーター ID の誤りなどで作成に失敗したワールドは、設定を直して `/mf reload` すれば再起動なしで作成できます。
+
+### 削除
+
+`/mf world delete <world>` で、`FishingWorldDeleteEvent` (キャンセル可能) を発火し、Bukkit ワールドをアンロードしてから設定ファイルを削除します。
+ワールドのフォルダは削除しません。完了すると `FishingWorldDeletedEvent` が発火します。
+
+- Bukkit ワールドがロード済みの場合は、WorldLifecycle Integration によるアンロードが必要です。Integration が無い場合やアンロードに失敗した場合は、設定ファイルを残して失敗します
+- Bukkit ワールドが未ロードの場合は Bukkit の状態を変えないため、Integration が無くても削除できます
 
 ## 関連する `config.json` の設定
 
 このページの内容に関係する `config.json` の `world` セクションの値は次のとおりです。
 
-- `defaultId`: デフォルトのワールドID（デフォルト: `default`）
-- `defaultWorldSize`: `borderSize`が`null`のときに使用されるサイズ（デフォルト: `100.0`）
-- `defaultTimeZone`: ワールドの時刻同期に使用するタイムゾーン（デフォルト: `Asia/Tokyo`）。時刻の適用には WorldLifecycle Integration が必要です
-- `refreshInterval`: 全ワールドの状態を定期的に更新する間隔を秒単位で指定します（デフォルト: `60`）
+- `defaultId`: デフォルトのワールドID (デフォルト: `default`)
+- `timeZone`: 天候と実時刻同期に使うタイムゾーン (デフォルト: `Asia/Tokyo`)
+- `refreshIntervalSeconds`: 釣りワールドの状態を決め直して適用させる間隔 (秒、デフォルト: `60`)
+- `defaultClimate`: `climate` が `null` のワールドで使う気候設定

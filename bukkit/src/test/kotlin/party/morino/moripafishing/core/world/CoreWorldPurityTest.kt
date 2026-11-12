@@ -2,114 +2,108 @@ package party.morino.moripafishing.core.world
 
 import org.bukkit.GameRule
 import org.bukkit.Location
-import org.bukkit.NamespacedKey
-import org.bukkit.WorldCreator
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.koin.test.KoinTest
-import org.koin.test.inject
+import org.junit.jupiter.api.io.TempDir
+import org.mockbukkit.mockbukkit.MockBukkit
+import org.mockbukkit.mockbukkit.ServerMock
 import org.mockbukkit.mockbukkit.world.WorldMock
-import party.morino.moripafishing.MoripaFishing
-import party.morino.moripafishing.MoripaFishingTest
-import party.morino.moripafishing.api.config.PluginDirectory
-import party.morino.moripafishing.api.config.world.WorldDetailConfig
+import party.morino.moripafishing.api.config.world.BorderConfig
+import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.model.world.FishingWorldId
-import party.morino.moripafishing.api.model.world.LocationData
-import party.morino.moripafishing.utils.Utils
+import party.morino.moripafishing.api.model.world.SpawnPoint
+import java.io.File
+import java.time.Instant
 
 /**
- * Integration 未導入時に、コアが Bukkit ワールドの状態 (ゲームルール・時刻・スポーン) を
- * 変更しないことを確認するテスト。
+ * Integration (サービス) が 1 件も登録されていないとき、コアが Bukkit ワールドの状態を一切変更しないことを確認する。
  */
-@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
-@ExtendWith(MoripaFishingTest::class)
-class CoreWorldPurityTest : KoinTest {
-    private val plugin: MoripaFishing by inject()
-    private val pluginDirectory: PluginDirectory by inject()
+class CoreWorldPurityTest {
+    @TempDir
+    lateinit var directory: File
 
-    private val worldId = FishingWorldId("core_purity_test")
+    private lateinit var server: ServerMock
     private lateinit var world: WorldMock
-    private lateinit var configSnapshot: String
+    private lateinit var store: WorldConfigStore
+    private lateinit var manager: WorldManagerImpl
+    private val worldId = FishingWorldId("core_purity_test")
 
     @BeforeEach
     fun setUp() {
-        // テスト専用のワールド設定ファイルを作成し、終了時に削除する
-        val config =
-            WorldDetailConfig(
-                id = worldId,
-                name = mapOf(java.util.Locale.JAPAN to worldId.value),
-                spawnLocation = LocationData(worldId, 0.0, 64.0, 0.0, 90.0, 0.0),
-            )
-        configSnapshot = Utils.json.encodeToString(WorldDetailConfig.serializer(), config)
-        configFile().writeText(configSnapshot)
-        world = WorldMock(WorldCreator(NamespacedKey.fromString(worldId.toWorldKey().asString())!!))
-        MoripaFishingTest.server.addWorld(world)
-        // 旧実装であれば上書きしていた値と異なる値を事前に設定しておく
-        // (既定の気候設定では DO_DAYLIGHT_CYCLE = false / DO_WEATHER_CYCLE = false が書き込まれていた)
+        server = MockBukkit.mock()
+        val plugin = MockBukkit.createMockPlugin()
+        store = WorldConfigStore(directory, plugin.logger)
+        store.save(FishingWorldConfig(worldId))
+        world = mockWorld(WorldKeys.of(worldId))
+        server.addWorld(world)
+        // 適用されていれば変わるはずの値を事前に設定しておく
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true)
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, true)
         world.time = 1234L
+        world.setStorm(true)
+        world.isThundering = true
         world.spawnLocation = Location(world, 100.0, 80.0, -100.0)
+        world.worldBorder.size = 500.0
+        world.worldBorder.setCenter(-20.0, 40.0)
+        manager =
+            WorldManagerImpl(plugin, FakeConfigManager(), store, MutableClock(Instant.parse("2026-11-12T00:00:00Z")))
+        manager.enable()
+        manager.start()
     }
 
     @AfterEach
     fun tearDown() {
-        MoripaFishingTest.server.unloadWorld(world, false)
-        configFile().delete()
+        manager.disable()
+        MockBukkit.unmock()
     }
 
-    private fun configFile() = pluginDirectory.getWorldDirectory().resolve("${worldId.value}.json")
-
-    private fun tick() {
-        MoripaFishingTest.server.scheduler.performTicks(2)
-    }
-
-    @Test
-    fun `integrations are not installed in the test environment`() {
-        assertNull(plugin.getWorldLifecycleProvider())
-        assertNull(plugin.getWeatherControlProvider())
-    }
-
-    @Test
-    fun `updateState does not modify gamerules, time or spawn without integrations`() {
-        val fishingWorld = FishingWorldImpl(worldId)
-        fishingWorld.updateState()
-        fishingWorld.synchronizeTime()
-        tick()
-
+    private fun assertWorldUntouched() {
         assertEquals(true, world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE))
         assertEquals(true, world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE))
-        // DO_DAYLIGHT_CYCLE = true のままなので、tick の分だけ自然に進む以外は変化しない
-        assertTrue(world.time in 1234L..1240L, "world time was overwritten: ${world.time}")
+        assertEquals(1234L, world.time)
+        assertTrue(world.hasStorm())
+        assertTrue(world.isThundering)
         assertEquals(100.0, world.spawnLocation.x)
         assertEquals(80.0, world.spawnLocation.y)
         assertEquals(-100.0, world.spawnLocation.z)
+        assertEquals(500.0, world.worldBorder.size)
+        assertEquals(-20.0, world.worldBorder.center.x)
+        assertEquals(40.0, world.worldBorder.center.z)
     }
 
     @Test
-    fun `setWorldSpawnPosition does not modify the bukkit spawn without integrations`() {
-        val fishingWorld = FishingWorldImpl(worldId)
-        // 設定値と同じ位置を渡し、設定ファイルへの書き込みが発生しないようにする
-        fishingWorld.setWorldSpawnPosition(fishingWorld.getWorldSpawnPosition())
-        tick()
-
-        assertEquals(100.0, world.spawnLocation.x)
-        assertEquals(80.0, world.spawnLocation.y)
-        assertEquals(-100.0, world.spawnLocation.z)
+    fun `start, refresh and config updates do not modify the bukkit world`() {
+        manager.refresh()
+        val config = manager.getWorld(worldId)!!.getConfig()
+        assertTrue(
+            manager.updateWorldConfig(
+                config.copy(spawn = SpawnPoint(5.0, 70.0, 5.0, 90f, -10f), border = BorderConfig(10.0, 10.0, 30.0)),
+            ),
+        )
+        assertWorldUntouched()
     }
 
     @Test
-    fun `deleteWorld fails without the WorldLifecycle integration and keeps the world loaded`() {
-        val worldManager = WorldManagerImpl()
-        assertFalse(worldManager.deleteWorld(worldId))
-        assertNotNull(MoripaFishingTest.server.getWorld(worldId.toWorldKey()))
-        assertEquals(configSnapshot, configFile().readText())
+    fun `createWorld fails without a lifecycle and writes no file`() {
+        assertFalse(manager.createWorld(FishingWorldId("new_world"), "void"))
+        assertFalse(File(directory, "new_world.json").exists())
+    }
+
+    @Test
+    fun `deleteWorld of a loaded world fails without a lifecycle and keeps the config`() {
+        assertFalse(manager.deleteWorld(worldId))
+        assertTrue(File(directory, "${worldId.value}.json").exists())
+        assertNotNull(server.getWorld(WorldKeys.of(worldId)))
+        assertWorldUntouched()
+    }
+
+    @Test
+    fun `weather is still decided for fish conditions`() {
+        assertNotNull(manager.getWorld(worldId)!!.getWeather())
     }
 }

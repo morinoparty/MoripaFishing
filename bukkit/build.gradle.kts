@@ -1,6 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import party.morino.moripafishing.GenerateCommandListTask
-import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
 
 plugins {
     java
@@ -16,13 +15,6 @@ version = project.version.toString()
 
 dependencies {
     implementation(project(":api"))
-    // WorldLifecycle Integration の SPI。
-    // core 自身は shade せず、integration plugin (softdepend) がロードした
-    // `WorldLifecycleProvider` クラスを `join-classpath: true` 経由で参照する。
-    compileOnly(project(":integrations:world-lifecycle-api"))
-    // Weather Integration の SPI。world-lifecycle 同様に core では shade せず、
-    // integration plugin (softdepend) がロードした `WeatherControlProvider` を参照する。
-    compileOnly(project(":integrations:weather-api"))
 
     compileOnly(libs.paper.api)
 
@@ -52,11 +44,6 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
     testImplementation(libs.mock.bukkit)
-    // テスト時のみ、MockBukkit が MoripaFishing を ByteBuddy でプロキシする際に
-    // `WorldLifecycleProvider` / `WeatherControlProvider` の型解決が必要なので含める。
-    // production jar には同梱されない。
-    testImplementation(project(":integrations:world-lifecycle-api"))
-    testImplementation(project(":integrations:weather-api"))
 
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation(libs.bundles.junit.jupiter)
@@ -149,10 +136,6 @@ sourceSets.main {
             apiVersion = "1.20"
             bootstrapper = "$group.moripafishing.MoripaFishingBootstrap"
             loader = "$group.moripafishing.MoripaFishingLoader"
-            dependencies {
-                server("MoripaFishing-Integration-WorldLifecycle", PaperPluginYaml.Load.BEFORE, required = false)
-                server("MoripaFishing-Integration-Weather", PaperPluginYaml.Load.BEFORE, required = false)
-            }
         }
         bukkitPluginYaml {
             name = rootProject.name
@@ -160,7 +143,6 @@ sourceSets.main {
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"
             apiVersion = "1.20"
-            softDepend.set(listOf("MoripaFishing-Integration-WorldLifecycle", "MoripaFishing-Integration-Weather"))
             // Spigot など paper-plugin.yml を使わないサーバー向け
             libraries.set(runtimeLibraries)
         }

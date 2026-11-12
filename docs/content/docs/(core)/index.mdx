@@ -19,7 +19,7 @@ description: MoripaFishing の概要と、Core / Integration / Addon の 3 層�
 
 #### 基本機能
 - ワールドの管理
-- 天候の決定と参照（ワールドへの実際の適用は Weather Integration が担当します）
+- 天候・時刻の決定と参照（ワールドへの実際の適用は Integration が担当します）
 - 魚釣りの基本システム
 - 表示文言の国際化（`ja_JP` / `en_US` の翻訳ファイルによる切り替え）
 
@@ -53,12 +53,12 @@ description: MoripaFishing の概要と、Core / Integration / Addon の 3 層�
 MoripaFishing は **Core / Integration / Addon** の 3 層で構成されます。
 
 - **Core**: 魚抽選・釣りイベントなどの最小機能を提供する本体プラグイン
-- **Integration**: Core が `softdepend` で参照するプラグイン。導入したときにだけ機能が有効になります
+- **Integration**: Core に必須依存し、Core が決めた値を Bukkit ワールドへ適用するプラグイン。導入したときにだけ適用が有効になります
 - **Addon**: Core に `depend` して Core の API を使い機能を拡張するプラグイン
 
 公式 Integration は次の 2 つです。
 
-- [WorldLifecycle](/docs/integration/world-lifecycle): 釣りワールドの境界同期、カスタムジェネレーターによるワールド生成、参加時テレポート
+- [WorldLifecycle](/docs/integration/world-lifecycle): 時刻・ワールドボーダー・スポーンの適用、ジェネレーターによるワールドの作成・アンロード、参加時テレポート
 - [Weather](/docs/integration/weather): Core が決定した天候のワールドへの適用と、`CLOUDY` におけるクライアント側バリア天井の送信
 
 Integration を導入しない限り、Core 単体ではワールドの実体を書き換えません。
@@ -76,8 +76,8 @@ flowchart BT
     addon1[Addon 1]
     addon2[Addon 2]
 
-    core -.softdepend.-> int1
-    core -.softdepend.-> int2
+    int1 -- depend --> core
+    int2 -- depend --> core
 
     addon1 -- depend --> core
     addon2 -- depend --> core

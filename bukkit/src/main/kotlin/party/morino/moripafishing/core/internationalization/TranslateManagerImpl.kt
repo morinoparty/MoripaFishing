@@ -75,7 +75,7 @@ class TranslateManagerImpl :
 
     override fun loadWorldData() {
         worldManager.getWorlds().forEach { world ->
-            world.getWorldDetails().name.forEach { (locale, name) ->
+            world.getConfig().name.forEach { (locale, name) ->
                 myStore.register("moripa_fishing.world.${world.getId().value}.name", locale, name)
             }
         }

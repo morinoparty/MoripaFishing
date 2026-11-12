@@ -1,250 +1,318 @@
 package party.morino.moripafishing.core.world
 
+import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import party.morino.moripafishing.MoripaFishing
+import org.bukkit.World
+import org.bukkit.event.HandlerList
+import org.bukkit.plugin.Plugin
+import org.bukkit.scheduler.BukkitTask
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.api.config.PluginDirectory
-import party.morino.moripafishing.api.config.world.WorldConfig
-import party.morino.moripafishing.api.config.world.WorldDetailConfig
+import party.morino.moripafishing.api.config.climate.ClimateConfig
+import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.core.world.weather.VanillaWeatherCache
 import party.morino.moripafishing.event.world.FishingWorldCreateEvent
 import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
 import party.morino.moripafishing.event.world.FishingWorldDeletedEvent
 import party.morino.moripafishing.event.world.FishingWorldLoadEvent
 import party.morino.moripafishing.event.world.FishingWorldUnloadEvent
-import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
-import party.morino.moripafishing.utils.IntegrationCall
-import party.morino.moripafishing.utils.Utils
+import party.morino.moripafishing.event.world.FishingWorldWeatherChangeEvent
+import java.time.Clock
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.concurrent.ConcurrentHashMap
 
-@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
-class WorldManagerImpl :
-    WorldManager,
-    KoinComponent {
-    private val plugin: MoripaFishing by inject()
-    private val configManager: ConfigManager by inject()
-    private val pluginDirectory: PluginDirectory by inject()
-    private val worldConfig: WorldConfig
-        get() = configManager.getConfig().world
+/**
+ * [WorldManager] のコア実装。
+ *
+ * 釣りワールドの定義 (設定ファイル) を保持し、各ワールドのあるべき状態を決めて Integration に適用させる。
+ * コア自身は Bukkit ワールドを一切変更せず、`ServicesManager` に登録された
+ * `WorldStateApplier` / `WorldLifecycle` / `WeatherSource` を呼ぶだけである。
+ * Integration が未導入でも、定義の読み込み・天候の決定 (魚の抽選条件) は動作する。
+ *
+ * ライフサイクル:
+ * 1. [enable] (プラグイン有効化時): 定義を読み込み、Listener を登録する。ワールドには触れない。
+ * 2. [start] (`ServerLoadEvent`。全 Integration の登録後): ロード済みワールドへ状態を適用し、
+ *    未ロードのワールドを `WorldLifecycle` で作成し、リフレッシュループを開始する。
+ * 3. [disable] (プラグイン無効化時): ループと Listener を止める。ワールドには触れない。
+ *
+ * [start] 前は定義の読み書きのみ行い、Integration への適用・ワールドの作成は行わない
+ * ([createWorld] は失敗し、[updateWorldConfig] は保存のみ行う)。
+ *
+ * @property plugin コアプラグイン
+ * @property configManager `config.json` の参照先
+ * @property store 釣りワールド設定ファイルの読み書き
+ * @property clock 現在時刻の取得元 (テストで差し替える)
+ */
+internal class WorldManagerImpl(
+    private val plugin: Plugin,
+    private val configManager: ConfigManager,
+    private val store: WorldConfigStore,
+    private val clock: Clock = Clock.systemUTC(),
+) : WorldManager,
+    WorldContext {
+    private val worlds = ConcurrentHashMap<FishingWorldId, FishingWorldImpl>()
+    private val services = WorldServices(plugin)
+    private val vanillaWeather = VanillaWeatherCache()
+    private val listener = WorldEventListener(this)
+    private var refreshTask: BukkitTask? = null
+    private var started = false
 
-    private val worldList: MutableSet<FishingWorld> = mutableSetOf()
-    private lateinit var worldIdList: MutableSet<FishingWorldId>
-
-    init {
-        loadWorlds()
-        plugin.logger.info("loaded worlds! ${worldIdList.map { it.value }}")
+    /**
+     * 定義を読み込み、Listener を登録する。プラグイン有効化時に呼ぶ。ワールドには触れない。
+     */
+    fun enable() {
+        store.loadAll().forEach { define(it) }
+        plugin.server.pluginManager.registerEvents(listener, plugin)
+        plugin.server.pluginManager.registerEvents(vanillaWeather, plugin)
+        vanillaWeather.primeAll(plugin.server.worlds)
+        plugin.logger.info("Defined fishing worlds: ${worlds.keys.map { it.value }.sorted()}")
     }
 
-    private fun loadWorlds() {
-        val worldDirectory = pluginDirectory.getWorldDirectory()
-        if (!worldDirectory.exists()) {
-            worldDirectory.mkdirs()
-        }
-        worldIdList =
-            pluginDirectory
-                .getWorldDirectory()
-                .listFiles()
-                .filter { it.name.endsWith(".json") }
-                .map { FishingWorldId(it.nameWithoutExtension) }
-                .toMutableSet()
+    /**
+     * 釣りワールドの運用を始める。`ServerLoadEvent` から呼ばれ、2 回目以降は何もしない。メインスレッド。
+     */
+    fun start() {
+        checkMainThread("start")
+        if (started) return
+        started = true
+        scheduleRefresh()
+        worlds.values.forEach(::activate)
+        refresh()
     }
 
-    override fun initializeWorlds() {
-        worldIdList.toList().forEach { world ->
-            // Bukkit ワールドが既に存在する場合は FishingWorldImpl を構築して updateState するのみ。
-            // 存在しない場合は createWorld で生成する (WorldLifecycle integration が必要)。
-            if (Bukkit.getWorld(world.toWorldKey()) != null) {
-                plugin.logger.info("World is found! Skipping ${world.value}")
-                val instance = FishingWorldImpl(world)
-                worldList.add(instance)
-                instance.updateState()
-                FishingWorldLoadEvent(world).callEvent()
-                return@forEach
+    /**
+     * ループと Listener を止め、定義を破棄する。プラグイン無効化時に呼ぶ。ワールドには触れない。
+     */
+    fun disable() {
+        refreshTask?.cancel()
+        refreshTask = null
+        HandlerList.unregisterAll(listener)
+        HandlerList.unregisterAll(vanillaWeather)
+        worlds.clear()
+        started = false
+    }
+
+    /**
+     * 全ワールドの天候を観測して変化を通知し、ロード済みワールドへ状態を適用させる。メインスレッド。
+     */
+    fun refresh() {
+        checkMainThread("refresh")
+        val now = now()
+        worlds.values.forEach { world ->
+            val decision = world.decideWeather(now)
+            val previous = world.observedWeather
+            if (previous != null && previous != decision.weather) {
+                FishingWorldWeatherChangeEvent(world.getId(), previous, decision.weather).callEvent()
             }
-            if (createWorld(world)) {
-                plugin.logger.info("World created! ${world.value}")
-            } else {
-                plugin.logger.warning(
-                    "Skipping ${world.value}: Bukkit world is not loaded and creation failed " +
-                        "(WorldLifecycle integration missing or generator invalid).",
-                )
-            }
+            world.observedWeather = decision.weather
+            if (isLoaded(world)) services.apply(world.desiredState(now, decision))
         }
     }
 
-    override fun getDefaultWorldId(): FishingWorldId = worldConfig.defaultId
+    /**
+     * Bukkit ワールドのロードに追従する。[start] 前は何もしない ([start] がまとめて処理する)。
+     */
+    fun onBukkitWorldLoaded(world: World) {
+        if (!started) return
+        announceLoaded(worldOf(world.key) ?: return)
+    }
 
-    override fun getWorldIdList(): List<FishingWorldId> = worldIdList.toList()
+    /**
+     * Bukkit ワールドのアンロードに追従する。
+     */
+    fun onBukkitWorldUnloaded(world: World) {
+        val fishingWorld = worldOf(world.key) ?: return
+        FishingWorldUnloadEvent(fishingWorld.getId()).callEvent()
+    }
 
-    override fun hasWorld(fishingWorldId: FishingWorldId): Boolean = fishingWorldId in worldIdList
+    override fun getDefaultWorldId(): FishingWorldId = configManager.getConfig().world.defaultId
 
-    override fun getWorld(fishingWorldId: FishingWorldId): FishingWorld? {
-        worldList.find { it.getId() == fishingWorldId }?.let { return it }
-        // 登録済み (設定ファイルが存在する) かつ Bukkit ワールドがロード済みの場合のみ遅延構築する。
-        // 未登録の ID に対してワールドを捏造しない。
-        if (fishingWorldId !in worldIdList) return null
-        if (Bukkit.getWorld(fishingWorldId.toWorldKey()) == null) return null
-        val world = FishingWorldImpl(fishingWorldId)
-        worldList.add(world)
+    override fun getWorlds(): List<FishingWorld> = worlds.values.sortedBy { it.getId().value }
+
+    override fun getWorld(id: FishingWorldId): FishingWorld? = worlds[id]
+
+    override fun getWorldByKey(worldKey: Key): FishingWorld? = worldOf(worldKey)
+
+    override fun getGeneratorIds(): Set<String> = services.lifecycle()?.getGeneratorIds() ?: emptySet()
+
+    override fun createWorld(
+        id: FishingWorldId,
+        generatorId: String,
+    ): Boolean {
+        checkMainThread("createWorld")
+        val rejection = creationRejection(id)
+        if (rejection != null) {
+            plugin.logger.warning("Cannot create fishing world ${id.value}: $rejection")
+            return false
+        }
+        // 作成中に発火する WorldLoadEvent で見つけられるよう、先に定義する
+        val config =
+            FishingWorldConfig(
+                id = id,
+                name = mapOf(configManager.getConfig().defaultLocale to id.value),
+                generator = generatorId,
+            )
+        store.save(config)
+        if (!tryCreate(define(config))) {
+            worlds.remove(id)
+            store.delete(id)
+            return false
+        }
+        FishingWorldCreateEvent(id).callEvent()
+        return true
+    }
+
+    override fun deleteWorld(id: FishingWorldId): Boolean {
+        checkMainThread("deleteWorld")
+        val world = worlds[id] ?: return false
+        val loaded = isLoaded(world)
+        val lifecycle = services.lifecycle()
+        if (loaded && lifecycle == null) {
+            plugin.logger.warning(
+                "Cannot delete fishing world ${id.value}: it is loaded and no WorldLifecycle is registered",
+            )
+            return false
+        }
+        if (!FishingWorldDeleteEvent(id).callEvent()) return false
+        if (loaded && lifecycle?.unloadWorld(world.getWorldKey()) != true) {
+            plugin.logger.warning("Cannot delete fishing world ${id.value}: the Bukkit world could not be unloaded")
+            return false
+        }
+        worlds.remove(id)
+        store.delete(id)
+        FishingWorldDeletedEvent(id).callEvent()
+        return true
+    }
+
+    /**
+     * 設定を保存し、運用開始後かつロード済みなら即座に適用させる。
+     * `generator` は作成時のみ参照されるため、既存ワールドで変更しても効果はない。
+     */
+    override fun updateWorldConfig(config: FishingWorldConfig): Boolean {
+        checkMainThread("updateWorldConfig")
+        val world = worlds[config.id] ?: return false
+        if (world.getConfig() != config) {
+            store.save(config)
+            world.replaceConfig(config)
+            if (started && isLoaded(world)) push(world)
+        }
+        return true
+    }
+
+    /**
+     * 設定ファイルを読み直す。消えたワールドは定義から外すのみで、アンロードもイベントの発火も行わない。
+     * 運用開始後 ([start] 後) は、リフレッシュ間隔を更新し、未ロードのワールドの作成を再試行し、
+     * 追加されたロード済みワールドへ状態を適用してから全ワールドをリフレッシュする。
+     */
+    override fun reload() {
+        checkMainThread("reload")
+        val definitions = store.loadAll().associateBy { it.id }
+        worlds.keys.retainAll(definitions.keys)
+        val added = mutableListOf<FishingWorldImpl>()
+        definitions.values.forEach { config ->
+            val existing = worlds[config.id]
+            if (existing != null) existing.replaceConfig(config) else added += define(config)
+        }
+        if (!started) return
+        scheduleRefresh()
+        worlds.values.forEach { world ->
+            when {
+                !isLoaded(world) -> tryCreate(world)
+                world in added -> announceLoaded(world)
+            }
+        }
+        refresh()
+    }
+
+    override fun now(): ZonedDateTime {
+        val zone = ZoneId.of(configManager.getConfig().world.timeZone)
+        return ZonedDateTime.now(clock.withZone(zone))
+    }
+
+    override fun defaultClimate(): ClimateConfig = configManager.getConfig().world.defaultClimate
+
+    override fun vanillaWeather(worldKey: Key): WeatherType = vanillaWeather.get(worldKey)
+
+    override fun externalWeather(
+        source: Key,
+        worldId: FishingWorldId,
+        worldKey: Key,
+    ): WeatherDecision? = services.externalWeather(source, worldId, worldKey)
+
+    private fun define(config: FishingWorldConfig): FishingWorldImpl {
+        val world = FishingWorldImpl(config, this)
+        worlds[config.id] = world
         return world
     }
 
-    override fun getWorlds(): List<FishingWorld> = worldIdList.toList().mapNotNull { getWorld(it) }
+    /**
+     * ロード済みなら状態を適用して [FishingWorldLoadEvent] を発火し、未ロードなら作成を試みる。
+     */
+    private fun activate(world: FishingWorldImpl) {
+        if (isLoaded(world)) announceLoaded(world) else tryCreate(world)
+    }
 
-    override fun getGeneratorIds(): List<String> = plugin.getWorldLifecycleProvider()?.listGenerators()?.map { it.id } ?: emptyList()
-
-    override fun createWorld(
-        fishingWorldId: FishingWorldId,
-        generatorId: String,
-    ): Boolean {
-        val provider =
-            plugin.getWorldLifecycleProvider() ?: run {
-                plugin.logger.warning(
-                    "createWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
-                )
-                return false
-            }
-        val generator =
-            provider.getGenerator(generatorId) ?: run {
-                plugin.logger.warning(
-                    "Generator '$generatorId' was not found in the WorldLifecycle integration.",
-                )
-                return false
-            }
-        return createWorld(fishingWorldId, generator)
+    private fun announceLoaded(world: FishingWorldImpl) {
+        push(world)
+        FishingWorldLoadEvent(world.getId()).callEvent()
     }
 
     /**
-     * 指定されたジェネレータデータで Bukkit ワールドを作成する内部実装。
-     * Integration 未導入時は warning を出して `false` を返す。
+     * 定義済みワールドの Bukkit ワールドを `WorldLifecycle` で作成する。失敗した場合は理由を警告して `false` を返す。
+     * 成功時の適用と [FishingWorldLoadEvent] は、作成中に発火する `WorldLoadEvent` 経由で行われる。
      */
-    private fun createWorld(
-        fishingWorldId: FishingWorldId,
-        generatorData: GeneratorData,
-    ): Boolean {
-        val provider =
-            plugin.getWorldLifecycleProvider() ?: run {
-                plugin.logger.warning(
-                    "createWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
-                )
-                return false
+    private fun tryCreate(world: FishingWorldImpl): Boolean {
+        val generator = world.getConfig().generator
+        val lifecycle = services.lifecycle()
+        val failure =
+            when {
+                lifecycle == null -> "no WorldLifecycle is registered"
+                generator !in lifecycle.getGeneratorIds() -> "unknown generator '$generator'"
+                !lifecycle.createWorld(world.getWorldKey(), generator) -> "the WorldLifecycle failed to create it"
+                else -> null
             }
-
-        plugin.logger.info("Creating or Loading world ${fishingWorldId.value}")
-
-        // 起動時 (initializeWorlds) の既存ワールド再ロードでは worldIdList に既に含まれる。
-        // 真に新規作成された場合のみ FishingWorldCreateEvent を発火するため、事前に判定しておく。
-        val isNewWorld = fishingWorldId !in worldIdList
-
-        val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
-        if (!file.exists()) {
-            val worldDetailConfig =
-                WorldDetailConfig(
-                    id = fishingWorldId,
-                    name =
-                        mapOf(
-                            configManager.getConfig().defaultLocale to fishingWorldId.value,
-                        ),
-                )
-            file.createNewFile()
-            file.writeText(
-                Utils.json.encodeToString(WorldDetailConfig.serializer(), worldDetailConfig),
-            )
+        failure?.let {
+            plugin.logger.warning("Cannot create the Bukkit world of fishing world ${world.getId().value}: $it")
         }
-
-        val created = provider.createBukkitWorld(fishingWorldId.toWorldKey().asString(), generatorData)
-        if (!created) {
-            return false
-        }
-        val instance = FishingWorldImpl(fishingWorldId)
-        worldList.add(instance)
-        instance.updateState()
-        worldIdList.add(fishingWorldId)
-        plugin.logger.info("Current world list: ${worldList.map { it.getId().value }}")
-        if (isNewWorld) {
-            FishingWorldCreateEvent(fishingWorldId).callEvent()
-        }
-        FishingWorldLoadEvent(fishingWorldId).callEvent()
-        return true
+        return failure == null
     }
 
-    override fun createWorld(fishingWorldId: FishingWorldId): Boolean {
-        val provider =
-            plugin.getWorldLifecycleProvider() ?: run {
-                plugin.logger.warning(
-                    "createWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
-                )
-                return false
-            }
-        val detailConfig = getWorldDetailConfig(fishingWorldId)
-        val generator =
-            provider.getGenerator(detailConfig.generator) ?: run {
-                plugin.logger.warning(
-                    "Generator '${detailConfig.generator}' was not found in the WorldLifecycle integration.",
-                )
-                return false
-            }
-        return createWorld(fishingWorldId, generator)
+    /** [createWorld] で新しい定義を作れない理由。作れる場合は `null`。 */
+    private fun creationRejection(id: FishingWorldId): String? {
+        val key = runCatching { WorldKeys.of(id) }.getOrNull()
+        return when {
+            !started -> "fishing worlds are not started yet (wait until the server has loaded)"
+            worlds.containsKey(id) -> "it is already defined"
+            key == null -> "'${id.value}' is not a valid world key value"
+            plugin.server.getWorld(key) != null -> "Bukkit world ${key.asString()} is already loaded"
+            else -> null
+        }
     }
 
-    /**
-     * 釣りワールドを削除する。
-     *
-     * Bukkit ワールドのアンロードは WorldLifecycle Integration に委ねる。未導入時は
-     * `createWorld` と同様に warning を出して `false` を返す (イベントも発火しない)。
-     * アンロード結果を同期的に受け取るため、メインスレッドから呼び出すこと。
-     */
-    override fun deleteWorld(fishingWorldId: FishingWorldId): Boolean {
-        if (Bukkit.getWorld(fishingWorldId.toWorldKey()) == null) return false
-        val provider =
-            plugin.getWorldLifecycleProvider() ?: run {
-                plugin.logger.warning(
-                    "deleteWorld(${fishingWorldId.value}) requires the WorldLifecycle integration but it is not installed.",
-                )
-                return false
-            }
-        val event = FishingWorldDeleteEvent(fishingWorldId)
-        if (!event.callEvent()) {
-            plugin.logger.info("deleteWorld(${fishingWorldId.value}) was cancelled by an event handler.")
-            return false
-        }
-        val unloaded =
-            IntegrationCall.call(plugin.logger, "WorldLifecycleProvider.unloadBukkitWorld", false) {
-                provider.unloadBukkitWorld(fishingWorldId.toWorldKey().asString(), false)
-            }
-        if (!unloaded) {
-            plugin.logger.warning(
-                "deleteWorld(${fishingWorldId.value}) aborted: the world could not be unloaded " +
-                    "(players still in the world, called off the main thread, or outdated integration?).",
-            )
-            return false
-        }
-        val worldFile = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
-        if (worldFile.exists()) {
-            worldFile.delete()
-        }
-        // 破棄前に天候プロバイダーの Listener 等を解放する
-        worldList
-            .filter { it.getId() == fishingWorldId }
-            .forEach { (it as? FishingWorldImpl)?.disposeWeatherProvider() }
-        worldList.removeIf { it.getId() == fishingWorldId }
-        worldIdList.remove(fishingWorldId)
-        FishingWorldUnloadEvent(fishingWorldId).callEvent()
-        FishingWorldDeletedEvent(fishingWorldId).callEvent()
-        return true
+    private fun scheduleRefresh() {
+        refreshTask?.cancel()
+        val interval = configManager.getConfig().world.refreshIntervalSeconds * TICKS_PER_SECOND
+        refreshTask = plugin.server.scheduler.runTaskTimer(plugin, Runnable { refresh() }, interval, interval)
     }
 
-    fun getWorldDetailConfig(fishingWorldId: FishingWorldId): WorldDetailConfig {
-        val file = pluginDirectory.getWorldDirectory().resolve("${fishingWorldId.value}.json")
-        if (!file.exists()) {
-            return WorldDetailConfig(id = fishingWorldId, name = mapOf(configManager.getConfig().defaultLocale to fishingWorldId.value))
-        }
-        return Utils.json.decodeFromString(
-            WorldDetailConfig.serializer(),
-            file.readText(),
-        )
+    private fun push(world: FishingWorldImpl) = services.apply(world.desiredState(now()))
+
+    private fun isLoaded(world: FishingWorld): Boolean = plugin.server.getWorld(world.getWorldKey()) != null
+
+    private fun worldOf(worldKey: Key): FishingWorldImpl? {
+        val normalized = WorldKeys.normalize(worldKey)
+        return worlds.values.firstOrNull { it.getWorldKey() == normalized }
+    }
+
+    private fun checkMainThread(operation: String) {
+        check(Bukkit.isPrimaryThread()) { "WorldManager.$operation must be called on the main thread" }
+    }
+
+    private companion object {
+        const val TICKS_PER_SECOND = 20L
     }
 }

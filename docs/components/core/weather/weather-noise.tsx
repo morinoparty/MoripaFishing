@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const defaultWeight: { x: number; weather: WeatherType }[] = [
-    { x: 5, weather: WeatherType.SUNNY },
+    { x: 4, weather: WeatherType.SUNNY },
     { x: 1, weather: WeatherType.CLOUDY },
     { x: 2, weather: WeatherType.RAIN },
     { x: 1, weather: WeatherType.THUNDER },
@@ -22,7 +22,7 @@ export const WeatherNoise = () => {
         [],
     );
     const [world, setWorld] = useState<string>("default");
-    const [pepper, setPepper] = useState<string>("pepper");
+    const [seed, setSeed] = useState<string>("pepper");
     const base: number = getTimeDiff();
     const [size, setSize] = useState<number>(400);
     const maxInclination = 30;
@@ -32,7 +32,7 @@ export const WeatherNoise = () => {
         const fetchData = async () => {
             const weatherRandom: WeatherRandom = new WeatherRandom(
                 world,
-                pepper,
+                seed,
                 weights,
                 maxInclination,
             );
@@ -53,7 +53,7 @@ export const WeatherNoise = () => {
         };
 
         fetchData();
-    }, [world, pepper, size, weights]);
+    }, [world, seed, size, weights]);
 
     const handleWeightChange = (index: number, value: number) => {
         const newWeights = [...weights];
@@ -73,11 +73,11 @@ export const WeatherNoise = () => {
                     />
                 </div>
                 <div className="flex flex-col gap-2">
-                    <Label className="text-md">pepper</Label>
+                    <Label className="text-md">seed</Label>
                     <Input
-                        placeholder="pepper"
-                        onChange={(e) => setPepper(e.target.value)}
-                        defaultValue={pepper}
+                        placeholder="seed"
+                        onChange={(e) => setSeed(e.target.value)}
+                        defaultValue={seed}
                     />
                 </div>
                 <div className="flex flex-col gap-2">

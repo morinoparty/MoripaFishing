@@ -8,7 +8,6 @@ import party.morino.moripafishing.api.core.angler.Angler
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
-import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.LocationData
 import java.util.UUID
 
@@ -33,13 +32,8 @@ class AnglerImpl(
     }
 
     override fun getWorld(): FishingWorld? {
-        val offlinePlayer = Bukkit.getOfflinePlayer(uniqueId)
-        if (!offlinePlayer.isOnline) return null
-        val player = offlinePlayer.player ?: return null
-        val worldId = FishingWorldId.fromWorldKey(player.world.key) ?: return null
-        val world = worldManager.getWorld(worldId)
-
-        return world
+        val player = Bukkit.getPlayer(uniqueId) ?: return null
+        return worldManager.getWorldByKey(player.world.key)
     }
 
     override fun getLocation(): LocationData? {

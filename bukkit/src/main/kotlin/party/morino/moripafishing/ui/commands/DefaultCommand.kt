@@ -12,7 +12,6 @@ import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.internationalization.TranslateManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
 import party.morino.moripafishing.api.core.world.WorldManager
-import party.morino.moripafishing.core.world.FishingWorldImpl
 import party.morino.moripafishing.event.config.ConfigReloadedEvent
 import party.morino.moripafishing.utils.coroutines.minecraft
 
@@ -36,12 +35,7 @@ class DefaultCommand : KoinComponent {
             sender.sendRichMessage("<green>[1 / $n] Reloaded root config")
 
             // world
-            worldManager.getWorlds().forEach { fishingWorld ->
-                (fishingWorld as? FishingWorldImpl)?.let {
-                    it.loadConfig()
-                    it.updateState()
-                }
-            }
+            worldManager.reload()
             sender.sendRichMessage("<green>[2 / $n] Reloaded world")
 
             // rarity

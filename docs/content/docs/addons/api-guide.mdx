@@ -52,16 +52,8 @@ dependencies {
 </dependencies>
 ```
 
-### Integration の SPI アーティファクト
-
-Integration が公開する SPI は、コア API とは別のアーティファクトとして切り出されています。
-ワールド生成や天候適用の Integration をアドオンから直接操作する場合のみ追加してください。
-
-| アーティファクト | 内容 |
-|---|---|
-| `party.morino:moripafishing-api` | `MoripaFishingAPI` とモデル・イベント |
-| `party.morino:moripafishing-world-lifecycle-api` | `WorldLifecycleProvider` / `GeneratorData` |
-| `party.morino:moripafishing-weather-api` | `WeatherControlProvider` |
+Integration 向けの SPI (`WorldStateApplier` / `WorldLifecycle` / `WeatherSource`) も同じ `moripafishing-api` に含まれます
+(`party.morino.moripafishing.api.core.world.spi` パッケージ)。Integration の作り方は [Integration とは](/docs/integration/overview) を参照してください。
 
 ### SNAPSHOTビルド（JitPack）
 
@@ -167,17 +159,18 @@ APIインスタンスから以下のマネージャーを取得できます。
 | `WorldManager` | `getWorldManager()` | 釣り場ワールドの管理 |
 | `AnglerManager` | `getAnglerManager()` | つりびと（プレイヤー）データの管理 |
 | `RarityManager` | `getRarityManager()` | レアリティの管理 |
-| `RandomizeManager` | `getRandomizeManager()` | 魚・天候のランダム化 |
+| `RandomizeManager` | `getRandomizeManager()` | 魚のランダム化 |
 | `LogManager` | `getLogManager()` | ログ出力 |
 | `PluginDirectory` | `getPluginDirectory()` | プラグインディレクトリの取得 |
 
 主なマネージャーのメソッドは次のとおりです。
 
 - `FishManager`: `getFish()` / `getFishWithId(id)` / `getFishesWithRarity(rarity)` / `registerFish(fish)` / `unregisterFish(id)` / `loadFishes()` / `unloadFishes()`
-- `WorldManager`: `getDefaultWorldId()` / `getWorldIdList()` / `hasWorld(id)` / `getWorld(id)` / `getWorlds()` / `createWorld(id)` / `getGeneratorIds()` / `deleteWorld(id)`
+- `WorldManager`: `getDefaultWorldId()` / `getWorlds()` / `getWorld(id)` / `getWorldByKey(key)` / `getGeneratorIds()` / `createWorld(id, generatorId)` / `deleteWorld(id)` / `updateWorldConfig(config)` / `reload()`
 - `AnglerManager`: `getAnglerByMinecraftUniqueId(uuid)` / `getAnglerByAnglerUniqueId(anglerId)` / `getOnlineAnglers()`
 
-また、APIインスタンス自体が天候ソースの登録口（`registerWeatherSource`など）を持ちます。詳細は[天候ソースの登録](#天候ソースの登録)を参照してください。
+`WorldManager` の取得系メソッドは任意のスレッドから呼べます。変更系 (`createWorld` / `deleteWorld` / `updateWorldConfig` / `reload`) はメインスレッドから呼んでください。
+独自の天候ソースは `ServicesManager` に登録します。詳細は [WeatherSource の登録](#weathersource-の登録) を参照してください。
 
 ## 使用例
 
@@ -214,115 +207,93 @@ angler?.let {
 
 ### ワールドの一覧を取得する
 
-`getWorld`はロードされていないワールドや未登録のIDに対して`null`を返します。
-ロード済みのワールドだけを直接まとめて取得したい場合は`getWorlds()`を使ってください。
+`getWorlds()` と `getWorld(id)` は、設定ファイルが存在する **定義済み** の釣りワールドを返します。
+対応する Bukkit ワールドがロードされているかどうかは `Bukkit.getWorld(world.getWorldKey())` で確認します。
 
 ```kotlin
 val worldManager = api.getWorldManager()
-worldManager.getWorldIdList().forEach { id ->
-    val world = worldManager.getWorld(id) ?: return@forEach
-    println("World: ${world.getId().value} / ${world.getCurrentWeather()}")
+worldManager.getWorlds().forEach { world ->
+    val loaded = Bukkit.getWorld(world.getWorldKey()) != null
+    println("World: ${world.getId().value} / ${world.getWeather()} / loaded=$loaded")
 }
 ```
 
-### ワールドを作成する
+### Bukkit ワールドから釣りワールドを引く
 
-ワールド生成の実体は [`MoripaFishing-Integration-WorldLifecycle` Integration](/docs/integration/world-lifecycle) が提供します。
-未導入環境では`createWorld`が`false`を返し、`getGeneratorIds()`は空リストを返します。
+Bukkit ワールドが釣りワールドかどうかは、キーで `getWorldByKey` を引いて判定します。
+
+```kotlin
+val fishingWorld = api.getWorldManager().getWorldByKey(player.world.key)
+if (fishingWorld != null) {
+    player.sendMessage("ここは釣りワールド ${fishingWorld.getId().value} です (天候: ${fishingWorld.getWeather()})")
+}
+```
+
+### ワールドの設定を変更する
+
+`FishingWorld` は読み取り専用です。設定を変えるには、`getConfig()` の値をもとに新しい設定を作り、
+メインスレッドから `updateWorldConfig` に渡します。保存とロード済みワールドへの適用が即座に行われます。
 
 ```kotlin
 val worldManager = api.getWorldManager()
-val generatorIds = worldManager.getGeneratorIds()
-val created = worldManager.createWorld(FishingWorldId("my_world"), "terra")
-```
-
-### ジェネレーターを登録する
-
-`WorldLifecycleProvider` は独立した SPI モジュール（`moripafishing-world-lifecycle-api`）にあり、
-`MoripaFishingAPI` には公開されていません。ジェネレーターを追加したい場合は、
-Integration プラグインを直接キャストして取得してください。
-
-```kotlin
-import party.morino.moripafishing.integrations.worldlifecycle.api.GeneratorData
-import party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider
-
-val worldLifecycle =
-    Bukkit.getPluginManager().getPlugin("MoripaFishing-Integration-WorldLifecycle") as? WorldLifecycleProvider
-        ?: error("MoripaFishing-Integration-WorldLifecycle integration is not installed")
-
-worldLifecycle.addGenerator(
-    GeneratorData(
-        id = "my-generator",
-        generator = "MyGeneratorPlugin:default",
-        type = "NORMAL",
+val world = worldManager.getWorld(FishingWorldId("default")) ?: return
+val config = world.getConfig()
+worldManager.updateWorldConfig(
+    config.copy(
+        spawn = SpawnPoint(0.0, 70.0, 0.0, 90f, 0f),
+        border = BorderConfig(centerX = 0.0, centerZ = 0.0, size = 200.0),
     ),
 )
 ```
 
-`addGenerator` が受け取るのは任意のジェネレーターオブジェクトではなく、値型の `GeneratorData` です。
-この SPI は `api` モジュールに依存せず、ワールドIDやジェネレーターIDを `String` でやり取りします。
-Integration とアドオンが別々の classloader に読み込まれても型の同一性が壊れないようにするためです。
+### ワールドを作成する
 
-`WorldLifecycleProvider` が公開しているメソッドは次のとおりです。
+ワールド作成の実体は [WorldLifecycle Integration](/docs/integration/world-lifecycle) が提供します。
+未導入の環境では `createWorld` が `false` を返し、`getGeneratorIds()` は空を返します。
+サーバーの起動完了 (`ServerLoadEvent`) 前に呼んだ `createWorld` も `false` を返すため、`onEnable` からではなく起動後に呼んでください。
 
-| メソッド | 説明 |
-|---|---|
-| `applyBorder(worldId, centerX, centerZ, size)` | ワールド境界を適用する |
-| `createBukkitWorld(worldId, generatorData)` | Bukkit のワールドを生成する |
-| `getGenerator(id)` | 登録済みジェネレーターを取得する（未登録なら `null`） |
-| `listGenerators()` | 登録済みジェネレーターの一覧を取得する |
-| `addGenerator(generator)` | ジェネレーターを登録する |
-| `setDaylightCycle(worldKey, enabled)` | ゲームルール `DO_DAYLIGHT_CYCLE` を設定する（既定実装は何もしない） |
-| `setTime(worldKey, time)` | ワールド時刻を設定する（既定実装は何もしない） |
-| `setSpawnLocation(worldKey, x, y, z, yaw, pitch)` | Bukkit ワールドのスポーン地点を設定する（既定実装は何もしない） |
-| `unloadBukkitWorld(worldKey, save)` | Bukkit ワールドをアンロードする。メインスレッドから呼び出す（既定実装は `false` を返す） |
+```kotlin
+val worldManager = api.getWorldManager()
+val generatorIds = worldManager.getGeneratorIds()
+// メインスレッドから呼ぶ
+val created = worldManager.createWorld(FishingWorldId("my_world"), "terra")
+```
 
-天候適用の `WeatherControlProvider`（`moripafishing-weather-api`）も同様に `MoripaFishingAPI` には
-公開されておらず、`MoripaFishing-Integration-Weather` プラグインを直接キャストして取得します。
+## WeatherSource の登録
 
-## 天候ソースの登録
-
-アドオンは`WeatherSource`を実装して独自の天候ソースを提供できます。
-登録したキーを設定の[`weatherSource`](/docs/format/config/climate#weathersource)に指定すると、そのワールドの天候決定がアドオンに委ねられます。
+アドオンは `WeatherSource` を実装して独自の天候ソースを提供できます。
+Bukkit の `ServicesManager` に登録し、ワールドの気候で [`{"type": "external", "source": "<キー>"}`](/docs/format/config/climate#external) を指定すると、
+そのワールドの天候がアドオンに委ねられます。
 
 ```kotlin
 import net.kyori.adventure.key.Key
-import party.morino.moripafishing.api.core.world.weather.WeatherProvider
-import party.morino.moripafishing.api.core.world.weather.WeatherSource
+import org.bukkit.plugin.ServicePriority
+import party.morino.moripafishing.api.core.world.spi.WeatherSource
+import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.WeatherType
 
 class MyWeatherSource : WeatherSource {
     override val key: Key = Key.key("myplugin", "realistic")
 
-    // true の場合、コアが決定した天候をワールドに適用し DO_WEATHER_CYCLE を制御する (Weather Integration 導入時)
-    override val managesWorldWeather: Boolean = true
+    // true: この天候をワールドへ適用させる (Weather Integration 導入時)。false: 魚の条件にのみ使う
+    override val appliesToWorld: Boolean = true
 
-    // true の場合、バニラの天候サイクル (DO_WEATHER_CYCLE) を有効に保つ
-    override val usesVanillaWeatherCycle: Boolean = false
-
-    override fun createProvider(worldId: FishingWorldId): WeatherProvider = MyWeatherProvider(worldId)
+    // 任意のスレッドから呼ばれる。Bukkit API を直接呼ばず、自前の状態だけを読むこと
+    override fun getWeather(
+        worldId: FishingWorldId,
+        worldKey: Key,
+    ): WeatherType = WeatherType.SUNNY
 }
 
-api.registerWeatherSource(MyWeatherSource())
-
-// 解除する場合
-api.unregisterWeatherSource(Key.key("myplugin", "realistic"))
+override fun onEnable() {
+    server.servicesManager.register(WeatherSource::class.java, MyWeatherSource(), this, ServicePriority.Normal)
+}
 ```
 
-`WeatherProvider`はpull型で、`getCurrentWeather`はメインスレッド・非同期スレッドの両方から呼ばれます。
-Bukkit APIを直接読む実装は避け、イベント駆動でキャッシュしたスナップショットを返してください。
-
-### dispose ライフサイクル
-
-`WeatherProvider.dispose()`は、`weatherSource`の切替・設定リロード・ワールド削除・プラグイン無効化などで
-プロバイダーが破棄されるときにコアが必ず呼び出します。BukkitのListenerやスケジューラタスクを
-登録している実装は、ここで解除してください（デフォルトはno-op）。
-
-### レジストリの挙動
-
-- 同じキーで再登録すると上書きされます。組み込みキー（`moripafishing:internal` / `moripafishing:vanilla`）の上書きも可能ですが、警告ログが出力されます
-- 登録元プラグインが無効化されると、そのプラグインが登録したソースは自動的に解除されます
-- 解除・上書きされたソースを使用中のワールドは即座に再解決され、未登録キーは`moripafishing:internal`にフォールバックします
-- `getWeatherSource(key)`で登録済みソースの取得、`getWeatherSourceKeys()`でキー一覧のスナップショットを取得できます
+- 登録はプラグインの無効化時に Bukkit が自動で解除します。
+- 同じ `key` の登録が複数ある場合は、優先度の高い登録が使われます。
+- Core は天候を決めるたびに `ServicesManager` を引き直すため、後から登録したソースも次の判定から使われます。
+- 一致するソースが登録されていない間は、内蔵の天候カレンダー (`random` の既定値) で天候を決め、警告を一度だけ出します。
 
 ## イベント
 
@@ -334,12 +305,12 @@ MoripaFishingは、釣果・ワールド・天候・設定に関するBukkitイ�
 | `AnglerFishCaughtEvent` | `event.fishing` | ✔ | 釣り上げの確定直前。キャンセルするとバニラの釣り上げごと取り消される。`setCaughtFish`で釣果を差し替え可能 |
 | `AnglerFishCaughtResultEvent` | `event.fishing` | ✘ | 釣り上げ処理の完了後。通知・記録などの副作用はこちらを購読する |
 | `AnglerJoinTeleportEvent` | `event.angler` | ✔ | 参加時テレポートの実行直前（WorldLifecycle Integration が発火）。`setDestination`で移動先を変更可能 |
-| `FishingWorldCreateEvent` | `event.world` | ✘ | 釣りワールドの作成完了後 |
-| `FishingWorldDeleteEvent` | `event.world` | ✔ | 釣りワールドの削除直前。キャンセルで削除中止 |
-| `FishingWorldDeletedEvent` | `event.world` | ✘ | 釣りワールドの削除完了後 |
-| `FishingWorldLoadEvent` | `event.world` | ✘ | 釣りワールドのロード完了後（起動時の読み込みと新規作成の両方） |
-| `FishingWorldUnloadEvent` | `event.world` | ✘ | 釣りワールドのアンロード後（削除時・プラグイン無効化時） |
-| `FishingWorldWeatherChangeEvent` | `event.world` | ✘ | 釣りワールドの実効天候の変化後。非同期スレッドから発火する場合がある（`isAsynchronous`で判別） |
+| `FishingWorldLoadEvent` | `event.world` | ✘ | 定義済みの釣りワールドの Bukkit ワールドがロードされ、状態の適用を終えた後（Bukkit の `WorldLoadEvent` に追従。サーバー起動時点でロード済みのワールドと、`/mf reload` で新たに定義されたロード済みのワールドにも発火） |
+| `FishingWorldUnloadEvent` | `event.world` | ✘ | 定義済みの釣りワールドの Bukkit ワールドのアンロード時（Bukkit の `WorldUnloadEvent` に追従。プラグイン無効化時には発火しない） |
+| `FishingWorldCreateEvent` | `event.world` | ✘ | `createWorld` の成功後（作成したワールドの `FishingWorldLoadEvent` の後） |
+| `FishingWorldDeleteEvent` | `event.world` | ✔ | `deleteWorld` による削除の直前。キャンセルで削除中止 |
+| `FishingWorldDeletedEvent` | `event.world` | ✘ | 削除の完了後（ロード済みだった場合は `FishingWorldUnloadEvent` の後） |
+| `FishingWorldWeatherChangeEvent` | `event.world` | ✘ | 魚の抽選条件に使う天候 (`getWeather()`) の変化時。常にメインスレッドで発火し、リフレッシュ間隔ごとに検知する。初回の観測では発火しない |
 | `ConfigReloadedEvent` | `event.config` | ✘ | `/mf reload`などによる設定再読み込みの完了後。設定由来の値をキャッシュしている場合はここで再取得する |
 
 パッケージはいずれも`party.morino.moripafishing.`配下です（例: `party.morino.moripafishing.event.fishing.AnglerFishCaughtEvent`）。
@@ -413,24 +384,30 @@ class MyListener : Listener {
 
 ### ワールド関連のイベント
 
-釣り場ワールドの作成・削除・ロード・アンロード・天候変化に対応するイベントです。
+釣りワールドのロード・アンロード・作成・削除・天候変化に対応するイベントです。
 いずれも `getWorldId()` で対象の `FishingWorldId` を取得できます。`FishingWorldDeleteEvent` だけが
 `Cancellable` を実装しており、削除を中止できます。
 
 ```kotlin
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.event.world.FishingWorldDeleteEvent
 
-@EventHandler
-fun onWorldDelete(event: FishingWorldDeleteEvent) {
-    if (event.getWorldId().value == "protected_world") {
-        event.isCancelled = true
+class ProtectWorldListener : Listener {
+    private val protected = setOf(FishingWorldId("protected_world"))
+
+    @EventHandler(ignoreCancelled = true)
+    fun onWorldDelete(event: FishingWorldDeleteEvent) {
+        if (event.getWorldId() in protected) {
+            event.isCancelled = true
+        }
     }
 }
 ```
 
 `FishingWorldWeatherChangeEvent` は `getOldWeather()` と `getNewWeather()` で変化前後の
-`WeatherType` を取得できます。非同期スレッドから発火する場合があるため、Bukkit API を触る処理は
-メインスレッドへスケジュールしてください。
+`WeatherType` を取得できます。常にメインスレッドで発火するため、ハンドラから Bukkit API をそのまま呼べます。
 
 ### AnglerJoinTeleportEvent
 

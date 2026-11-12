@@ -5,9 +5,9 @@ import org.bukkit.event.HandlerList
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
 /**
- * このイベントは、釣りワールドが新規に作成された後に発生します。
+ * `WorldManager.createWorld` による釣りワールドの作成が成功した後に発生します。
  *
- * 作成処理の完了後に発火するポストイベントであり、キャンセルはできません。
+ * 作成した Bukkit ワールドの [FishingWorldLoadEvent] の後に発火するポストイベントであり、キャンセルはできません。
  *
  * @param worldId 作成された釣りワールドのID
  */

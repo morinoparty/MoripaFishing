@@ -4,12 +4,12 @@ icon: Layers
 ---
 
 MoripaFishing は **Integration** と **Addon** の 2 種類の外部プラグインと連携します。
-依存の向きが逆になるため、役割も異なります。
+どちらも Core に依存するプラグインですが、役割が異なります。
 
 | 区分 | 依存関係 | 代表例 | 特徴 |
 |---|---|---|---|
-| **Core** | — | `MoripaFishing` 本体 | 魚抽選・釣りイベント・天候判定などの最小機能。Bukkit ワールドの天候・時刻・ゲームルール・スポーン・ボーダーは変更しない |
-| **Integration** | Core が Integration を参照 | `MoripaFishing-Integration-WorldLifecycle` | Core が SPI 経由で機能の実体を借りる。未導入時は該当機能が無効 |
+| **Core** | — | `MoripaFishing` 本体 | 魚抽選・釣りイベント・天候や時刻の決定などの最小機能。Bukkit ワールドの天候・時刻・ゲームルール・スポーン・ボーダーは変更しない |
+| **Integration** | Integration が Core に必須依存 | `MoripaFishing-Integration-WorldLifecycle` | Core が決めた値を Bukkit ワールドへ適用する SPI 実装を `ServicesManager` に登録する |
 | **Addon** | Addon が Core をソフト依存 | `MoripaFishing-Addon-CatchAnnounce` | Core の公開 API とイベントを利用して拡張する外部プラグイン |
 
 ```mermaid
@@ -22,106 +22,148 @@ flowchart BT
     addon1[Addon 1]
     addon2[Addon 2]
 
-    core -.optional Load.BEFORE.-> int1
-    core -.optional Load.BEFORE.-> int2
+    int1 -->|required, Load.BEFORE| core
+    int2 -->|required, Load.BEFORE| core
 
     addon1 -.soft depend.-> core
     addon2 -.soft depend.-> core
 ```
 
-Addon 側も Core をハード依存にはしません。`server("MoripaFishing", Load.BEFORE, required = false)`
+Addon は Core をハード依存にはしません。`server("MoripaFishing", Load.BEFORE, required = false)`
 として宣言し、Core が導入されていないサーバーでは Addon が起動時に自身を無効化します。
 
-## Integration の仕組み
+## 役割の分担
 
-Integration は独立した Bukkit プラグイン jar として提供され、
-以下のように Core から検出・利用されます。
+Core は **決定** だけを行い、Integration は **適用** だけを行います。
 
-1. Integration の `JavaPlugin` クラス自身が SPI インターフェースを実装する。
-   SPI はコアの `:api` モジュールではなく、`integrations/<名前>-api` という独立した
-   Gradle モジュール（`party.morino:moripafishing-world-lifecycle-api` の `WorldLifecycleProvider`、
-   `party.morino:moripafishing-weather-api` の `WeatherControlProvider`）に置かれており、
-   いずれもコアの `moripafishing-api` に依存しない。
-2. Integration の `paper-plugin.yml` では、原則として MoripaFishing への読み込み順を課す
-   依存（Paper の `Load.BEFORE` / `AFTER`）を**書かない**。
-   Core 側が Integration を `Load.BEFORE` で参照するため、順序を課すと循環するためである。
-   ただし Core の公開 API を実行時に参照する機能（例: WorldLifecycle の参加時テレポート）では、
-   `join-classpath` 目的で `Load.OMIT`（順序制約なし・`required: false`）の依存を宣言してよい。
-   旧 Bukkit ローダー向けのフォールバックとして `bukkit-plugin.yml` 側に `softdepend` を併記する場合もあるが、
-   こちらは循環を許容するため順序制約の問題は起きない。
-   実際、Weather Integration は Core の API を実行時に呼ばないため依存を一切宣言しておらず、
-   `Load.OMIT` を宣言しているのは WorldLifecycle Integration だけである。
-3. Core の `paper-plugin.yml` では Integration を
-   `server("<Integration 名>", Load.BEFORE, required = false)` として宣言し、
-   ロード順を「Integration → Core」に揃える。
-4. Core の `onEnable` で `Bukkit.getPluginManager().getPlugin("<Integration 名>")`
-   を取得し、SPI 型にキャストできれば採用する。
-5. Integration 未導入時は Core が `null` を保持し、該当機能はスキップされる。
-   プラグイン自体は導入されているのに SPI 型を実装していない場合は、
-   Core が警告ログを出したうえで同じく `null` として扱う。
+- Core は天候 (魚の抽選条件に使う値と、ワールドへ適用させる値)・時刻・ゲームルールの値・ボーダー・スポーンを決めます。
+- Integration は Core から受け取った値をそのまま Bukkit ワールドへ書き込み、ワールドの作成・アンロードを実行します。
+- Core 自身は Bukkit ワールドへ一切書き込みません。Integration がなくても、Core は値を決めて魚の抽選に使います。
 
-### SPI モジュールの扱い
+## Integration の作り方
 
-Integration の SPI インターフェースは、次のように Core とも Integration 本体とも独立したモジュールになっています。
+### 依存の宣言
 
-| SPI モジュール | インターフェース |
-|---|---|
-| `integrations/world-lifecycle-api`<br />(`party.morino:moripafishing-world-lifecycle-api`) | `party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider` |
-| `integrations/weather-api`<br />(`party.morino:moripafishing-weather-api`) | `party.morino.moripafishing.integrations.weather.api.WeatherControlProvider` |
+Integration は Core に必須依存し、Core の後にロードされます。
 
-Core はこれらを `compileOnly` で参照するだけで shade しません。Integration 側も同様に shade せず、
-実際に実行時のクラスを供給するのは Integration プラグインの jar です。
-Core は Paper の `join-classpath` を通じてそのクラスを共有し、同一の型として `is` 判定できるようになります。
-Integration を自作する場合も、コアの `:api` ではなく該当する `-api` モジュールに `compileOnly` で依存してください。
-これらの SPI モジュールは Maven Central に公開されているため、外部プロジェクトからは
-`party.morino:moripafishing-world-lifecycle-api` / `party.morino:moripafishing-weather-api` の座標で解決できます。
+```kotlin title="build.gradle.kts"
+dependencies {
+    // SPI を含む Core の公開 API。実行時は Core 本体のクラスを使うため、jar に同梱 (shade) しない
+    compileOnly("party.morino:moripafishing-api:<version>")
+    compileOnly("io.papermc.paper:paper-api:<version>")
+}
 
-:::info
-Addon との違いは **「誰が誰を検出するか」** です。
-Integration は Core が能動的に検出して取り込むのに対し、
-Addon は Core のイベントを購読したり、`MoripaFishingAPI` の公開メソッドを呼び出したりして自分から Core に働きかけます。
-Core が Addon 向けに提供している登録 API は `registerWeatherSource` / `unregisterWeatherSource`（天候ソースの差し替え）で、
-公式 Addon の [CatchAnnounce](/docs/addons/catch-announce) のように Bukkit のイベントリスナー登録だけで完結する構成も一般的です。
-:::
+paperPluginYaml {
+    dependencies {
+        // Core の後にロードし、join-classpath (既定で有効) で Core のクラスを参照する
+        server("MoripaFishing", PaperPluginYaml.Load.BEFORE, required = true)
+    }
+}
 
-## 利用側の確認方法
-
-`WorldLifecycleProvider` / `WeatherControlProvider` は Core が shade しない独立モジュールの型のため、
-これらを返すメソッドは `MoripaFishingAPI` には公開されていません。
-外部プラグインから確認する場合は、Integration プラグインを直接取得してキャストします。
-
-```kotlin
-val worldLifecycle =
-    Bukkit.getPluginManager().getPlugin("MoripaFishing-Integration-WorldLifecycle") as? WorldLifecycleProvider
-if (worldLifecycle == null) {
-    logger.warning("WorldLifecycle Integration が未導入です")
+bukkitPluginYaml {
+    depend.set(listOf("MoripaFishing"))
 }
 ```
+
+`:api` (`moripafishing-api`) を Integration の jar に同梱してはいけません。
+同梱すると SPI のインターフェースが Core と別のクラスローダーで読み込まれ、Core から別の型として扱われるためです。
+
+### サービスの登録
+
+SPI の実装は Bukkit の `ServicesManager` に登録します。
+登録はプラグインの無効化時に Bukkit が自動で解除するため、解除処理を書く必要はありません。
+
+```kotlin
+override fun onEnable() {
+    server.servicesManager.register(WorldStateApplier::class.java, MyApplier(), this, ServicePriority.Normal)
+}
+```
+
+Core はサービスを使うたびに `ServicesManager` から引き直します。後から登録・解除されたサービスも、次のリフレッシュから反映されます。
+
+### SPI 一覧
+
+SPI はすべて `party.morino.moripafishing.api.core.world.spi` パッケージにあります。
+
+| インターフェース | 使われ方 | 役割 |
+|---|---|---|
+| `WorldStateApplier` | 登録された **全件** が呼ばれる | Core が決めた `WorldState` を Bukkit ワールドへ適用する。各実装は担当する項目だけを見る |
+| `WorldLifecycle` | **最優先の 1 件** だけが使われる | Bukkit ワールドの作成 (`createWorld`)・アンロード (`unloadWorld`)・ジェネレーター ID の列挙 |
+| `WeatherSource` | `key` が一致する **最優先の 1 件** | 天候の方針 `external` から参照される外部天候ソース。詳細は [API ガイド](/docs/addons/api-guide#weathersource-の登録) |
+
+### `WorldState` の契約
+
+`WorldState` は、ある釣りワールドのあるべき状態です。
+
+| フィールド | 意味 |
+|---|---|
+| `worldId` / `worldKey` | 釣りワールドの ID と、対応する Bukkit ワールドのキー |
+| `weather` | 適用する天候。`null` は「天候を変更しない」 |
+| `doWeatherCycle` | ゲームルール `DO_WEATHER_CYCLE` の値 (`weather == null` のとき `true`) |
+| `time` | 適用するワールド時刻 (`0..23999`)。`null` は「時刻を変更しない」 |
+| `doDaylightCycle` | ゲームルール `DO_DAYLIGHT_CYCLE` の値 (`time == null` のとき `true`) |
+| `border` | 適用するワールドボーダー。`null` は「ボーダーを変更しない」 |
+| `spawn` | 適用するスポーン地点 |
+
+- Core は定期リフレッシュ・ワールドのロード時・設定の変更時に、毎回 **全項目** を送ります。差分ではありません。
+- 適用は **冪等** にしてください。同じ状態が何度届いても結果が変わらないようにします。
+- `null` の項目には触れないでください。ただし `weather == null` のときは、その Integration が以前に駆動していた演出 (例: CLOUDY の天井) だけを解除して構いません。
+- ゲームルールの値は Core が決めます。Integration は受け取った値をそのまま書き込みます。
+- 対象の Bukkit ワールドが未ロードのときは何もしません。
+
+### スレッド
+
+- `WorldStateApplier.apply`・`WorldLifecycle.createWorld`・`WorldLifecycle.unloadWorld` は **メインスレッド** から呼ばれます。
+- `WorldLifecycle.getGeneratorIds` (コマンドの補完などから呼ばれる) と `WeatherSource.getWeather` は **任意のスレッド** から呼ばれます。スレッドセーフに実装し、Bukkit API を直接呼ばないでください。
+
+### 例外
+
+SPI 実装が投げた例外は Core が受け止め、登録元プラグイン名付きで警告したうえで失敗として扱います。
+
+- `WorldStateApplier.apply`: その実装の適用だけが失敗し、他の実装への適用は続きます。
+- `WorldLifecycle`: `getGeneratorIds` は空、`createWorld` / `unloadWorld` は `false` として扱います。
+- `WeatherSource.getWeather`: 内蔵の天候カレンダー (`random` の既定値) で代わりに決めます。警告は成功するまで一度だけ出ます。
+
+### 型の制約
+
+Integration が Kotlin 標準ライブラリを同梱していても安全に呼べるよう、SPI のシグネチャには
+`:api` の型・`Key`・`String`・Java のプリミティブとそのボックス型・`java.util` のコレクションだけを使っています。
+Kotlin の関数型・`Pair`・`Result`・value class・inline 関数は使いません。
+
+Integration 側でも、`:api` のクラスのコンストラクタを既定引数を省略して呼ばないでください。
+既定引数付きコンストラクタの合成オーバーロードは `kotlin.jvm.internal.DefaultConstructorMarker` を引数に取るため、
+Integration が同梱した標準ライブラリのクラスとして解決されるとリンクに失敗します。
+データクラスの `copy(...)` や既定引数付きの関数は、合成メソッドの引数が `Object` なので影響を受けず、呼んで構いません。
+
+## 起動の順序
+
+1. Core が有効化され、`world/` の設定ファイルから釣りワールドを定義します。この時点ではワールドに触れません。
+2. Integration が有効化され、サービスを登録します。
+3. 全プラグインの有効化後に発火する `ServerLoadEvent` で、Core が釣りワールドの運用を始めます。
+   - ロード済みの釣りワールドへ状態を適用し、`FishingWorldLoadEvent` を発火します。
+   - 未ロードの釣りワールドは `WorldLifecycle` で作成します。作成時の `WorldLoadEvent` を受けて状態を適用します。
+   - 以降は `refreshIntervalSeconds` ごとにメインスレッドで状態を適用し直します。
+
+プラグインの無効化時、Core はワールドに触れません。Integration は自分が駆動していた演出を `onDisable` で片付けます。
 
 ## Integration 未導入時の挙動
 
 Integration が無くても Core は起動し、欠けている機能だけが縮退します。
-未導入時の Core API の挙動は各機能側で吸収されるため、呼び出し側が例外を受け取ることはありません。
 
-- **WorldLifecycle 未導入**: ワールド境界・時刻・`DO_DAYLIGHT_CYCLE`・スポーン地点の同期と、
-  カスタムジェネレーターによるワールド作成、ワールドの削除（アンロード）が無効になります。
-  `WorldManager.createWorld` / `deleteWorld` は警告ログを出したうえで `false` を返し、`WorldManager.getGeneratorIds` は空リストを返します。
-- **Weather 未導入**: 天候の決定や、天候を条件に含む魚の抽選は Core 側で動き続けます。
-  スキップされるのは「決まった天候と `DO_WEATHER_CYCLE` を実際のワールドへ適用する」部分だけです。
+- **`WorldStateApplier` が無い**: 状態は決まりますが、どのワールドにも適用されません。天候は魚の抽選条件として使われ続けます。
+- **`WorldLifecycle` が無い**: 未ロードの釣りワールドは作成されず、警告ログが出ます。
+  `WorldManager.createWorld` は `false` を返し、`WorldManager.getGeneratorIds` は空を返します。
+  ロード済みのワールドの `deleteWorld` も `false` を返します。未ロードのワールドの定義は Integration なしで削除できます。
+- **`WeatherSource` が無い**: 天候の方針 `external` は内蔵の天候カレンダー (`random` の既定値) で代わりに決まり、警告が一度だけ出ます。
 
-Core は Bukkit ワールドへ一切書き込まないため、生活用ワールドなどに釣れる魚を追加する目的で Core だけを導入しても、
-既存ワールドの天候・時刻・ゲームルールが上書きされることはありません。
-
-:::warning[以前のバージョンからの移行]
-以前のバージョンの Core は、釣りワールドに `DO_DAYLIGHT_CYCLE=false` や `DO_WEATHER_CYCLE=false` を直接書き込んでいました。ゲームルールはワールドデータに保存されるため、Integration を導入せずに更新すると、これらの値が残ったまま時刻同期や天候適用が止まり、時刻や天候が固定されたままになります。Core はワールドを変更しないため、この状態を自動では戻しません。釣りワールドで時刻・天候の同期を続ける場合は [WorldLifecycle](/docs/integration/world-lifecycle) と [Weather](/docs/integration/weather) を導入（または最新版へ更新）し、それ以外の場合は `/gamerule` でゲームルールを手動で戻してください。
-:::
+Core は Bukkit ワールドへ一切書き込まないため、Core だけを導入しても既存ワールドの天候・時刻・ゲームルールが上書きされることはありません。
 
 ## 提供される Integration
 
 現時点で公式に提供されている Integration は以下です。
 
-- [`MoripaFishing-Integration-WorldLifecycle`](/docs/integration/world-lifecycle): ワールド境界・時刻・`DO_DAYLIGHT_CYCLE`・スポーン地点の同期、カスタムジェネレーターでのワールド作成、ワールドのアンロード
-- [`MoripaFishing-Integration-Weather`](/docs/integration/weather): 釣りワールドへの天候と `DO_WEATHER_CYCLE` の適用（嵐の切り替えと CLOUDY のクライアント側バリア天井）
+- [`MoripaFishing-Integration-WorldLifecycle`](/docs/integration/world-lifecycle): 時刻・`DO_DAYLIGHT_CYCLE`・ワールドボーダー・スポーン地点の適用と、ジェネレーターを使ったワールドの作成・アンロード
+- [`MoripaFishing-Integration-Weather`](/docs/integration/weather): 天候と `DO_WEATHER_CYCLE` の適用 (嵐の切り替えと CLOUDY のクライアント側バリア天井)
 
 ## 提供される Addon
 
@@ -133,5 +175,5 @@ Core は Bukkit ワールドへ一切書き込まないため、生活用ワー�
 
 プラグイン名からも種別が一目でわかるよう、外部プラグインの名前には共通の接頭辞を付けています。
 Integration は `MoripaFishing-Integration-<名前>`、Addon は `MoripaFishing-Addon-<名前>` という形式で命名されます。
-`plugins/` フォルダや依存プラグイン一覧に並んだときも、この接頭辞を見れば Core が能動的に検出する Integration なのか、
-Core をソフト依存して自ら働きかける Addon なのかをすぐに判別できます。
+`plugins/` フォルダや依存プラグイン一覧に並んだときも、この接頭辞を見れば Core の値をワールドへ適用する Integration なのか、
+Core の API とイベントを使って機能を足す Addon なのかをすぐに判別できます。

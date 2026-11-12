@@ -8,14 +8,14 @@ icon: Globe
 export const commandList = [
     {
         command: "/mf world create <id> <generator>",
-        description: "指定したジェネレーターでワールドを作成します(WorldLifecycle 統合が必要)",
+        description: "釣りワールドを定義し、指定したジェネレーターで作成します(WorldLifecycle Integration が必要)",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.create",
         status: "newly"
     },{
         command: "/mf world list",
-        description: "ワールド一覧を表示します",
+        description: "定義済みの釣りワールドの一覧とロード状態を表示します",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.default",
@@ -23,7 +23,7 @@ export const commandList = [
     },
     {
         command: "/mf world transfer <world> <player>",
-        description: "プレイヤーを対象ワールドのスポーン地点へ移動します",
+        description: "プレイヤーを対象ワールドのスポーン地点へ移動します(ロード済みのワールドのみ)",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.default",
@@ -47,7 +47,7 @@ export const commandList = [
     },
     {
         command: "/mf world config set center <world> [x] [z]",
-        description: "ワールドの中心座標を設定します(座標を省略した場合は実行者の現在位置)",
+        description: "ワールドボーダーの中心座標を設定します(座標を省略した場合は実行者の現在位置)",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.config",
@@ -55,15 +55,23 @@ export const commandList = [
     },
     {
         command: "/mf world config set size <world> <size>",
-        description: "ワールドのサイズを設定します",
+        description: "ワールドボーダーのサイズを設定します",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.config",
         status: "beta"
     },
     {
+        command: "/mf world config unset border <world>",
+        description: "ワールドボーダーを MoripaFishing の管理対象から外します",
+        tags: ["admin"],
+        aliases: [],
+        permission: "moripa_fishing.command.world.config",
+        status: "newly"
+    },
+    {
         command: "/mf world config view <world>",
-        description: "ワールド設定を JSON 形式でそのまま表示します",
+        description: "ワールド設定を JSON 形式で表示し、現在の天候を添えます",
         tags: ["admin"],
         aliases: [],
         permission: "moripa_fishing.command.world.config",
@@ -88,16 +96,28 @@ import { CommandList } from "@/components/commands/command-list";
 
 すべてのサブコマンドは、クラス全体に設定された `moripa_fishing.command.world` を前提としています。各サブコマンドの権限は、この基本権限に加えて必要になるものです。
 
+### 一覧について
+
+`list` は定義済み (設定ファイルが存在する) の釣りワールドを `- <表示名> (<id>) [loaded|unloaded]` の形式で表示します。`unloaded` は、対応する Bukkit ワールドがまだロードされていないことを示します。
+
+### 移動について
+
+`transfer` は対象の Bukkit ワールドがロードされていない場合、`World <id> is not loaded.` を返して何もしません。
+
 ### ワールドの作成について
 
-`create` はジェネレーターの指定が必須で、省略できません。ジェネレーター名は WorldLifecycle 統合から解決されるため、統合プラグインが導入されていない場合は `WorldLifecycle integration is not installed.` として失敗します。また、`WorldManager` の実装が既定の `WorldManagerImpl` でない場合も作成を中断し、その旨をメッセージで通知します。
+`create` はジェネレーターの指定が必須で、省略できません。ジェネレーター ID の補完候補は WorldLifecycle Integration から取得します。Integration が導入されていない場合や、ID が不正・重複している場合、作成に失敗した場合、サーバーの起動が完了していない場合は `Failed to create world <id>. See the server log.` を返し、設定ファイルも残しません。失敗の理由はサーバーログに出ます。作成したワールドの表示名は次の `/mf reload` から使われます。
 
 ### ワールドの削除について
 
-`delete` は釣りワールドの管理対象からの削除のみを行い、ディスク上のワールドフォルダーは残したままにします。実行後のメッセージにも、フォルダーが削除されていないことが明示されます。Bukkit ワールドのアンロードは [WorldLifecycle Integration](/docs/integration/world-lifecycle) が行うため、Integration が未導入の環境では削除に失敗します。
+`delete` は釣りワールドの定義 (設定ファイル) を削除し、ディスク上のワールドフォルダーは残したままにします。実行後のメッセージにも、フォルダーが削除されていないことが明示されます。ロード済みのワールドを削除するには、[WorldLifecycle Integration](/docs/integration/world-lifecycle) によるアンロードが必要です。未ロードのワールドは Integration が無くても削除できます。
 
 ### 設定コマンドについて
 
-`config set spawn` は実行者の現在位置をスポーン座標として保存するため、プレイヤーからのみ実行できます。保存した座標を Bukkit ワールドのスポーン地点へ反映するのは WorldLifecycle Integration が導入されている場合のみです。`config set center` は座標を指定して実行することもできますが、`x` と `z` を省略した場合は実行者の現在位置が使われるため、その形式ではプレイヤー専用となります。
+設定コマンドは設定ファイルを保存し、ロード済みのワールドへすぐに適用させます。Bukkit ワールドへ実際に反映するのは Integration が導入されている場合のみです。
 
-`config view` はワールド設定を整形せず、`WorldDetailConfig` を JSON にエンコードした内容をそのまま出力します。
+`config set spawn` は実行者の現在位置をスポーン座標として保存するため、プレイヤーからのみ実行できます。`config set center` は座標を指定して実行することもできますが、`x` と `z` を省略した場合は実行者の現在位置が使われるため、その形式ではプレイヤー専用となります。
+
+`config set center` と `config set size` は、ボーダーが管理対象外 (`border: null`) のワールドでは既定のボーダー (中心 `0, 0`・サイズ `100`) を元に値を設定し、ボーダーを管理対象に戻します。`config unset border` はボーダーを管理対象外にし、以降 MoripaFishing はそのワールドのボーダーに触れません。
+
+`config view` はワールド設定を JSON にエンコードした内容と、魚の抽選条件に使う現在の天候 (`weather: <天候>`) を出力します。

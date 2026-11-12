@@ -5,83 +5,65 @@ icon: Globe
 
 # MoripaFishing-Integration-WorldLifecycle
 
-MoripaFishing 本体（Core）の `softdepend` として振る舞う公式 Integration。
-以下の機能を提供します。
+Core (`MoripaFishing`) に依存する公式 Integration。以下の機能を提供します。
 
-- 釣りワールドの **境界（WorldBorder）同期**: `WorldDetailConfig.borderCentral` / `borderSize` を Bukkit ワールドに反映
-- **時刻と昼夜サイクルの同期**: Core が計算した時刻（実時刻同期または固定時刻）とゲームルール `DO_DAYLIGHT_CYCLE` を Bukkit ワールドに反映
-- **ワールドスポーンの反映**: `WorldDetailConfig.spawnLocation` を Bukkit ワールドのスポーン地点に反映
-- カスタム **ジェネレーター** によるワールド作成: `generator/*.json` を元に Terra / void / normal 等のワールドを生成
-- ワールドの **アンロード**: `WorldManager.deleteWorld`（`/mf world delete`）での Bukkit ワールドのアンロード
-- プレイヤー **参加時テレポート**: 参加したプレイヤーを釣りワールドのスポーン地点へ移動
+- **環境の適用** (`EnvironmentApplier`): Core が決めた時刻・ゲームルール `DO_DAYLIGHT_CYCLE`・ワールドボーダー・スポーン地点を Bukkit ワールドへ適用
+- **ワールドの作成・アンロード** (`BukkitWorldLifecycle`): ジェネレーター定義を使った釣りワールドの作成と、削除時のアンロード
+- プレイヤーの **参加時テレポート**: 参加したプレイヤーを釣りワールドのスポーン地点へ移動
 
 Core 自体は Bukkit ワールドへ一切書き込みません。本 Integration と [Weather](/docs/integration/weather) を
 導入しない限り、ワールドの時刻・ゲームルール・スポーン・ボーダーは変更されません。
+仕組みの全体像は [Integration とは](/docs/integration/overview) を参照してください。
 
 ## 導入
 
-1. サーバーの `plugins/` に `MoripaFishing-Integration-WorldLifecycle-<version>.jar` を配置する。
-2. サーバーを起動する。Integration → Core の順でロードされる。
-3. Core のログに以下が出ていれば検出済み。
+1. `plugins/` に Core と `world-lifecycle-<version>.jar` を配置する
+   (プラグイン名は `MoripaFishing-Integration-WorldLifecycle`)。
+2. サーバーを起動する。本 Integration は Core に必須依存しているため
+   (`server("MoripaFishing", Load.BEFORE, required = true)` / `depend: [MoripaFishing]`)、Core の後にロードされます。
+   Core が無いと本 Integration は起動しません。
+3. 起動時に次のログが出ます。
 
    ```
-   [MoripaFishing] WorldLifecycle integration detected: MoripaFishing-Integration-WorldLifecycle
+   [MoripaFishing-Integration-WorldLifecycle] MoripaFishing-Integration-WorldLifecycle enabled (generators: [normal, terra, void]).
    ```
 
-未導入時は Core のログに以下が出て、関連機能は自動的にスキップされる。
+有効化時に `WorldLifecycle` と `WorldStateApplier` を `ServicesManager` に登録します。
+登録は本 Integration の無効化時に自動で解除されます。
 
-```
-[MoripaFishing] WorldLifecycle integration not installed; world border, daylight cycle gamerule, time, spawn, world creation and world unloading (delete) are disabled.
-```
+## 環境の適用
 
-ロード順の宣言は双方向になっています。
-Core 側は `server("MoripaFishing-Integration-WorldLifecycle", Load.BEFORE, required = false)` で Integration を先にロードさせ、
-Integration 側は `server("MoripaFishing", Load.OMIT, required = false)` として順序制約を課さず classpath の共有だけを目的にすることで、
-依存関係の循環を避けています。
+`EnvironmentApplier` は Core から届く `WorldState` のうち、次の項目だけを適用します。
 
-## 未導入時の Core の振る舞い
-
-| 機能 | 未導入時の挙動 |
+| 項目 | 適用内容 |
 |---|---|
-| ボーダー同期（`FishingWorldImpl.updateState`） | スキップ（`fine` ログのみ） |
-| ゲームルール `DO_DAYLIGHT_CYCLE` と時刻の同期（`FishingWorldImpl.updateState` / `synchronizeTime`） | スキップ（`fine` ログのみ）。ゲームルールと時刻は変更されない |
-| スポーン地点の設定（`FishingWorld.setWorldSpawnPosition` / `/mf world config set spawn`） | 設定ファイルへの保存のみ行い、Bukkit ワールドのスポーンは変更しない |
-| `WorldManager.createWorld(id)` | 警告ログ + `false` を返す |
-| `WorldManager.createWorld(id, generatorId)` | 警告ログ + `false` を返す |
-| `WorldManager.getGeneratorIds()` | 空リストを返す |
-| `/mf world create` 系コマンド | コマンド自体は通るが、ワールド作成に失敗し `Failed to create world <id>.` が返る |
-| `WorldManager.deleteWorld(id)` / `/mf world delete` | 警告ログ + `false` を返す（`FishingWorldDeleteEvent` も発火しない）。コマンドは `Failed to delete world <id>.` を返す |
-| 既存ワールドでの釣り | 影響なし（読み取り系は Core 単体で完結） |
+| `doDaylightCycle` | ゲームルール `DO_DAYLIGHT_CYCLE` に毎回書き込む |
+| `time` | `null` でなければワールド時刻に設定する。`null` なら時刻に触れない |
+| `border` | `null` でなければワールドボーダーの中心とサイズを設定する。`null` ならボーダーに触れない |
+| `spawn` | ワールドのスポーン地点がブロック座標または向き (yaw) で異なる場合だけ設定する (Paper はスポーンをブロック単位で保持するため) |
 
-公開インターフェース `WorldManager` には `createWorld(fishingWorldId)` と
-ジェネレーター ID を明示する `createWorld(fishingWorldId, generatorId)` の 2 つがあります。
-どちらも内部では Integration の `WorldLifecycleProvider` を解決し、
-未導入であれば警告ログを出して `false` を返します。
+時刻の計算 (実時刻同期・固定時刻) とゲームルールの値は Core が決めます。詳細は [気候の設定](/docs/format/config/climate#time) を参照してください。
+ボーダーを他のプラグインで管理したい場合は、ワールド設定の `border` を `null` にします ([ワールド設定](/docs/format/data/world))。
 
-## ボーダー同期の有効/無効
+## ワールドの作成とアンロード
 
-境界同期は Integration が導入されているだけでは走りません。
-`WorldDetailConfig.enableBorder` が `true`（デフォルト）のワールドに限り、
-`updateState` のたびに `borderCentral` / `borderSize` が Bukkit ワールドへ反映されます。
-`enableBorder` を `false` にすると、Integration 導入済みでもそのワールドのボーダーはプラグインが触りません。
-他プラグインでワールドボーダーを管理したい場合に利用してください。
+`BukkitWorldLifecycle` は Core の `WorldLifecycle` SPI を実装します。
 
-なお `applyBorder` / `setDaylightCycle` / `setTime` / `setSpawnLocation` は Bukkit スケジューラ経由で
-メインスレッドへ処理を投げてからワールドを更新するため、非同期処理から呼び出しても安全です。
-一方 `createBukkitWorld` / `unloadBukkitWorld` は結果を同期的に返すため、メインスレッドから呼び出す必要があります
-（`unloadBukkitWorld` はメインスレッド以外から呼ばれると警告を出して `false` を返します）。
+- `createWorld(worldKey, generatorId)`: ジェネレーター定義から `WorldCreator` を組み立てて `Bukkit.createWorld` を呼びます。
+  同じキーのワールドが既にある場合やジェネレーター ID が不明な場合は何もせず `false` を返します。
+- `unloadWorld(worldKey)`: ワールドを保存せずにアンロードします。未ロードの場合やアンロードに失敗した場合 (プレイヤーが残っているなど) は `false` を返します。
+- `getGeneratorIds()`: 読み込んだジェネレーター ID の一覧を返します。
 
-## 時刻と昼夜サイクルの同期
+Core は次の場面でこれらを呼びます。
 
-時刻の計算（`ClimateConfig.constant.dayCycle` による固定時刻、または `defaultTimeZone` と `dayCycle.offset` による実時刻同期）は
-Core が行い、本 Integration は計算済みの値を `setTime` で適用するだけです。
-`DO_DAYLIGHT_CYCLE` は `enableDayCycle` が `true` のとき `false`、`false` のとき `true` が `setDaylightCycle` で適用されます。
-詳細は [天候の設定](/docs/format/config/climate#enabledaycycle) を参照してください。
+- サーバー起動後 (`ServerLoadEvent`): 定義済みで未ロードの釣りワールドを、ワールド設定の `generator` で作成する
+- `/mf world create <id> <generator>`: 新しい釣りワールドを定義して作成する。補完候補は `getGeneratorIds()` から供給される
+- `/mf world delete <world>`: ロード済みの釣りワールドをアンロードしてから定義を削除する
 
 ## ジェネレーター定義
 
-Integration 側の `plugins/MoripaFishing-Integration-WorldLifecycle/generator/*.json` に配置される。
-初回起動時にバンドル済みの `terra.json` / `void.json` / `normal.json` が展開される。
+ジェネレーター定義は本 Integration の内部形式で、`plugins/MoripaFishing-Integration-WorldLifecycle/generator/` に置きます。
+初回起動時に同梱の `terra.json` / `void.json` / `normal.json` が書き出されます。
 
 ```json title="generator/terra.json"
 {
@@ -107,47 +89,22 @@ Integration 側の `plugins/MoripaFishing-Integration-WorldLifecycle/generator/*
 
 | フィールド | 型 | 説明 |
 |---|---|---|
-| `id` | string | ジェネレーター ID。`WorldDetailConfig.generator` から参照される |
-| `generator` | string? | `WorldCreator.generator()` に渡される文字列（プラグイン名:ID） |
-| `type` | string? | `WorldType` 名（`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED`） |
-| `biomeProvider` | string? | 全座標に同じバイオームを返す固定バイオーム名（例: `minecraft:plains`） |
+| `id` | string | ジェネレーター ID。ワールド設定の `generator` から参照される |
+| `generator` | string? | `WorldCreator.generator()` に渡される文字列 (プラグイン名:ID) |
+| `type` | string? | `WorldType` 名 (`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED`) |
+| `biomeProvider` | string? | 全座標に同じバイオームを返す固定バイオーム名 (例: `minecraft:plains`) |
 | `generatorSetting` | string? | ジェネレーター設定文字列 |
 
-`biomeProvider` を指定すると `ConstBiomeGenerator` が使われ、ワールド全域が単一バイオームになります。
-値は `minecraft:plains` のように名前空間を明記した NamespacedKey 形式で書くことを推奨します。
-名前空間を省略した場合は `minecraft` として解決されますが、
-大文字や空白を含むなど形式として不正な文字列、あるいは存在しないバイオームを指定すると生成時に例外が発生します。
-
-読み込み時は `generator` ディレクトリ内の `*.json` をすべて走査するため、
-バンドル済みの 3 つ以外にも任意の JSON を置くだけでジェネレーターを追加できます。
-
-### ワールド作成時の制約
-
-`createBukkitWorld` は次の場合に何も作らず `false` を返します。
-
-- 同じキーの Bukkit ワールドが既にロードされている
-- `worldKey` が `namespace:value` 形式のキーとして不正（warning を出力）
-
-なお `addGenerator` は `id` の重複チェックを行わず、メモリ上のリストへ追加しつつ同名ファイルを上書きします。
-
-ジェネレーターを指定したワールド作成は `/mf world create <id> <generator>` で行い、
-権限ノードは `moripa_fishing.command.world.create` です。
-`generator` 引数は文字列で受け取り、補完候補は `WorldManager.getGeneratorIds()` から供給されます。
-Integration 未導入時は候補が空になり、実行しても Core が警告ログを出して
-`Failed to create world <id>.` を返します。
+ディレクトリ内の JSON ファイルはすべて読み込まれるため、任意の JSON を置くだけでジェネレーターを追加できます。
+不正なファイルは警告を出して読み飛ばします。詳細は [ジェネレーター設定](/docs/format/data/generator) を参照してください。
 
 ## 参加時テレポート
 
-プレイヤーがサーバーに参加した際、釣りワールドのスポーン地点へ自動でテレポートする。
-もともと Core の `PlayerJoinListener` として実装されていた機能を、バニラや他のスポーン系プラグイン
-（EssentialsSpawn 等）との共存性を高めるために本 Integration へ切り出したもの。
+プレイヤーがサーバーに参加した際、釣りワールドのスポーン地点へ自動でテレポートします。
 
-テレポート先のスポーン地点は Core の公開 API
-（`WorldManager.getWorld(id).getWorldDetails().spawnLocation`）から実行時に取得する。
-このため Core 未導入時は何もせず、無害にスキップされる。
+テレポート先は Core の公開 API (`WorldManager.getWorld(id).getConfig().spawn`) から参加のたびに取得します。
 
-設定は `plugins/MoripaFishing-Integration-WorldLifecycle/join-teleport.yml` に配置される
-（初回起動時にデフォルトが生成される）。
+設定は `plugins/MoripaFishing-Integration-WorldLifecycle/join-teleport.yml` に置きます (初回起動時に既定値が書き出されます)。
 
 ```yaml title="join-teleport.yml"
 enabled: true
@@ -157,88 +114,47 @@ onlyFirstJoin: false
 
 | フィールド | 型 | 説明 |
 |---|---|---|
-| `enabled` | boolean | 参加時テレポート機能の有効/無効（デフォルト: `true`） |
+| `enabled` | boolean | 参加時テレポート機能の有効/無効 (デフォルト: `true`) |
 | `worldId` | string? | テレポート先の釣りワールドID。`null` の場合は Core のデフォルトワールドを使用 |
-| `onlyFirstJoin` | boolean | `true` の場合、サーバーに初めて参加したプレイヤーにのみテレポートを行う（デフォルト: `false`） |
+| `onlyFirstJoin` | boolean | `true` の場合、サーバーに初めて参加したプレイヤーにのみテレポートを行う (デフォルト: `false`) |
 
-テレポート実行の直前に [AnglerJoinTeleportEvent](#イベント) が発火する。
-イベントは対象を `getAngler(): Angler` として持ち、テレポート先は `getDestination(): LocationData` で参照できる。
-このイベントをキャンセルするとテレポートは行われず、`setDestination` で移動先を差し替えられる。
+テレポートの直前に `AnglerJoinTeleportEvent` が発火します。
+キャンセルするとテレポートは行われず、`setDestination` で移動先を差し替えられます。
 
-設定どおりに動かない場合は、次のガードに引っかかっていないか確認してください。
+設定どおりに動かない場合は、次の条件に当てはまっていないか確認してください。
 
-- `worldId` が未登録の場合は `WorldManager.getWorld(id)` が `null` を返すため、何も出力せずスキップされます（設定ミスの典型例）
-- 対象の Bukkit ワールドがまだロードされていない場合も同様にスキップされます
-- 対象プレイヤーに対応する `Angler` が取得できない場合もスキップされます
-- `join-teleport.yml` のパースに失敗した場合は warning を出力したうえで既定値のまま継続し、Integration の有効化自体は失敗しません
-- `enabled` が `false` の場合は、リスナーの登録自体が行われません
+- `worldId` が未定義の場合は何もしません (設定ミスの典型例)
+- 対象の Bukkit ワールドがロードされていない場合も何もしません
+- 対象プレイヤーに対応する `Angler` が取得できない場合も何もしません
+- `join-teleport.yml` の読み込みに失敗した場合は警告を出して既定値で続行します
+- `enabled` が `false` の場合はリスナー自体を登録しません
 
-また、リスナーは参加のたびに `MoripaFishingAPIProvider.getOrNull()` から API を取得し直すため、
-Core の再読み込みにも追従します。
+## 独自の `WorldStateApplier` を書く
 
-## イベント
-
-本 Integration およびワールドライフサイクルに関連して、Core は以下の Bukkit イベントを発火する。
-いずれも `:api` モジュールに含まれ、外部プラグインから購読できる。
-
-| イベント | パッケージ | Cancellable | 発火タイミング |
-|---|---|---|---|
-| `AnglerJoinTeleportEvent` | `party.morino.moripafishing.event.angler` | ✔ | 参加時テレポートの実行直前（本 Integration が発火。`setDestination` で移動先を変更可能） |
-| `FishingWorldCreateEvent` | `party.morino.moripafishing.event.world` | ✘ | 真に新規のワールドを作成し終えた時点（Core が発火） |
-| `FishingWorldDeleteEvent` | `party.morino.moripafishing.event.world` | ✔ | 釣りワールドの削除直前（Core が発火。キャンセルで削除中止） |
-| `FishingWorldDeletedEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドの削除完了後（Core が発火） |
-| `FishingWorldLoadEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドのロード完了後（起動時の読み込みと新規作成の両方で Core が発火） |
-| `FishingWorldUnloadEvent` | `party.morino.moripafishing.event.world` | ✘ | 釣りワールドのアンロード後（削除時・プラグイン無効化時に Core が発火） |
-
-イベントの全体像（釣果・天候・設定リロード関連を含む）は [API利用ガイド](/docs/addons/api-guide#イベント) を参照。
-
-`FishingWorldCreateEvent` は、対象 ID が既存のワールド一覧に含まれていなかった場合にのみ発火します。
-サーバー起動時に既存の釣りワールドを再ロードする際は発火しないため、
-「新しく釣りワールドが増えた」タイミングのフックとして使えます。
-一方 `FishingWorldLoadEvent` は再ロード時にも新規作成時にも発火するため、
-「釣りワールドが利用可能になった」タイミングのフックにはこちらを使ってください。
-
-削除処理では `FishingWorldDeleteEvent` がキャンセルされた場合に加えて、
-本 Integration の `unloadBukkitWorld` がアンロードに失敗した場合も削除は中断され、`deleteWorld` は warning を出して `false` を返します
-（対象ワールドにプレイヤーが残っている場合や、旧版の Integration でメソッドが存在しない場合などが該当します）。
-この場合は `FishingWorldUnloadEvent` も `FishingWorldDeletedEvent` も発火しません。
-本 Integration が未導入の場合は `FishingWorldDeleteEvent` を発火する前に `false` を返します。
-
-## SPI
-
-Integration は `party.morino.moripafishing.integrations.worldlifecycle.api.WorldLifecycleProvider` を実装する。
-SPI は独立モジュール `:integrations:world-lifecycle-api`
-（Maven 座標 `party.morino:moripafishing-world-lifecycle-api`）として Maven Central に公開され、
-Core の `:api` モジュールには依存しない。
-
-```kotlin title="build.gradle.kts"
-dependencies {
-    compileOnly("party.morino:moripafishing-world-lifecycle-api:<version>")
-}
-```
+本 Integration と同じ仕組みで、Core が決めた状態を独自の方法で適用できます。
+`WorldStateApplier` は登録された全件が呼ばれるため、公式 Integration と併用できます。
 
 ```kotlin
-interface WorldLifecycleProvider {
-    fun applyBorder(worldKey: String, centerX: Double, centerZ: Double, size: Double)
-    fun createBukkitWorld(worldKey: String, generatorData: GeneratorData): Boolean
-    fun getGenerator(id: String): GeneratorData?
-    fun listGenerators(): List<GeneratorData>
-    fun addGenerator(generator: GeneratorData)
+class DaylightOnlyApplier : WorldStateApplier {
+    override fun apply(state: WorldState) {
+        // メインスレッドで呼ばれる。未ロードのワールドは無視する
+        val world = Bukkit.getWorld(state.worldKey) ?: return
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, state.doDaylightCycle)
+        // null は「変更しない」
+        state.time?.let { world.time = it }
+    }
+}
 
-    // 以下は既定実装を持つ (旧版の実装との互換性のため)
-    fun setDaylightCycle(worldKey: String, enabled: Boolean) {}
-    fun setTime(worldKey: String, time: Long) {}
-    fun setSpawnLocation(worldKey: String, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {}
-    fun unloadBukkitWorld(worldKey: String, save: Boolean): Boolean = false
+class MyPlugin : JavaPlugin() {
+    override fun onEnable() {
+        server.servicesManager.register(
+            WorldStateApplier::class.java,
+            DaylightOnlyApplier(),
+            this,
+            ServicePriority.Normal,
+        )
+    }
 }
 ```
 
-`setDaylightCycle` / `setTime` / `setSpawnLocation` / `unloadBukkitWorld` は後から追加されたメソッドで、既定実装は
-何もしない（`unloadBukkitWorld` は `false` を返す）。旧版の Integration jar（SPI を同梱しているため、これらのメソッドを持たない）
-が導入されている場合、Core はメソッドごとに警告を一度だけ出して該当処理をスキップする。
-
-境界をまたぐ型は `String` と本モジュールの `GeneratorData` のみで、classloader 間の class identity 問題が起きない。
-`worldKey` は対象 Bukkit ワールドのキー文字列（`moripafishing:<ワールドID>`）で、`createBukkitWorld` はこのキーで `WorldCreator` を作成する。
-
-独自の Integration を作る場合は、この SPI を実装した `JavaPlugin` を
-`MoripaFishing-Integration-WorldLifecycle` の名前でビルドして配置すれば Core はそちらを優先する。
+依存の宣言・型の制約・`WorldState` の契約は [Integration とは](/docs/integration/overview#integration-の作り方) を参照してください。

@@ -9,18 +9,18 @@ export class WeatherType {
 
 export class WeatherRandom {
     fishingWorldId: string;
-    pepper: string;
+    seed: string;
     weight: { x: number; weather: WeatherType }[];
     maxInclination: number;
 
     constructor(
         fishingWorldId: string,
-        pepper: string,
+        seed: string,
         weight: { x: number; weather: WeatherType }[],
         maxInclination: number,
     ) {
         this.fishingWorldId = fishingWorldId;
-        this.pepper = pepper;
+        this.seed = seed;
         this.weight = weight;
         this.maxInclination = maxInclination;
     }
@@ -58,7 +58,7 @@ export class WeatherRandom {
 
     private async getHash(x: number) {
         const hash = await this.sha256(
-            this.fishingWorldId + this.pepper + x.toString(),
+            this.fishingWorldId + this.seed + x.toString(),
         );
         return Number.parseInt(hash.slice(0, 8), 16);
     }

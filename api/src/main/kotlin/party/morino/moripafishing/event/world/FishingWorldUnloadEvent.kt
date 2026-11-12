@@ -5,10 +5,10 @@ import org.bukkit.event.HandlerList
 import party.morino.moripafishing.api.model.world.FishingWorldId
 
 /**
- * このイベントは、釣りワールドがアンロードされた後に発生します。
+ * 定義済みの釣りワールドの Bukkit ワールドがアンロードされた時に発生します。
  *
- * ワールド削除時のアンロードと、プラグイン無効化時の解放の両方で発火します。
- * ポストイベントであり、キャンセルはできません。
+ * Bukkit の `WorldUnloadEvent` に追従して発火します (ワールド削除時のアンロードを含む)。
+ * プラグインの無効化時には発火しません。キャンセルはできません。
  *
  * @param worldId アンロードされた釣りワールドのID
  */

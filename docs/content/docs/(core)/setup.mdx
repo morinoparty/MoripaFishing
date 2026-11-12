@@ -12,7 +12,7 @@ icon: Rocket
 | Minecraft | Paper API 1.20 以降（開発とテストは Paper 26.1.2 で行っています） |
 | サーバー | Paper / Purpur |
 | Java | 21 以降 |
-| 任意プラグイン | [WorldLifecycle 統合](/docs/integration/world-lifecycle)（釣りワールドの作成に必須）、[Weather 統合](/docs/integration/weather)、[Terra](https://modrinth.com/plugin/terra)（`terra` ジェネレーターを使う場合） |
+| 任意プラグイン | [WorldLifecycle 統合](/docs/integration/world-lifecycle)（釣りワールドの作成に必須）、[Weather 統合](/docs/integration/weather)、[Terra](https://modrinth.com/plugin/terra)（`terra` ジェネレーターを使う場合）。統合プラグインは MoripaFishing 本体に必須依存するため、本体と一緒に導入してください |
 
 :::warning[注意]
 Spigot サーバーには対応していません。必ず Paper または Purpur を使用してください。
@@ -80,7 +80,7 @@ plugins/MoripaFishing/
 
 なお、ジェネレーターの定義ファイルは Core ではなく WorldLifecycle 統合プラグイン側が管理しており、`plugins/MoripaFishing-Integration-WorldLifecycle/generator/` に配置されます。初回起動時に `terra` / `void` / `normal` の 3 つが既定として書き出されます。
 
-起動時には `world/` 配下の JSON が読み込まれ、対応する Bukkit ワールドがまだロードされていない場合はその場で生成が試みられます。WorldLifecycle 統合が未導入だったり、指定されたジェネレーターが見つからなかったりした場合は、警告ログを出してそのワールドをスキップします。
+起動時には `world/` 配下の JSON が読み込まれ、釣りワールドとして定義されます。全プラグインの読み込みが終わった後（サーバーの起動完了時）に、対応する Bukkit ワールドがまだロードされていないものは WorldLifecycle 統合で作成されます。WorldLifecycle 統合が未導入だったり、指定されたジェネレーターが見つからなかったりした場合は、警告ログを出してそのワールドを未ロードのままにします。
 
 ## 初期設定
 
@@ -92,7 +92,7 @@ plugins/MoripaFishing/
 主な設定項目:
 
 - **デフォルトワールド**: `world.defaultId` でデフォルトの釣り場IDを指定します
-- **タイムゾーン**: `world.defaultTimeZone` でタイムゾーンを設定します（デフォルト: `Asia/Tokyo`）
+- **タイムゾーン**: `world.timeZone` でタイムゾーンを設定します（デフォルト: `Asia/Tokyo`）
 - **言語**: `defaultLocale` でプラグインの表示言語を設定します（`ja_JP` / `en_US`）
 
 ### 釣りワールドの作成
@@ -100,7 +100,7 @@ plugins/MoripaFishing/
 プラグイン導入後、釣り用のワールドを作成します。
 
 :::warning[注意]
-ワールドの作成には [WorldLifecycle 統合プラグイン](/docs/integration/world-lifecycle) が必要です。未導入の場合、ジェネレーター引数の解決に失敗してコマンドが実行できません。
+ワールドの作成には [WorldLifecycle 統合プラグイン](/docs/integration/world-lifecycle) が必要です。未導入の場合、ジェネレーターの候補が表示されず、作成は `Failed to create world <id>.` で失敗します。
 :::
 
 ```
@@ -116,16 +116,17 @@ plugins/MoripaFishing/
 
 釣りワールドは `moripafishing:<ワールドID>` というキーの Bukkit ワールドとして作成されます。そのためワールド ID には、英小文字・数字・`_`・`-`・`.`・`/` だけを使用できます。
 
-ワールド作成後、以下のコマンドでスポーン地点やワールドサイズを設定できます。
+ワールド作成後、以下のコマンドでスポーン地点やワールドボーダーを設定できます。
 
 | コマンド | 説明 |
 |----------|------|
-| `/mf world list` | 釣りワールドの一覧を表示 |
-| `/mf world transfer <world> <player>` | プレイヤーを指定した釣りワールドへ移動 |
+| `/mf world list` | 釣りワールドの一覧とロード状態を表示 |
+| `/mf world transfer <world> <player>` | プレイヤーを指定した釣りワールドへ移動（ロード済みのワールドのみ） |
 | `/mf world config set spawn <world>` | スポーン地点を現在位置に設定 |
-| `/mf world config set center <world> [x] [z]` | ワールドの中心座標を設定（省略時は実行したプレイヤーの現在位置） |
-| `/mf world config set size <world> <size>` | ワールドのサイズを設定 |
-| `/mf world config view <world>` | ワールドの設定を確認 |
+| `/mf world config set center <world> [x] [z]` | ワールドボーダーの中心座標を設定（省略時は実行したプレイヤーの現在位置） |
+| `/mf world config set size <world> <size>` | ワールドボーダーのサイズを設定 |
+| `/mf world config unset border <world>` | ワールドボーダーを管理対象から外す |
+| `/mf world config view <world>` | ワールドの設定と現在の天候を確認 |
 | `/mf world delete <world>` | 釣りワールドの登録を削除 |
 
 :::note
