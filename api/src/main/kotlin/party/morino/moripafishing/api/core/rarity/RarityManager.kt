@@ -12,6 +12,7 @@ import party.morino.moripafishing.api.model.rarity.RarityId
 interface RarityManager {
     /**
      * レアリティを登録する。同じ ID のレアリティは置き換える。
+     * `displayName` は翻訳キー `moripa_fishing.rarity.<id>.name` として即座に登録される (翻訳ファイルに同じキーがあればそちらを優先する)。
      *
      * @param rarity 登録するレアリティ
      * @throws IllegalArgumentException 不正な価値式の場合
@@ -20,6 +21,7 @@ interface RarityManager {
 
     /**
      * レアリティの登録を解除する。
+     * 表示名の翻訳キーも登録を解除する。
      *
      * @param id 解除するレアリティの ID
      * @return 解除した場合 `true`、登録されていなかった場合 `false`

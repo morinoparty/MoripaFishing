@@ -44,10 +44,10 @@ class CatchAnnounceListener(
         val tagResolver =
             TagResolver.resolver(
                 Placeholder.component("angler", Component.text(anglerName)),
-                Placeholder.component("fish_name", Component.translatable(caughtFish.fish.toTranslateKey())),
-                Placeholder.component("rarity_name", Component.translatable(caughtFish.rarity.toTranslateKey())),
+                Placeholder.component("fish_name", caughtFish.fish.toTranslatable()),
+                Placeholder.component("rarity_name", caughtFish.rarity.toTranslatable()),
                 Placeholder.component("size", Component.text(String.format(Locale.ROOT, "%.2f", caughtFish.size))),
-                Placeholder.component("world_name", Component.translatable(caughtFish.world.toTranslateKey())),
+                Placeholder.component("world_name", caughtFish.world.toTranslatable()),
                 Placeholder.component("timestamp", Component.text(caughtFish.timestamp.toString())),
             )
         return MiniMessage.miniMessage().deserialize(config.messageFormat, tagResolver)

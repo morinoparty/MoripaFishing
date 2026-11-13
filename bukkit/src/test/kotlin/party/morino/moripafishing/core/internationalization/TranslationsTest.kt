@@ -17,12 +17,8 @@ import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.testing.FakeConfigManager
-import party.morino.moripafishing.testing.FakeFishManager
 import party.morino.moripafishing.testing.FakeFishingWorld
-import party.morino.moripafishing.testing.FakeRarityManager
 import party.morino.moripafishing.testing.FakeWorldManager
-import party.morino.moripafishing.testing.fish
-import party.morino.moripafishing.testing.rarity
 import java.io.File
 import java.util.Locale
 import java.util.logging.Logger
@@ -38,14 +34,9 @@ class TranslationsTest {
     fun setUp() {
         val world = FakeFishingWorld(worldId, config = FishingWorldConfig(worldId, name = mapOf(Locale.JAPAN to "つりとぴあ")))
         translations =
-            Translations(
-                directory,
-                FakeConfigManager(),
-                FakeFishManager(fish("tuna", "common")),
-                FakeRarityManager(rarity("common")),
-                FakeWorldManager(world),
-                Logger.getAnonymousLogger(),
-            )
+            Translations(directory, FakeConfigManager(), FakeWorldManager(world), Logger.getAnonymousLogger())
+        translations.register(FishId("tuna").toTranslateKey(), mapOf(Locale.JAPAN to "tuna"))
+        translations.register(RarityId("common").toTranslateKey(), mapOf(Locale.JAPAN to "common"))
     }
 
     @AfterEach
@@ -56,7 +47,12 @@ class TranslationsTest {
     private fun render(
         key: String,
         locale: Locale,
-    ): String = PlainTextComponentSerializer.plainText().serialize(GlobalTranslator.render(Component.translatable(key), locale))
+    ): String = render(Component.translatable(key), locale)
+
+    private fun render(
+        component: Component,
+        locale: Locale,
+    ): String = PlainTextComponentSerializer.plainText().serialize(GlobalTranslator.render(component, locale))
 
     private fun ownSources() = GlobalTranslator.translator().sources().filter { it.name() == Key.key("moripafishing", "translations") }
 
@@ -125,5 +121,44 @@ class TranslationsTest {
         directory.resolve("iw.properties").writeText("moripa_fishing.fish.lore.default.size=iw\n")
         translations.load()
         assertEquals("he", render("moripa_fishing.fish.lore.default.size", Locale.of("he")))
+    }
+
+    @Test
+    fun `a name registered after loading resolves until it is unregistered`() {
+        translations.load()
+        val event = FishId("event")
+        translations.register(event.toTranslateKey(), mapOf(Locale.JAPAN to "イベント魚"))
+        assertEquals("イベント魚", render(event.toTranslatable(), Locale.JAPAN))
+        translations.register(event.toTranslateKey(), mapOf(Locale.JAPAN to "改名した魚"))
+        assertEquals("改名した魚", render(event.toTranslatable(), Locale.JAPAN))
+        translations.unregister(event.toTranslateKey())
+        assertEquals("event", render(event.toTranslatable(), Locale.JAPAN))
+    }
+
+    @Test
+    fun `properties keep winning when a name is registered or unregistered later`() {
+        directory.resolve("ja_JP.properties").writeText("moripa_fishing.rarity.event.name=限定\n")
+        translations.load()
+        val key = RarityId("event").toTranslateKey()
+        translations.register(key, mapOf(Locale.JAPAN to "イベント", Locale.US to "Event"))
+        assertEquals("限定", render(key, Locale.JAPAN))
+        assertEquals("Event", render(key, Locale.US))
+        translations.unregister(key)
+        assertEquals("限定", render(key, Locale.JAPAN))
+    }
+
+    @Test
+    fun `names unregistered before loading are not registered`() {
+        translations.unregister(FishId("tuna").toTranslateKey())
+        translations.load()
+        assertEquals("tuna", render(FishId("tuna").toTranslatable(), Locale.JAPAN))
+    }
+
+    @Test
+    fun `a missing key falls back to the id`() {
+        translations.load()
+        assertEquals("gone", render(FishId("gone").toTranslatable(), Locale.JAPAN))
+        assertEquals("gone", render(RarityId("gone").toTranslatable(), Locale.JAPAN))
+        assertEquals("gone", render(FishingWorldId("gone").toTranslatable(), Locale.JAPAN))
     }
 }

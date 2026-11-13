@@ -23,11 +23,8 @@ import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.core.internationalization.Translations
 import party.morino.moripafishing.testing.FakeConfigManager
-import party.morino.moripafishing.testing.FakeFishManager
-import party.morino.moripafishing.testing.FakeRarityManager
 import party.morino.moripafishing.testing.FakeWorldManager
 import party.morino.moripafishing.testing.fish
-import party.morino.moripafishing.testing.rarity
 import java.io.File
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -71,14 +68,9 @@ class FishItemFactoryTest {
     ) {
         val tuna = fish("tuna", "common").copy(displayName = mapOf(Locale.JAPAN to "マグロ"))
         val translations =
-            Translations(
-                directory,
-                FakeConfigManager(),
-                FakeFishManager(tuna),
-                FakeRarityManager(rarity("common").copy(displayName = mapOf(Locale.JAPAN to "コモン"))),
-                FakeWorldManager(),
-                Logger.getAnonymousLogger(),
-            )
+            Translations(directory, FakeConfigManager(), FakeWorldManager(), Logger.getAnonymousLogger())
+        translations.register(tuna.id.toTranslateKey(), tuna.displayName)
+        translations.register(RarityId("common").toTranslateKey(), mapOf(Locale.JAPAN to "コモン"))
         translations.load()
         try {
             val item = factory.create(caught, tuna, "Steve", Locale.JAPAN)
@@ -90,6 +82,12 @@ class FishItemFactoryTest {
         } finally {
             translations.close()
         }
+    }
+
+    @Test
+    fun `a fish without a registered name is named after its id`() {
+        val item = factory.create(caught, fish("tuna", "common"), "Steve", Locale.JAPAN)
+        assertEquals("tuna", plain(checkNotNull(item.itemMeta.displayName())))
     }
 
     @Test
