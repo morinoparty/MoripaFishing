@@ -40,7 +40,7 @@ val message =
 釣果履歴やランキングのように`CaughtFish`を保存しておく場合、後から参照したときには、その魚・レアリティ・ワールドの定義がすでに削除されていることがあります。期間限定の魚の定義を削除した場合などが該当します。
 
 - `FishManager.get(caughtFish.fish)`や`RarityManager.get(caughtFish.rarity)`は`null`を返すことがあるため、必ず`null`を扱ってください。
-- 削除された定義の表示名は翻訳から外れます。`toTranslatable()`を使っていれば、この場合もIDが表示されます。`Component.translatable(id.toTranslateKey())`を直接使うと、翻訳キーがそのまま表示されたり、何も表示されなかったりします。
+- 削除された定義の表示名は翻訳から外れます（翻訳ファイルで同じキーを定義している場合は、その翻訳が引き続き使われます）。`toTranslatable()`を使っていれば、この場合もIDが表示されます。`Component.translatable(id.toTranslateKey())`を直接使うと、翻訳キーがそのまま表示されたり、何も表示されなかったりします。
 
 ```kotlin
 // 定義が削除されている場合は null になる

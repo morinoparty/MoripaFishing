@@ -134,7 +134,7 @@ icon: Fish
 ただし、定義を削除すると次の点が変わります。
 
 - `FishManager.get` がその魚に対して `null` を返します。
-- 表示名の翻訳キー `moripa_fishing.fish.<id>.name` が登録されなくなります。保存した釣果から表示名を表示する Addon では、表示名の代わりに魚の ID が表示されます（Addon 側の扱いは [CaughtFish](/addons/caught-fish) を参照してください）。
+- 表示名の翻訳キー `moripa_fishing.fish.<id>.name` が登録されなくなります。ただし、翻訳ファイル (`translation/<locale>.properties`) で同じキーを定義している場合は、その翻訳が引き続き使われます。翻訳が無い場合、保存した釣果から表示名を表示する Addon では、表示名の代わりに魚の ID が表示されます（Addon 側の扱いは [CaughtFish](/addons/caught-fish) を参照してください）。
 
 また、レアリティの JSON ファイルを削除すると、そのレアリティを `rarity` に指定している魚はすべて読み込み時にスキップされます。
 ログに警告は出ますが、魚の定義ファイル自体は残ったまま抽選から消えるので、レアリティを削除するときは所属する魚も合わせて見直してください。
