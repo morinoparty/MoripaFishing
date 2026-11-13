@@ -55,30 +55,6 @@ dependencies {
 Integration 向けの SPI (`WorldStateApplier` / `WorldLifecycle` / `WeatherSource`) も同じ `moripafishing-api` に含まれます
 (`party.morino.moripafishing.api.core.world.spi` パッケージ)。Integration の作り方は [Integration とは](/integration/overview) を参照してください。
 
-### SNAPSHOTビルド（JitPack）
-
-開発中のブランチのAPIを利用したい場合は、[JitPack](https://jitpack.io/#morinoparty/MoripaFishing)経由で`<branch>-SNAPSHOT`またはコミットハッシュを指定できます。
-
-```kotlin title="build.gradle.kts"
-repositories {
-    maven("https://jitpack.io")
-}
-
-dependencies {
-    // ブランチの最新を追跡
-    compileOnly("com.github.morinoparty.MoripaFishing:api:main-SNAPSHOT")
-    // 特定のコミットを指定
-    compileOnly("com.github.morinoparty.MoripaFishing:api:<commit-hash>")
-}
-```
-
-:::warning[注意]
-SNAPSHOTビルドやコミットハッシュ指定は開発中のため不安定です。本番環境ではリリースタグのバージョンを使用してください。
-なお `jitpack.yml` は `publishToMavenLocal` でビルドしており、公開される artifactId はサブプロジェクト名ではなく
-`moripafishing-api` です。解決に失敗する場合は [JitPack のビルドログ](https://jitpack.io/#morinoparty/MoripaFishing)で
-実際に公開された座標を確認してください。
-:::
-
 ### プラグイン定義ファイルの設定
 
 MoripaFishing 本体は Paper プラグイン (`paper-plugin.yml`) として配布しているため、アドオンも `paper-plugin.yml` で
