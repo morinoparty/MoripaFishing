@@ -95,28 +95,28 @@ jobs:
           echo "hashes=$(sha256sum "$BUKKIT_JAR" "$API_JAR" ./release-integrations/*.jar ./release-addons/*.jar | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Upload Bukkit JAR
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bukkit-jar
           path: ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
           retention-days: 1
 
       - name: Upload API JAR
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: api-jar
           path: ./api/build/libs/api-${{ env.PLUGIN_VERSION }}.jar
           retention-days: 1
 
       - name: Upload integration JARs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: integration-jars
           path: ./release-integrations
           retention-days: 1
 
       - name: Upload Addon JARs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: addon-jars
           path: ./release-addons
