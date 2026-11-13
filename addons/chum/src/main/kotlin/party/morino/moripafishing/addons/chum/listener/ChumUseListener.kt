@@ -88,7 +88,10 @@ class ChumUseListener(
                 .clone()
                 .apply { amount -= 1 }
         player.inventory.setItemInMainHand(remaining.takeIf { it.amount > 0 })
-        lastUse[player.uniqueId to chumId] = clock.instant()
+        val now = clock.instant()
+        // 冷却時間を過ぎた記録は不要なので、記録を追加する前に捨てて増え続けないようにする
+        lastUse.values.removeIf { !now.isBefore(it.plus(USE_COOLDOWN)) }
+        lastUse[player.uniqueId to chumId] = now
         val activation = store.activate(chumId, target, Duration.ofSeconds(chum.durationSeconds), chum.charges)
         player.sendRichMessage(
             message(chum, activation),

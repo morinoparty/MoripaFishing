@@ -20,6 +20,8 @@ import java.util.logging.Logger
  * 3. `fishMultipliers`: 魚が釣れる全体の確率に、全ての撒き餌の倍率の積を掛ける (候補の魚の順に適用する)
  *
  * 倍率の積は、レアリティごと・魚ごとに [ChumConfig.maxMultiplier] で頭打ちにする。
+ * `fishMultipliers` で魚の確率が 1 に達すると他の魚の重みは 0 になり、後から適用する魚の倍率は効かない。
+ * この場合は魚ごとに 1 度だけ警告する。
  * 未登録の魚・レアリティの ID は、ID ごとに 1 度だけ警告して無視する。
  * 登録済みでも条件 (天候・ワールド) により候補でない魚・レアリティは、警告せずに無視する。
  *
@@ -83,12 +85,23 @@ class ChumEffectApplier(
         }
         fishWeights.forEach { (id, weight) -> pool.setFishWeight(id, weight) }
         rarityFactors.forEach { (id, factor) -> pool.multiplyRarityWeight(id, factor.coerceAtMost(max)) }
+        applyFishFactors(pool, fishFactors, max)
+    }
+
+    private fun applyFishFactors(
+        pool: FishDrawPool,
+        fishFactors: Map<FishId, Double>,
+        max: Double,
+    ) {
         pool.getFishes().forEach { fish ->
-            fishFactors[fish.id]?.let { pool.multiplyFishProbability(fish.id, it.coerceAtMost(max)) }
+            val factor = fishFactors[fish.id] ?: return@forEach
+            val before = pool.getProbability(fish.id)
+            pool.multiplyFishProbability(fish.id, factor.coerceAtMost(max))
+            if (before < 1.0 && pool.getProbability(fish.id) >= 1.0) warnSaturated(fish.id)
         }
     }
 
-    /** 未登録の ID の警告履歴を消す。設定の再読み込み時に呼ぶ。 */
+    /** 警告履歴を消す。設定の再読み込み時に呼ぶ。 */
     fun clearWarnings() {
         warned.clear()
     }
@@ -117,6 +130,12 @@ class ChumEffectApplier(
         id: String,
     ) {
         if (warned.add("$kind:$id")) logger.warning("Chum '$chumId' refers to unknown $kind '$id'; ignoring it")
+    }
+
+    private fun warnSaturated(fish: FishId) {
+        if (warned.add("saturated:${fish.value}")) {
+            logger.warning("Chum fish multiplier made '${fish.value}' the only drawable fish; multipliers for other fish have no effect")
+        }
     }
 
     private companion object {

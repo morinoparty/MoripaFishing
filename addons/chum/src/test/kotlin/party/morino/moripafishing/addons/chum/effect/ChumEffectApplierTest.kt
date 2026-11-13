@@ -85,6 +85,19 @@ class ChumEffectApplierTest {
     }
 
     @Test
+    fun `a saturating fish multiplier leaves later fish multipliers without effect`() {
+        val pool = pool()
+        // 候補の並びは common の c が rare の a より先。c が確率 1 に達すると a の重みは 0 になり、a の倍率は効かない
+        applier.apply(pool, mapOf("x" to chum(fishMultipliers = mapOf("a" to 2.0, "c" to 2.0))))
+        assertEquals(1.0, pool.probability("c"), 1e-9)
+        assertEquals(0.0, pool.probability("a"))
+        assertEquals(1, warnings.size)
+        assertTrue("'c'" in warnings.single())
+        applier.apply(pool(), mapOf("x" to chum(fishMultipliers = mapOf("c" to 2.0))))
+        assertEquals(1, warnings.size)
+    }
+
+    @Test
     fun `fish weights unlock bait-only fish before multipliers apply`() {
         val pool = pool()
         assertEquals(0.0, pool.probability("bait"))
