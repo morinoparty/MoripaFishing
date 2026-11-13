@@ -112,10 +112,12 @@ jobs:
           mkdir -p ./gradle-artifacts/junit
           mkdir -p ./gradle-artifacts/detekt
           mkdir -p ./gradle-artifacts/allure
+          # Paper プラグインの jar は Gradle が <paper-plugin.yml の name>_<sha>.jar として出力するので、名前は変えずに移す
+          mv "./bukkit/build/libs/${PROJECT_NAME}_${SHA}.jar" ./gradle-artifacts/jars/
           mv ./api/build/libs/api-${SHA}.jar "./gradle-artifacts/jars/${PROJECT_NAME}-api-${SHA}.jar"
-          # Paper プラグインの jar は Gradle が <paper-plugin.yml の name>_<sha>.jar として出力するので、名前は変えずに自動収集する。
-          # 新しい integration/addon を追加してもここを編集せずにアーティファクト・コメント表へ自動的に増える。
-          for dir in ./bukkit/ ./integrations/*/ ./addons/*/; do
+          # 統合/アドオンモジュールの jar は自動収集する。新しい integration/addon を追加しても
+          # ここを編集せずにアーティファクト・コメント表へ自動的に増える。
+          for dir in ./integrations/*/ ./addons/*/; do
             [ -d "$dir" ] || continue
             for jar in "$dir"build/libs/*_${SHA}.jar; do
               [ -e "$jar" ] || continue
