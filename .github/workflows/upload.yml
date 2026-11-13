@@ -25,17 +25,16 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: 'temurin'
           java-version: '25'
 
       # Gradle キャッシュの設定（setup-gradle を使用）
-      - uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
-          # gradle/actions の Enhanced Caching (extra cache) を利用する。
-          # https://github.com/gradle/actions/blob/main/DISTRIBUTION.md
-          cache-provider: enhanced
+          # configuration cache を保存・復元するための暗号化キー (未設定なら configuration cache は保存されない)
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
@@ -53,6 +52,7 @@ jobs:
           echo "Version: ${{ env.PLUGIN_VERSION }}"
           sed -i "s/VersionPlaceholder/${{ env.PLUGIN_VERSION }}/" ./gradle.properties
 
+      # 並列ビルド
       - name: Build with Gradle (parallel)
         run: ./gradlew build -x test --parallel
 
@@ -65,9 +65,9 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_PUBLISH_GPG_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_PUBLISH_GPG_PASSPHRASE }}
 
+      # ファイル名を変更
       - name: Rename Bukkit JAR
-        run:
-          mv ./bukkit/build/libs/bukkit-${{ env.PLUGIN_VERSION }}.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+        run: mv ./bukkit/build/libs/bukkit-${{ env.PLUGIN_VERSION }}.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
 
       - name: Collect integration JARs
         run: ./.github/scripts/collect-module-jars.sh ./integrations ./release-integrations "${{ env.PLUGIN_VERSION }}"
@@ -241,7 +241,7 @@ jobs:
 
       # Bitwarden Secrets Manager から Pelican client API キーを取得する
       - name: Fetch secrets from Bitwarden Secrets Manager
-        uses: bitwarden/sm-action@v2
+        uses: bitwarden/sm-action@f1de238fc00c738c56140796018be9084c2b5d21 # v2.1.0
         with:
           access_token: ${{ secrets.NIKOMARU_BITWARDEN_SECRET_MANAGER_ACCESS_TOKEN }}
           secrets: |

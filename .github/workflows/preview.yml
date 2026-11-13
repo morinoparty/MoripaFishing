@@ -6,13 +6,11 @@ on:
 
 permissions:
   pull-requests: write
-  contents: write
+  contents: read
   id-token: write
   attestations: write
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.MORINOPARTY_CI_AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.MORINOPARTY_CI_AWS_SECRET_ACCESS_KEY }}
   AWS_EC2_METADATA_DISABLED: true
   AWS_REGION: ${{ secrets.MORINOPARTY_CI_AWS_REGION }}
   AWS_CLI_FILE_ENCODING: UTF-8
@@ -55,17 +53,16 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: 'temurin'
           java-version: '25'
 
       # Gradle キャッシュの設定（setup-gradle を使用）
-      - uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
-          # gradle/actions の Enhanced Caching (extra cache) を利用する。
-          # https://github.com/gradle/actions/blob/main/DISTRIBUTION.md
-          cache-provider: enhanced
+          # configuration cache を保存・復元するための暗号化キー (未設定なら configuration cache は保存されない)
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Change wrapper permissions
@@ -110,7 +107,6 @@ jobs:
       - name: Prepare Gradle artifacts
         env:
           SHA: ${{ env.COMMIT_SHORT_SHA }}
-          PROJECT_NAME: ${{ env.PROJECT_NAME }}
         run: |
           mkdir -p ./gradle-artifacts/jars
           mkdir -p ./gradle-artifacts/junit
@@ -129,6 +125,7 @@ jobs:
           done
           # PR コメントの表を動的生成するために jar 一覧を残す
           ls -1 ./gradle-artifacts/jars > ./gradle-artifacts/jars.txt
+
           # 各モジュールの JUnit HTML レポートをモジュール名のサブフォルダへ集約し、入口となる index を生成する。
           found_junit=false
           while IFS= read -r report; do
@@ -199,9 +196,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger JitPack builds
+        # ブランチ名は PR 作成者が自由に付けられるため、スクリプトへ直接埋め込まず環境変数で渡す
+        env:
+          BRANCH: ${{ github.head_ref }}
+          COMMIT: ${{ github.event.pull_request.head.sha }}
         run: |
-          BRANCH="${{ github.head_ref }}"
-          COMMIT="${{ github.event.pull_request.head.sha }}"
           echo "Triggering JitPack builds for branch: $BRANCH, commit: $COMMIT"
           curl -s "https://jitpack.io/api/builds/com.github.morinoparty/MoripaFishing/${BRANCH}-SNAPSHOT" || true
           curl -s "https://jitpack.io/api/builds/com.github.morinoparty/MoripaFishing/${COMMIT}" || true
@@ -216,55 +215,36 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: 'temurin'
           java-version: '25'
 
       # Gradle キャッシュの設定（Dokka 生成用）
-      - uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
-          # gradle/actions の Enhanced Caching (extra cache) を利用する。
-          # https://github.com/gradle/actions/blob/main/DISTRIBUTION.md
-          cache-provider: enhanced
+          # configuration cache を保存・復元するための暗号化キー (未設定なら configuration cache は保存されない)
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      # Vite+ (vp)、Node (docs/.node-version)、pnpm (docs/package.json の packageManager) をまとめて入れ、
+      # lockfile を固定したまま docs の依存を install する。vp のバージョンは docs/pnpm-workspace.yaml の catalog から決まる
+      - uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
-          node-version: '22'
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-        name: Install pnpm
-        with:
-          version: 10
-          run_install: false
-
-      # pnpm キャッシュの設定
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        name: Setup pnpm cache
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          working-directory: docs
+          node-version-file: .node-version # working-directory からの相対パス
+          cache: true # pnpm store を lockfile ごとにキャッシュ
+          run-install: |
+            args: ["--frozen-lockfile"]
 
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
-      - name: Install docs dependencies
-        working-directory: docs
-        run: pnpm install
-
       - name: Generate Dokka API documentation
         run: ./gradlew dokkaGenerate
 
-      - name: Build Fumadocs
+      # build スクリプトは mpm のリポジトリインデックス (public/mpm/paper/index.json) を生成してから vp build する
+      - name: Build docs (Fumadocs + TanStack Start)
         working-directory: docs
         env:
           BASE_PATH: /moripafishing/${{ env.COMMIT_SHORT_SHA }}/docs
@@ -277,12 +257,15 @@ jobs:
           path: ./docs/out
           retention-days: 1
 
-  # S3 アップロードジョブ（JARs, Docs, レポート）
+  # S3 アップロードジョブ（JAR / Docs / レポート）
   upload-s3:
     needs: [setup, build-gradle, build-docs]
     runs-on: ubuntu-latest
     env:
       COMMIT_SHORT_SHA: ${{ needs.setup.outputs.commit_sha }}
+      # 書き込み用の認証情報はアップロードするこのジョブだけに渡す (PR のコードを実行するビルドのジョブには渡さない)
+      AWS_ACCESS_KEY_ID: ${{ secrets.MORINOPARTY_CI_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.MORINOPARTY_CI_AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -292,7 +275,7 @@ jobs:
       - name: Prepare upload directory
         run: |
           mkdir -p ./upload
-          cp -r ./artifacts/gradle-artifacts/jars ./upload/ || echo "No JARs"
+          cp -r ./artifacts/gradle-artifacts/jars ./upload/
           cp -r ./artifacts/gradle-artifacts/junit ./upload/ || echo "No JUnit reports"
           cp -r ./artifacts/gradle-artifacts/detekt ./upload/ || echo "No Detekt reports"
           cp -r ./artifacts/gradle-artifacts/allure ./upload/ || echo "No Allure reports"
@@ -324,6 +307,7 @@ jobs:
           done
 
           # xargs から起動する sh でも参照できるよう export する
+          # キーは docs の BASE_PATH (/moripafishing/<sha>/docs) と PREVIEW_BASE_URL に合わせて小文字にする
           export PREFIX="moripafishing/${COMMIT_SHORT_SHA}"
 
           # JAR・Docs・レポートをまとめて 1 プロセスで送る
@@ -331,7 +315,7 @@ jobs:
             --transfers=32 --checkers=32 --stats=5s --stats-one-line -v
 
           # 公開ドメインはディレクトリの URL から index.html を自動で解決しない。
-          # docs のリンクは末尾スラッシュ (trailingSlash: true) なので、各 index.html を
+          # docs のリンクは末尾スラッシュ付き (<PREFIX>/docs/<page>/) なので、各 index.html を
           # 末尾スラッシュのキーとしても置き、リンク先や直接開いた URL が 404 にならないようにする
           find ./upload/docs -name index.html -print0 \
             | xargs -0 -P 16 -I {} sh -c '
@@ -356,25 +340,19 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Get limit time
-        id: limit-time
-        run: |
-          limit_time=$(date -d "7 days" +%Y-%m-%d)
-          echo "LIMIT_TIME=$limit_time" >> $GITHUB_ENV
-
       # jar 一覧 (jars.txt) を取得して表を動的生成するため、ビルド成果物を取り込む
-      - name: Download Gradle artifacts
+      - name: Download JAR artifacts for comment generation
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: gradle-artifacts
-          path: ./gradle-artifacts
+          path: ./artifacts/gradle-artifacts
 
+      # コメントに載せる JAR の行 (モジュール名・ダウンロードリンク・サイズ) を作る
       - name: Build JAR table rows
         id: jar-rows
         env:
-          S3_DOWNLOAD_BASE: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/jars"
+          JAR_DOWNLOAD_BASE: "${{ env.PREVIEW_BASE_URL }}/${{ env.COMMIT_SHORT_SHA }}/jars"
           SHA: ${{ env.COMMIT_SHORT_SHA }}
-          PROJECT_NAME: ${{ env.PROJECT_NAME }}
         run: |
           # バイト数を読みやすい単位に変換する (1 MiB 以上は MB、それ未満は KB)
           human_size() {
@@ -386,16 +364,23 @@ jobs:
               awk -v b="$bytes" 'BEGIN { printf "%.1f KB", b / 1024 }'
             fi
           }
+          JARS=./artifacts/gradle-artifacts/jars
           {
             echo "rows<<ROWS_EOF"
             while read -r f; do
               [ -n "$f" ] || continue
               label="${f#${PROJECT_NAME}-}"
               label="${label%-${SHA}.jar}"
-              echo "| ${label} | [${f}](${S3_DOWNLOAD_BASE}/${f}) | $(human_size "./gradle-artifacts/jars/${f}") |"
-            done < ./gradle-artifacts/jars.txt
+              echo "| ${label} | [${f}](${JAR_DOWNLOAD_BASE}/${f}) | $(human_size "${JARS}/${f}") |"
+            done < ./artifacts/gradle-artifacts/jars.txt
             echo "ROWS_EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Get limit time
+        id: limit-time
+        run: |
+          limit_time=$(date -d "7 days" +%Y-%m-%d)
+          echo "LIMIT_TIME=$limit_time" >> $GITHUB_ENV
 
       - name: Create comment file
         env:
@@ -420,13 +405,10 @@ jobs:
           > 📜 **Attestation** (SLSA provenance): [Verify on GitHub]($ATTESTATION_URL) or run \`gh attestation verify <jar-file> --owner morinoparty\`
 
           ### 📖 Documentation & Reports
-          | Resource | Link |
-          |----------|------|
-          | 📖 Documentation | [Preview]($DOCS_PREVIEW_URL) |
-          | 📖 Dokka API | [Preview]($DOKKA_URL) |
-          | 🧪 Allure Report | [Report]($ALLURE_REPORT_URL) |
-          | 🧪 JUnit Report | [Report]($JUNIT_REPORT_URL) |
-          | 🔍 Detekt Report | [Report]($DETEKT_REPORT_URL) |
+          Available for 7 days (until $LIMIT_TIME)
+          | 📖 Documentation | 📖 Dokka API | 🧪 Allure Report | 🧪 JUnit Report | 🔍 Detekt Report |
+          |:---:|:---:|:---:|:---:|:---:|
+          | [Preview]($DOCS_PREVIEW_URL) | [Preview]($DOKKA_URL) | [Report]($ALLURE_REPORT_URL) | [Report]($JUNIT_REPORT_URL) | [Report]($DETEKT_REPORT_URL) |
 
           ### 🧪 Test Summary
           | Tests | Passed | Skipped | Failed |
