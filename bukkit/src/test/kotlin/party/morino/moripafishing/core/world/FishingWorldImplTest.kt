@@ -12,6 +12,7 @@ import party.morino.moripafishing.api.config.climate.TimePolicy
 import party.morino.moripafishing.api.config.climate.WeatherPolicy
 import party.morino.moripafishing.api.config.world.BorderConfig
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.core.world.spi.WeatherSource
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.SpawnPoint
@@ -93,7 +94,11 @@ class FishingWorldImplTest {
         border: BorderConfig? = BorderConfig(),
         defaultClimate: ClimateConfig = ClimateConfig(),
     ) = FishingWorldImpl(
-        FishingWorldConfig(id = ID, border = border, climate = climate, spawn = SpawnPoint(1.0, 2.0, 3.0, 4f, 5f)),
+        FishingWorldConfig(
+            id = ID,
+            world = WorldBinding.Managed(border = border, spawn = SpawnPoint(1.0, 2.0, 3.0, 4f, 5f)),
+            climate = climate,
+        ),
         FakeContext(NOW, sources = SOURCES, defaultClimate = defaultClimate),
     )
 
@@ -105,7 +110,7 @@ class FishingWorldImplTest {
         appliedWeather: WeatherType?,
     ) {
         val world = world(ClimateConfig(weather = policy))
-        val state = world.desiredState(NOW)
+        val state = world.desiredState(NOW)!!
         assertEquals(fishWeather, world.decideWeather(NOW).weather)
         assertEquals(appliedWeather, state.weather)
         assertEquals(state.weather == null, state.doWeatherCycle)
@@ -117,7 +122,7 @@ class FishingWorldImplTest {
         policy: TimePolicy,
         expected: Long?,
     ) {
-        val state = world(ClimateConfig(time = policy)).desiredState(NOW)
+        val state = world(ClimateConfig(time = policy)).desiredState(NOW)!!
         assertEquals(expected, state.time)
         assertEquals(state.time == null, state.doDaylightCycle)
     }
@@ -130,19 +135,19 @@ class FishingWorldImplTest {
 
     @Test
     fun `border and spawn are copied from the config`() {
-        val managed = world(null, border = BorderConfig(1.0, 2.0, 30.0)).desiredState(NOW)
+        val managed = world(null, border = BorderConfig(1.0, 2.0, 30.0)).desiredState(NOW)!!
         assertEquals(BorderConfig(1.0, 2.0, 30.0), managed.border)
         assertEquals(SpawnPoint(1.0, 2.0, 3.0, 4f, 5f), managed.spawn)
         assertEquals(Key.key("moripafishing", "table"), managed.worldKey)
 
-        assertNull(world(null, border = null).desiredState(NOW).border)
+        assertNull(world(null, border = null).desiredState(NOW)!!.border)
     }
 
     @Test
     fun `null climate falls back to the default climate`() {
         val defaultClimate = ClimateConfig(WeatherPolicy.Fixed(WeatherType.SNOWY), TimePolicy.Vanilla)
         val world = world(null, defaultClimate = defaultClimate)
-        val state = world.desiredState(NOW)
+        val state = world.desiredState(NOW)!!
         assertEquals(WeatherType.SNOWY, state.weather)
         assertNull(state.time)
     }
@@ -150,8 +155,16 @@ class FishingWorldImplTest {
     @Test
     fun `desiredState uses a given weather decision instead of deciding again`() {
         val world = world(ClimateConfig(weather = WeatherPolicy.Fixed(WeatherType.SUNNY)))
-        val state = world.desiredState(NOW, WeatherDecision(WeatherType.RAINY, appliesToWorld = true))
+        val state = world.desiredState(NOW, WeatherDecision(WeatherType.RAINY, appliesToWorld = true))!!
         assertEquals(WeatherType.RAINY, state.weather)
         assertEquals(false, state.doWeatherCycle)
+    }
+
+    @Test
+    fun `an external world has no desired state`() {
+        val config = FishingWorldConfig(id = ID, world = WorldBinding.External(Key.key("minecraft", "overworld")))
+        val world = FishingWorldImpl(config, FakeContext(NOW, sources = SOURCES))
+        assertNull(world.desiredState(NOW))
+        assertEquals(Key.key("minecraft", "overworld"), world.getWorldKey())
     }
 }

@@ -43,7 +43,7 @@ Core 自体は Bukkit ワールドへ一切書き込みません。本 Integrati
 | `spawn` | ワールドのスポーン地点がブロック座標または向き (yaw) で異なる場合だけ設定する (Paper はスポーンをブロック単位で保持するため) |
 
 時刻の計算 (実時刻同期・固定時刻) とゲームルールの値は Core が決めます。詳細は [気候の設定](/docs/format/config/climate#time) を参照してください。
-ボーダーを他のプラグインで管理したい場合は、ワールド設定の `border` を `null` にします ([ワールド設定](/docs/format/data/world))。
+ボーダーを他のプラグインで管理したい場合は、ワールド設定の `world.border` を `null` にします ([ワールド設定](/docs/format/data/world))。
 
 ## ワールドの作成とアンロード
 
@@ -56,7 +56,7 @@ Core 自体は Bukkit ワールドへ一切書き込みません。本 Integrati
 
 Core は次の場面でこれらを呼びます。
 
-- サーバー起動後 (`ServerLoadEvent`): 定義済みで未ロードの釣りワールドを、ワールド設定の `generator` で作成する
+- サーバー起動後 (`ServerLoadEvent`): 定義済みで未ロードの管理ワールドを、ワールド設定の `world.generator` で作成する (外部ワールドは作成しない)
 - `/mf world create <id> <generator>`: 新しい釣りワールドを定義して作成する。補完候補は `getGeneratorIds()` から供給される
 - `/mf world delete <world>`: ロード済みの釣りワールドをアンロードしてから定義を削除する
 
@@ -89,7 +89,7 @@ Core は次の場面でこれらを呼びます。
 
 | フィールド | 型 | 説明 |
 |---|---|---|
-| `id` | string | ジェネレーター ID。ワールド設定の `generator` から参照される |
+| `id` | string | ジェネレーター ID。ワールド設定の `world.generator` から参照される |
 | `generator` | string? | `WorldCreator.generator()` に渡される文字列 (プラグイン名:ID) |
 | `type` | string? | `WorldType` 名 (`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED`) |
 | `biomeProvider` | string? | 全座標に同じバイオームを返す固定バイオーム名 (例: `minecraft:plains`) |
@@ -102,7 +102,7 @@ Core は次の場面でこれらを呼びます。
 
 プレイヤーがサーバーに参加した際、釣りワールドのスポーン地点へ自動でテレポートします。
 
-テレポート先は Core の公開 API (`WorldManager.getWorld(id).getConfig().spawn`) から参加のたびに取得します。
+テレポート先は参加のたびに決めます。管理ワールドでは Core の公開 API から取得したワールド設定の `world.spawn`、[外部ワールド](/docs/format/data/world#既存のワールドで釣りをする) では Bukkit ワールドのスポーン地点を使います。
 
 設定は `plugins/MoripaFishing-Integration-WorldLifecycle/join-teleport.yml` に置きます (初回起動時に既定値が書き出されます)。
 

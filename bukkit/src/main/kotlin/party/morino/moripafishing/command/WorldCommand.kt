@@ -14,6 +14,7 @@ import org.incendo.cloud.paper.util.sender.PlayerSource
 import org.incendo.cloud.paper.util.sender.Source
 import party.morino.moripafishing.api.config.world.BorderConfig
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.world.FishingWorldId
@@ -36,10 +37,16 @@ internal class WorldCommand(
         sender.sendRichMessage("<green>Fishing Worlds:")
         worlds().getWorlds().forEach { world ->
             val state = if (Bukkit.getWorld(world.getWorldKey()) != null) "loaded" else "unloaded"
+            val kind =
+                when (world.getConfig().world) {
+                    is WorldBinding.Managed -> "managed"
+                    is WorldBinding.External -> "external"
+                }
             sender.sendRichMessage(
-                "<green>- <name> (<id>) [$state]",
+                "<green>- <name> (<id>) <key> [$kind, $state]",
                 Placeholder.component("name", Component.translatable(world.getId().toTranslateKey())),
                 idOf(world.getId()),
+                Placeholder.unparsed("key", world.getWorldKey().asString()),
             )
         }
     }
@@ -56,8 +63,14 @@ internal class WorldCommand(
             source.source().sendRichMessage("<red>World <id> is not loaded.", idOf(world.getId()))
             return
         }
-        val spawn = world.getConfig().spawn
-        player.teleportAsync(Location(bukkitWorld, spawn.x, spawn.y, spawn.z, spawn.yaw, spawn.pitch))
+        // 外部ワールドのスポーンは MoripaFishing が管理しないため、Bukkit ワールドのスポーン地点へ送る
+        val destination =
+            when (val binding = world.getConfig().world) {
+                is WorldBinding.Managed ->
+                    binding.spawn.let { Location(bukkitWorld, it.x, it.y, it.z, it.yaw, it.pitch) }
+                is WorldBinding.External -> bukkitWorld.spawnLocation
+            }
+        player.teleportAsync(destination)
     }
 
     @Command("create <id> <generator>")
@@ -99,7 +112,7 @@ internal class WorldCommand(
     ) {
         val location = source.source().location
         val spawn = SpawnPoint(location.x, location.y, location.z, location.yaw, location.pitch)
-        update(source, world) { it.copy(spawn = spawn) }
+        updateManaged(source, world) { it.copy(spawn = spawn) }
     }
 
     @Command("config set center <world> [x] [z]")
@@ -117,7 +130,7 @@ internal class WorldCommand(
             source.source().sendRichMessage("<red>x and z are required from the console.")
             return
         }
-        update(source, world) {
+        updateManaged(source, world) {
             it.copy(border = (it.border ?: BorderConfig()).copy(centerX = centerX, centerZ = centerZ))
         }
     }
@@ -133,7 +146,7 @@ internal class WorldCommand(
             source.source().sendRichMessage("<red>Size must be positive.")
             return
         }
-        update(source, world) { it.copy(border = (it.border ?: BorderConfig()).copy(size = size)) }
+        updateManaged(source, world) { it.copy(border = (it.border ?: BorderConfig()).copy(size = size)) }
     }
 
     @Command("config unset border <world>")
@@ -142,7 +155,7 @@ internal class WorldCommand(
         source: Source,
         @Argument("world") world: FishingWorld,
     ) {
-        update(source, world) { it.copy(border = null) }
+        updateManaged(source, world) { it.copy(border = null) }
     }
 
     @Command("config view <world>")
@@ -157,14 +170,24 @@ internal class WorldCommand(
     }
 
     /**
-     * 最新の設定に [change] を適用して保存・適用させる。
+     * 管理ワールドの最新の設定に [change] を適用して保存・適用させる。
+     * 外部ワールドのスポーン・ボーダーは MoripaFishing が管理しないため拒否する。
      */
-    private fun update(
+    private fun updateManaged(
         source: Source,
         world: FishingWorld,
-        change: (FishingWorldConfig) -> FishingWorldConfig,
+        change: (WorldBinding.Managed) -> WorldBinding.Managed,
     ) {
-        val updated = worlds().updateWorldConfig(change(world.getConfig()))
+        val config = world.getConfig()
+        val binding = config.world
+        if (binding !is WorldBinding.Managed) {
+            source.source().sendRichMessage(
+                "<red>World <id> is an external world. MoripaFishing does not modify it.",
+                idOf(world.getId()),
+            )
+            return
+        }
+        val updated = worlds().updateWorldConfig(config.copy(world = change(binding)))
         source.source().sendRichMessage(
             if (updated) "<green>Updated config of world <id>." else "<red>World <id> is no longer defined.",
             idOf(world.getId()),

@@ -1,6 +1,7 @@
 package party.morino.moripafishing.listener
 
 import kotlinx.serialization.json.Json
+import net.kyori.adventure.key.Key
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -21,6 +22,8 @@ import org.mockbukkit.mockbukkit.MockBukkitExtension
 import org.mockbukkit.mockbukkit.MockBukkitInject
 import org.mockbukkit.mockbukkit.ServerMock
 import org.mockbukkit.mockbukkit.entity.PlayerMock
+import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.event.fishing.AnglerFishCaughtEvent
 import party.morino.moripafishing.api.model.fish.CaughtFish
 import party.morino.moripafishing.api.model.fish.Fish
@@ -43,6 +46,7 @@ class PlayerFishingListenerTest {
     lateinit var server: ServerMock
 
     private val worldId = FishingWorldId("default")
+    private val externalId = FishingWorldId("survival")
     private val tuna = fish("tuna", "common")
     private val salmon = fish("salmon", "common").copy(item = tuna.item.copy(material = "SALMON"))
     private val fishes = FakeFishManager(tuna, salmon)
@@ -57,7 +61,12 @@ class PlayerFishingListenerTest {
         val world = mockWorld(WorldKeys.of(worldId)).also(server::addWorld)
         player = server.addPlayer()
         player.teleport(Location(world, 0.0, 64.0, 0.0))
-        val anglers = AnglerManagerImpl(FakeWorldManager(FakeFishingWorld(worldId)))
+        val external =
+            FakeFishingWorld(
+                externalId,
+                config = FishingWorldConfig(externalId, world = WorldBinding.External(Key.key("minecraft", "survival"))),
+            )
+        val anglers = AnglerManagerImpl(FakeWorldManager(FakeFishingWorld(worldId), external))
         listener = PlayerFishingListener(anglers, drawer, fishes, FishItemFactory(plugin, FakeConfigManager()), plugin.logger)
     }
 
@@ -117,6 +126,24 @@ class PlayerFishingListenerTest {
     @Test
     fun `a null draw keeps the vanilla drop`() {
         drawer.fish = null
+        val recorder = record()
+        val (event, drop) = fishEvent()
+        listener.onPlayerFish(event)
+        assertEquals(null, caughtFishOf(drop))
+        assertTrue(recorder.results.isEmpty())
+    }
+
+    @Test
+    fun `fishing in a registered external world uses the custom fish`() {
+        player.teleport(Location(mockWorld(Key.key("minecraft", "survival")).also(server::addWorld), 0.0, 64.0, 0.0))
+        val (event, drop) = fishEvent()
+        listener.onPlayerFish(event)
+        assertEquals(externalId, caughtFishOf(drop)?.world)
+    }
+
+    @Test
+    fun `fishing in an unregistered world keeps the vanilla drop`() {
+        player.teleport(Location(mockWorld(Key.key("minecraft", "unregistered")).also(server::addWorld), 0.0, 64.0, 0.0))
         val recorder = record()
         val (event, drop) = fishEvent()
         listener.onPlayerFish(event)

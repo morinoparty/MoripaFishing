@@ -1,5 +1,6 @@
 package party.morino.moripafishing.command
 
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.entity.Player
 import org.incendo.cloud.CommandManager
@@ -8,6 +9,8 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.internal.CommandRegistrationHandler
 import org.incendo.cloud.paper.util.sender.Source
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -15,7 +18,9 @@ import org.mockbukkit.mockbukkit.MockBukkitExtension
 import org.mockbukkit.mockbukkit.MockBukkitInject
 import org.mockbukkit.mockbukkit.ServerMock
 import party.morino.moripafishing.MoripaFishing
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.core.world.mockWorld
 import party.morino.moripafishing.testing.loadMoripaFishing
 
 /**
@@ -80,6 +85,8 @@ class CommandsTest {
                 .getWorldManager()
                 .getWorld(FishingWorldId("default"))
                 ?.getConfig()
+                ?.world
+                .let { it as? WorldBinding.Managed }
                 ?.border
         assertEquals(10.0 to 20.0, border?.centerX to border?.centerZ)
     }
@@ -102,5 +109,36 @@ class CommandsTest {
             listOf("Failed to create world <obf>x. See the server log."),
             execute("mf world create <obf>x void"),
         )
+    }
+
+    /** `minecraft:survival` を外部ワールド `survival` として登録し、Bukkit ワールドをロードしておく。 */
+    private fun registerExternalWorld(): String {
+        val survival = mockWorld(Key.key("minecraft", "survival")).also(server::addWorld)
+        plugin.dataFolder
+            .resolve(
+                "world/survival.json",
+            ).writeText("""{"id": "survival", "world": {"type": "external", "key": "minecraft:survival"}}""")
+        execute("mf reload")
+        return survival.name
+    }
+
+    @Test
+    fun `config commands are rejected for an external world`() {
+        registerExternalWorld()
+        val file = plugin.dataFolder.resolve("world/survival.json")
+        val before = file.readText()
+        val rejected = listOf("World survival is an external world. MoripaFishing does not modify it.")
+        assertEquals(rejected, execute("mf world config set center survival 10 20"))
+        assertEquals(rejected, execute("mf world config set size survival 50"))
+        assertEquals(rejected, execute("mf world config unset border survival"))
+        assertEquals(before, file.readText())
+    }
+
+    @Test
+    fun `deleting an external world keeps the bukkit world loaded`() {
+        val name = registerExternalWorld()
+        assertEquals(listOf("Deleted world survival (but folder is not deleted)."), execute("mf world delete survival"))
+        assertNotNull(server.getWorld(name))
+        assertFalse(plugin.dataFolder.resolve("world/survival.json").exists())
     }
 }

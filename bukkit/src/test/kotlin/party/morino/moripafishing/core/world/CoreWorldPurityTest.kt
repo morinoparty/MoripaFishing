@@ -15,6 +15,7 @@ import org.mockbukkit.mockbukkit.ServerMock
 import org.mockbukkit.mockbukkit.world.WorldMock
 import party.morino.moripafishing.api.config.world.BorderConfig
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.SpawnPoint
 import party.morino.moripafishing.testing.FakeConfigManager
@@ -83,7 +84,9 @@ class CoreWorldPurityTest {
         val config = manager.getWorld(worldId)!!.getConfig()
         assertTrue(
             manager.updateWorldConfig(
-                config.copy(spawn = SpawnPoint(5.0, 70.0, 5.0, 90f, -10f), border = BorderConfig(10.0, 10.0, 30.0)),
+                config.copy(
+                    world = WorldBinding.Managed(spawn = SpawnPoint(5.0, 70.0, 5.0, 90f, -10f), border = BorderConfig(10.0, 10.0, 30.0)),
+                ),
             ),
         )
         assertWorldUntouched()

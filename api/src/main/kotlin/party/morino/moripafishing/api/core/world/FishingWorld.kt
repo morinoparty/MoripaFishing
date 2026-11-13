@@ -19,7 +19,8 @@ interface FishingWorld {
     fun getId(): FishingWorldId
 
     /**
-     * 対応する Bukkit ワールドのキー (現状は `moripafishing:<id>`) を返す。
+     * 対応する Bukkit ワールドのキーを返す。
+     * 管理ワールドは `moripafishing:<id>`、外部ワールドは `WorldBinding.External.key`。
      */
     fun getWorldKey(): Key
 

@@ -10,9 +10,11 @@ icon: Globe
 
 ファイル名はワールドIDと一致させてください。次のファイルは警告を出して読み飛ばします。
 
-- JSON として不正なファイル、未知のキーを含むファイル、または値が範囲外のファイル (例: `border.size` が 0 以下)。トップレベルの `$schema` キーは無視されます
+- JSON として不正なファイル、未知のキーを含むファイル、または値が範囲外のファイル (例: `world.border.size` が 0 以下)。トップレベルの `$schema` キーは無視されます
 - ファイル名と `id` が一致しないファイル
 - `id` が Bukkit ワールドのキー (`moripafishing:<id>`) として使えないファイル。使える文字は `[a-z0-9_.-/]` です
+- 外部ワールドの `world.key` に `moripafishing` 名前空間を指定したファイル (管理ワールド専用の名前空間のため)
+- 外部ワールドの `world.key` が、ファイル名順で先に読み込んだ別の定義と重複するファイル
 
 このファイルはプラグイン側からも書き換えられます。`/mf world config set ...` などで設定を変えると、その時点の内容でファイル全体が上書きされます。
 手動で編集した内容は `/mf reload` で読み直されます。
@@ -26,18 +28,21 @@ icon: Globe
         "ja_JP": "つりとぴあ",
         "en_US": "Tsuritopia"
     },
-    "generator": "void",
-    "spawn": {
-        "x": 0.0,
-        "y": 64.0,
-        "z": 0.0,
-        "yaw": 90.0,
-        "pitch": 0.0
-    },
-    "border": {
-        "centerX": 0.0,
-        "centerZ": 0.0,
-        "size": 100.0
+    "world": {
+        "type": "managed",
+        "generator": "void",
+        "spawn": {
+            "x": 0.0,
+            "y": 64.0,
+            "z": 0.0,
+            "yaw": 90.0,
+            "pitch": 0.0
+        },
+        "border": {
+            "centerX": 0.0,
+            "centerZ": 0.0,
+            "size": 100.0
+        }
     },
     "climate": null
 }
@@ -45,12 +50,22 @@ icon: Globe
 
 ## 各設定の説明
 
-- `id`: ワールドのIDです。省略できません。対応する Bukkit ワールドのキーは `moripafishing:<id>` になります
+- `id`: ワールドのIDです。省略できません
 - `name`: ワールドの表示名をロケールごとに指定します。キーには `ja_JP` や `en_US` のような言語タグを指定でき、アンダースコア区切り・ハイフン区切りのどちらも受理されます (既定: 空)
+- `world`: 対応する Bukkit ワールドです。`type` で種類を指定します (既定: `{type: "managed"}`)
+  - `managed`: MoripaFishing が管理するワールドです。Bukkit ワールドのキーは `moripafishing:<id>` になります。設定項目は下記を参照
+  - `external`: 既存の Bukkit ワールドを釣り場として登録します。詳細は [既存のワールドで釣りをする](#既存のワールドで釣りをする) を参照
+- `climate`: ワールド固有の気候設定です。`null` の場合、管理ワールドでは `config.json` の `world.defaultClimate`、外部ワールドではバニラの天候と時刻を読み取る設定が使われます。詳細は [気候](/docs/format/config/climate) を参照
+
+### 管理ワールド (`type: "managed"`) の設定
+
 - `generator`: ワールドを作成するときに使うジェネレーター ID です (既定: `void`)。**作成時にのみ参照する** ため、作成後に変えても既存のワールドには影響しません。ID は [WorldLifecycle Integration](/docs/integration/world-lifecycle) が管理するジェネレーター定義に対応します。詳細は [ワールドジェネレーター](/docs/format/data/generator) を参照
 - `spawn`: スポーン地点です。`yaw` と `pitch` は省略すると `0` になります (既定: `{x: 0, y: 64, z: 0, yaw: 90, pitch: 0}`)
 - `border`: ワールドボーダーの中心 (`centerX` / `centerZ`) とサイズ (`size`、0 より大きい値) です (既定: `{centerX: 0, centerZ: 0, size: 100}`)。**`null` にすると MoripaFishing はボーダーを管理しません**。他のプラグインやバニラでボーダーを管理したい場合に使います
-- `climate`: ワールド固有の気候設定です。`null` の場合は `config.json` の `world.defaultClimate` が使われます。詳細は [気候](/docs/format/config/climate) を参照
+
+### 外部ワールド (`type: "external"`) の設定
+
+- `key`: 登録する Bukkit ワールドのキー (例: `minecraft:overworld`) です。省略できません。`moripafishing` 名前空間は管理ワールド専用のため指定できません
 
 ## 表示名の解決について
 
@@ -59,9 +74,40 @@ icon: Globe
 
 ## Bukkit ワールドへの適用について
 
-`spawn`・`border` と、`climate` から決まる時刻・天候を Bukkit ワールドへ適用するのは Integration です
+管理ワールドの `spawn`・`border` と、`climate` から決まる時刻・天候を Bukkit ワールドへ適用するのは Integration です
 ([WorldLifecycle](/docs/integration/world-lifecycle) / [Weather](/docs/integration/weather))。
 Integration が導入されていない環境では、設定はファイルに保存され魚の抽選に使われますが、ゲーム内のワールドには反映されません。
+
+## 既存のワールドで釣りをする
+
+サバイバルワールドなど、MoripaFishing が作成していない既存の Bukkit ワールドでもカスタムの魚を釣れるようにできます。
+`world` を `external` にして対象ワールドのキーを指定した設定ファイルを置き、`/mf reload` を実行してください。
+
+```json title="plugins/MoripaFishing/world/survival.json"
+{
+    "id": "survival",
+    "world": {
+        "type": "external",
+        "key": "minecraft:overworld"
+    },
+    "name": {
+        "ja_JP": "サバイバル",
+        "en_US": "Survival"
+    }
+}
+```
+
+外部ワールドは **読み取り専用** です。Integration が導入されていても、MoripaFishing は次のことを一切行いません。
+
+- ワールドの作成・アンロード。未ロードの場合はロードされるまで待ち、ロードされた時点で `FishingWorldLoadEvent` を発火します
+- 天候・ゲームルール・時刻・スポーン・ワールドボーダーの変更
+
+`/mf world transfer` や WorldLifecycle Integration の参加時テレポートでは、Bukkit ワールドのスポーン地点へテレポートします。
+
+`climate` を省略した外部ワールドでは、`world.defaultClimate` ではなくバニラの天候と時刻をそのまま読み取る設定 (`weather: vanilla` / `time: vanilla`) が使われます。
+そのため魚の抽選条件に使う天候は、実際の空の天候と一致します。`climate` を明示した場合はその設定で天候を決めますが、その場合もワールドへは適用しません。
+
+同じ Bukkit ワールドを複数の定義に登録することはできません。また `world` の種類やキーは設定コマンドでは変更できないため、設定ファイルを編集して `/mf reload` してください。
 
 ## ワールドの作成と削除
 
@@ -78,7 +124,7 @@ Integration が導入されていない環境では、設定はファイルに�
 
 成功すると `FishingWorldLoadEvent`、続いて `FishingWorldCreateEvent` が発火します。
 
-サーバーの起動後 (全プラグインの有効化後) と `/mf reload` の後にも、定義済みで未ロードのワールドを `generator` の設定で作成します。
+サーバーの起動後 (全プラグインの有効化後) と `/mf reload` の後にも、定義済みで未ロードのワールド (外部ワールドを除く) を `generator` の設定で作成します。
 ジェネレーター ID の誤りなどで作成に失敗したワールドは、設定を直して `/mf reload` すれば再起動なしで作成できます。
 
 ### 削除
@@ -88,6 +134,7 @@ Integration が導入されていない環境では、設定はファイルに�
 
 - Bukkit ワールドがロード済みの場合は、WorldLifecycle Integration によるアンロードが必要です。Integration が無い場合やアンロードに失敗した場合は、設定ファイルを残して失敗します
 - Bukkit ワールドが未ロードの場合は Bukkit の状態を変えないため、Integration が無くても削除できます
+- 外部ワールドは登録を外すだけで、ロード済みでも Bukkit ワールドをアンロードしません
 
 ## 関連する `config.json` の設定
 

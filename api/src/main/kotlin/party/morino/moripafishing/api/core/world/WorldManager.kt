@@ -12,6 +12,8 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
  *
  * コアは Bukkit ワールドを直接変更しない。ワールドの作成・アンロードは `WorldLifecycle`、
  * 天候・時刻・ボーダー・スポーンの適用は `WorldStateApplier` を実装した Integration が行う。
+ * 外部ワールド (`WorldBinding.External` で既存の Bukkit ワールドを登録したもの) は読み取り専用で、
+ * Integration が導入されていても作成・アンロード・状態の適用を一切行わない。
  *
  * 取得系のメソッドは任意のスレッドから呼べる。変更系のメソッドはメインスレッドから呼ぶこと
  * (それ以外から呼ぶと `IllegalStateException` を投げる)。
@@ -51,7 +53,7 @@ interface WorldManager {
     fun getGeneratorIds(): Set<String>
 
     /**
-     * 釣りワールドを定義し、Bukkit ワールドを作成する。メインスレッドから呼ぶこと。
+     * 管理ワールドを定義し、Bukkit ワールドを作成する。メインスレッドから呼ぶこと。
      *
      * `WorldLifecycle` が必要。運用開始前 (`ServerLoadEvent` 前)・既に定義済み・不正な ID・
      * 同じキーの Bukkit ワールドがロード済み・ジェネレーターが不明・作成失敗の場合は何も残さず `false` を返す。
@@ -72,6 +74,7 @@ interface WorldManager {
      * Bukkit ワールドがロード済みの場合は `WorldLifecycle` によるアンロードが必要で、
      * 未登録またはアンロード失敗時は定義を残して `false` を返す。
      * 未ロードのワールドは Integration なしで削除できる。ワールドフォルダは削除しない。
+     * 外部ワールドは登録を外すだけで、ロード済みでも Bukkit ワールドをアンロードしない。
      *
      * @param id ワールド ID
      * @return 削除に成功した場合 `true`
@@ -83,9 +86,12 @@ interface WorldManager {
      *
      * 運用開始前は保存のみ行い、適用は運用開始時に行われる。
      * `generator` は作成時のみ参照されるため、既存ワールドで変更しても効果はない。
+     * 外部ワールドは保存のみ行い、ワールドへは適用しない。
      *
      * @param config 新しい設定
      * @return 未定義のワールドの場合 `false`
+     * @throws IllegalArgumentException 対応する Bukkit ワールド (`world` の種類や外部ワールドのキー) を変更しようとした場合。
+     *   変更は設定ファイルの編集と [reload] で行う
      */
     fun updateWorldConfig(config: FishingWorldConfig): Boolean
 
@@ -93,7 +99,8 @@ interface WorldManager {
      * `world/` 配下の設定ファイルを読み直す。メインスレッドから呼ぶこと。
      *
      * ファイルが消えたワールドは定義から外すのみで、Bukkit ワールドのアンロードやイベントの発火は行わない。
-     * 運用開始後は、未ロードの定義済みワールドの作成を再試行し、全ワールドの状態を即座に適用させる。
+     * Bukkit ワールドのキーが他の定義と重複するファイルは警告して読み飛ばす。
+     * 運用開始後は、未ロードの管理ワールドの作成を再試行し、全管理ワールドの状態を即座に適用させる。
      */
     fun reload()
 }

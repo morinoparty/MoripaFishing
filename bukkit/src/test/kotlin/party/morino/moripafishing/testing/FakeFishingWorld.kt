@@ -17,7 +17,7 @@ internal class FakeFishingWorld(
 ) : FishingWorld {
     override fun getId(): FishingWorldId = id
 
-    override fun getWorldKey(): Key = WorldKeys.of(id)
+    override fun getWorldKey(): Key = WorldKeys.of(config)
 
     override fun getConfig(): FishingWorldConfig = config
 
