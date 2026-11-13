@@ -79,6 +79,26 @@ class FishDrawPoolTest {
     }
 
     @Test
+    fun `returned lists cannot be modified`() {
+        val pool = examplePool()
+        assertThrows<UnsupportedOperationException> { (pool.getRarities() as MutableList<RarityData>).clear() }
+        assertThrows<UnsupportedOperationException> { (pool.getFishes() as MutableList<FishData>).clear() }
+        assertThrows<UnsupportedOperationException> { (pool.getFishes(rare) as MutableList<FishData>).clear() }
+        assertThrows<UnsupportedOperationException> {
+            (pool.getFishes(rare) as MutableList<FishData>).add(fish("intruder", "rare"))
+        }
+        assertEquals(listOf(FishId("a"), FishId("b")), pool.getFishes(rare).map { it.id })
+    }
+
+    @Test
+    fun `zeroing the last positive fish removes its rarity from the draw`() {
+        val pool = examplePool()
+        assertTrue(pool.multiplyFishWeight(FishId("c"), 0.0))
+        assertEquals(0.5, pool.getProbability(FishId("a")), 1e-12)
+        assertEquals(0.5, pool.getProbability(FishId("b")), 1e-12)
+    }
+
+    @Test
     fun `conditions are a hard filter`() {
         val pool =
             FishDrawPool(

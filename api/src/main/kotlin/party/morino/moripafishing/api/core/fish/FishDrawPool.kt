@@ -6,6 +6,7 @@ import party.morino.moripafishing.api.model.rarity.RarityData
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
+import java.util.Collections
 
 /**
  * 1 回の抽選の候補と、その重み。[FishDrawer.createPool] で作り、[FishDrawer.draw] に渡す。
@@ -58,8 +59,9 @@ class FishDrawPool(
             fishes
                 .distinctBy { it.id }
                 .filter { it.enabled && it.rarity in registeredIds && it.conditions.matches(world, weather) }
-        fishesByRarity = members.groupBy { it.rarity }
-        this.rarities = registered.filter { it.id in fishesByRarity }
+        // 候補は絶対なので、getter から返すリストを変更できないようにする
+        fishesByRarity = members.groupBy { it.rarity }.mapValues { Collections.unmodifiableList(it.value) }
+        this.rarities = Collections.unmodifiableList(registered.filter { it.id in fishesByRarity })
         fishById = members.associateBy { it.id }
         this.rarities.forEach { rarityWeights[it.id] = it.weight }
         members.forEach { fishWeights[it.id] = it.weight }
@@ -71,14 +73,14 @@ class FishDrawPool(
     /** 候補の判定に使った天候を返す。不明なら `null`。 */
     fun getWeather(): WeatherType? = weather
 
-    /** 候補のレアリティを登録順に返す。 */
+    /** 候補のレアリティを登録順に返す。返すリストは変更できない。 */
     fun getRarities(): List<RarityData> = rarities
 
-    /** 候補の魚を全て、レアリティ順に返す。 */
-    fun getFishes(): List<FishData> = rarities.flatMap { fishesByRarity.getValue(it.id) }
+    /** 候補の魚を全て、レアリティ順に返す。返すリストは変更できない。 */
+    fun getFishes(): List<FishData> = Collections.unmodifiableList(rarities.flatMap { fishesByRarity.getValue(it.id) })
 
     /**
-     * 指定したレアリティの候補の魚を返す。候補外のレアリティなら空のリスト。
+     * 指定したレアリティの候補の魚を返す。候補外のレアリティなら空のリスト。返すリストは変更できない。
      *
      * @param rarity レアリティの ID
      */
@@ -140,6 +142,10 @@ class FishDrawPool(
     /**
      * 魚の重み (同じレアリティ内での重み) を設定する。
      *
+     * レアリティは重みが正の魚を 1 匹以上持つ間だけ抽選対象になる。
+     * 重みが正の魚がいないレアリティの魚に重みを与えるとレアリティが抽選対象に加わり、
+     * 最後の重みが正の魚を 0 にするとレアリティが抽選対象から外れる。どちらも他の全てのレアリティの確率を変える。
+     *
      * @param fish 魚の ID
      * @param weight 新しい重み。有限かつ 0 以上
      * @return 設定した場合 `true`、候補外の魚なら `false`
@@ -156,8 +162,11 @@ class FishDrawPool(
     }
 
     /**
-     * 魚の重みに倍率を掛ける。変わるのは同じレアリティ内での割合だけで、全体の確率は倍率どおりにはならない。
+     * 魚の重みに倍率を掛ける。通常は同じレアリティ内での割合だけが変わり、全体の確率は倍率どおりにはならない。
      * 全体の確率を倍率どおりに変えたい場合は [multiplyFishProbability] を使う。
+     *
+     * ただし、レアリティは重みが正の魚を 1 匹以上持つ間だけ抽選対象になる。
+     * 魚がレアリティ内で唯一の重みが正の魚で [factor] が 0 の場合は、レアリティが抽選対象から外れ、他の全てのレアリティの確率が上がる。
      *
      * @param fish 魚の ID
      * @param factor 倍率。有限かつ 0 以上
