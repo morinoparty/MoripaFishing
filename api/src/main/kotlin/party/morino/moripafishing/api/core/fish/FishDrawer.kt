@@ -9,12 +9,22 @@ import party.morino.moripafishing.api.model.world.FishingWorldId
  */
 interface FishDrawer {
     /**
-     * 釣りワールドの現在の天候と魚の条件に従い、レアリティ・魚・サイズ・価値を抽選する。
+     * 釣りワールドの現在の天候と魚の条件から、抽選の候補を作る。
+     *
+     * 返した [FishDrawPool] の重みを変更してから [draw] に渡すと、変更後の重みで抽選する。
      *
      * @param world 釣りワールドの ID
-     * @return 抽選された魚。候補が無ければ `null`
+     * @return 抽選の候補。未登録の釣りワールドでは天候が不明として扱われる
      */
-    fun draw(world: FishingWorldId): Fish?
+    fun createPool(world: FishingWorldId): FishDrawPool
+
+    /**
+     * 候補の現在の重みに従い、レアリティ・魚を抽選してサイズと価値を決める。
+     *
+     * @param pool 抽選の候補
+     * @return 抽選された魚。抽選対象が無ければ `null`
+     */
+    fun draw(pool: FishDrawPool): Fish?
 
     /**
      * 指定した魚のサイズと価値のみ抽選する。
