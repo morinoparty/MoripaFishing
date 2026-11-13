@@ -8,7 +8,7 @@
         {
             "type": "github",
             "id": "morinoparty/MoripaFishing",
-            "fileNameRegex": "MoripaFishing_.*\\.jar$",
+            "fileNameRegex": "^MoripaFishing_.+\\.jar$",
             "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
             "latest": {
                 "useUpstreamLabel": true,

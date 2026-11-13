@@ -7,7 +7,7 @@
 #   API_KEY        - client API キー (pacc_...)
 #   PLUGIN_VERSION - デプロイするバージョン
 #
-# アップロード対象:
+# アップロード対象 (いずれも <paper-plugin.yml の name>_<version>.jar):
 #   ./artifacts/MoripaFishing_<version>.jar   (本体)
 #   ./artifacts/addons/*.jar                  (addon)
 #   ./artifacts/integrations/*.jar            (integration)
@@ -28,11 +28,14 @@ done
 
 # 旧バージョンの jar を残すと二重ロードになるため、先に削除する。
 # 削除パターンはアップロード対象から動的に作り、無関係なプラグインは触らない。
-pattern='^MoripaFishing[-_](bukkit[-_].*|[0-9].*)\.jar$'
-for jar in "${jars[@]:1}"; do
-  prefix=$(basename "$jar" | sed "s/-${PLUGIN_VERSION}\.jar\$//")
-  pattern="$pattern|^${prefix}-.*\.jar\$"
+# jar 名から _<version>.jar を除いたプラグイン名ごとに、^<name>_.*\.jar$ を作る。
+# プラグイン名は英数字と - だけなので、正規表現としてそのまま埋め込める。
+patterns=()
+for jar in "${jars[@]}"; do
+  base=$(basename "$jar")
+  patterns+=("^${base%_"${PLUGIN_VERSION}".jar}_.*\\.jar\$")
 done
+pattern=$(IFS='|'; echo "${patterns[*]}")
 
 old=$(api GET "/files/list?directory=%2Fplugins" \
   | jq -r --arg re "$pattern" '.data[] | select(.attributes.is_file) | .attributes.name | select(test($re))')

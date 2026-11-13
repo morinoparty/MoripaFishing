@@ -14,8 +14,8 @@ icon: Megaphone
 
 ## 導入
 
-1. サーバーの `plugins/` にリリースの `MoripaFishing-catch-announce-<version>.jar` を配置する（`MoripaFishing-Addon-CatchAnnounce` は
-   プラグイン名であってファイル名ではない）。
+1. サーバーの `plugins/` にリリースの `MoripaFishing-Addon-CatchAnnounce_<version>.jar` を配置する（ファイル名は
+   プラグイン名 `MoripaFishing-Addon-CatchAnnounce` とバージョンからなる）。
 2. サーバーを起動する。`paper-plugin.yml` で `MoripaFishing` を必須依存（`Load.BEFORE`, `required = true`）として宣言しているため、
    Core より後にロードされる。Core が導入されていない場合、この Addon は読み込まれない。
 3. 初回起動時に `plugins/MoripaFishing-Addon-CatchAnnounce/config.yml` が生成される。

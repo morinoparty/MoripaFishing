@@ -6,7 +6,7 @@
         {
             "type": "github",
             "id": "morinoparty/MoripaFishing",
-            "fileNameRegex": "MoripaFishing-world-lifecycle-.*\\.jar$",
+            "fileNameRegex": "^(?:MoripaFishing-Integration-WorldLifecycle_|MoripaFishing-world-lifecycle-).+\\.jar$",
             "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
             "latest": {
                 "useUpstreamLabel": true,

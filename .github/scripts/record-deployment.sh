@@ -13,8 +13,7 @@ record() {
   local jar="$1"
   local base name digest
   base=$(basename "$jar" .jar)
-  name="${base%-${PLUGIN_VERSION}}"
-  name="${name%_${PLUGIN_VERSION}}"
+  name="${base%_"${PLUGIN_VERSION}"}"
   digest="sha256:$(sha256sum "$jar" | awk '{print $1}')"
   gh api --method POST \
     -H "Accept: application/vnd.github+json" \
