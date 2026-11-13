@@ -30,7 +30,8 @@ icon: Receipt
 `CaughtFish.of(fish, angler, world)`で、抽選済みの`Fish`（`FishDrawer`の戻り値）と`AnglerId`・`FishingWorldId`から生成できます。`uniqueId`はランダムなUUID、`timestamp`は生成時点の`ZonedDateTime.now()`が自動的に設定されます。
 
 ```kotlin
-val fish = api.getFishDrawer().draw(worldId) ?: return
+val drawer = api.getFishDrawer()
+val fish = drawer.draw(drawer.createPool(worldId)) ?: return
 val caughtFish = CaughtFish.of(fish, angler.getId(), worldId)
 ```
 
@@ -46,6 +47,7 @@ val caughtFish = Json.decodeFromString(CaughtFish.serializer(), json)
 
 ## 利用例
 
+釣果は、`AnglerFishDrawEvent`（抽選の直前・重みの変更が可能。[抽選確率の変更](/addons/draw-weights)）の後に抽選した魚から作られます。
 `AnglerFishCaughtEvent`（釣り上げ確定前・キャンセルや差し替えが可能）と、
 `AnglerFishCaughtResultEvent`（釣り上げ完了後・読み取り専用）から釣果データを取得できます。
 通知や記録などの副作用には`AnglerFishCaughtResultEvent`を使用してください。
@@ -71,3 +73,4 @@ fun onFishCaught(event: AnglerFishCaughtEvent) {
 ```
 
 また`AnglerFishCaughtEvent`では`setCaughtFish(caughtFish)`によって釣果そのものを差し替えられます。差し替えた内容はアイテム化と後続の`AnglerFishCaughtResultEvent`の両方に反映されます。ただし未登録の`FishId`へ差し替えるとアイテムを生成できず、その場合はバニラのドロップが維持され、`AnglerFishCaughtResultEvent`は発火しません。
+別の魚種に差し替える場合は、`copy(fish = ...)`ではレアリティ・サイズ・価値が元の魚のまま残るため、`FishDrawer#roll`で差し替え先の魚を抽選し直してから`CaughtFish.of`で釣果を作り直してください（[API利用ガイド](/addons/api-guide#anglerfishcaughtevent)）。

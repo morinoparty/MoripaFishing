@@ -121,7 +121,7 @@ APIインスタンスから以下のマネージャーを取得できます。
 
 - `FishManager`: `getAll()` / `get(id)` / `getByRarity(rarity)` / `register(fish)` / `unregister(id)`
 - `RarityManager`: `getAll()` / `get(id)` / `register(rarity)` / `unregister(id)`
-- `FishDrawer`: `draw(worldId)` / `roll(fishData)`
+- `FishDrawer`: `createPool(worldId)` / `draw(pool)` / `roll(fishData)`
 - `WorldManager`: `getDefaultWorldId()` / `getWorlds()` / `getWorld(id)` / `getWorldByKey(key)` / `getGeneratorIds()` / `createWorld(id, generatorId)` / `deleteWorld(id)` / `updateWorldConfig(config)` / `reload()`
 - `AnglerManager`: `getAngler(anglerId)` / `getOnlineAnglers()`
 
@@ -166,8 +166,11 @@ println("World: ${angler.getWorld()?.getId()?.value}")
 
 ### 魚を抽選する
 
+`createPool` で釣りワールドの抽選の候補を作り、`draw` に渡して抽選します。候補の重みを変更してから渡すこともできます。詳しくは [抽選確率の変更](/addons/draw-weights) を参照してください。
+
 ```kotlin
-val fish = api.getFishDrawer().draw(FishingWorldId("default")) ?: return
+val drawer = api.getFishDrawer()
+val fish = drawer.draw(drawer.createPool(FishingWorldId("default"))) ?: return
 println("${fish.data.id.value} (${fish.rarity.id.value}): ${fish.size}cm, worth ${fish.worth}")
 ```
 
@@ -268,6 +271,7 @@ MoripaFishingは、釣果・ワールド・天候・設定に関するBukkitイ�
 
 | イベント | パッケージ | Cancellable | 発火タイミング |
 |---|---|---|---|
+| `AnglerFishDrawEvent` | `api.event.fishing` | ✘ | 魚の抽選の直前。`getPool()`の重みを変更すると、そのつりびとのその抽選に反映される。候補が空でも発火する |
 | `AnglerFishCaughtEvent` | `api.event.fishing` | ✔ | 釣り上げの確定直前。キャンセルするとバニラの釣り上げごと取り消される。`setCaughtFish`で釣果を差し替え可能 |
 | `AnglerFishCaughtResultEvent` | `api.event.fishing` | ✘ | 釣り上げ処理の完了後。通知・記録などの副作用はこちらを購読する |
 | `AnglerJoinTeleportEvent` | `api.event.angler` | ✔ | 参加時テレポートの実行直前（WorldLifecycle Integration が発火）。`setDestination`で移動先を変更可能 |
@@ -280,6 +284,27 @@ MoripaFishingは、釣果・ワールド・天候・設定に関するBukkitイ�
 | `MoripaFishingReloadedEvent` | `api.event` | ✘ | `/mf reload`で設定・ワールド・レアリティ・魚・翻訳の再読み込みがすべて完了した後。設定由来の値をキャッシュしている場合はここで再取得する |
 
 パッケージはいずれも`party.morino.moripafishing.`配下です（例: `party.morino.moripafishing.api.event.fishing.AnglerFishCaughtEvent`）。
+
+### AnglerFishDrawEvent
+
+魚を抽選する直前に発生するイベントです。`getPool()`で抽選の候補（`FishDrawPool`）を取得し、レアリティや魚の重みを変更できます。
+変更はそのつりびとのその 1 回の抽選にだけ反映され、続く`AnglerFishCaughtEvent`には変更後の重みで抽選された釣果が渡されます。
+
+```kotlin
+import party.morino.moripafishing.api.event.fishing.AnglerFishDrawEvent
+
+class MyListener : Listener {
+    @EventHandler
+    fun onFishDraw(event: AnglerFishDrawEvent) {
+        // 雨の日は rare レアリティを 2 倍釣れやすくする
+        if (event.getWorld().getWeather() == WeatherType.RAINY) {
+            event.getPool().multiplyRarityWeight(RarityId("rare"), 2.0)
+        }
+    }
+}
+```
+
+重みの倍率と確率の倍率の違いや、餌限定の魚の作り方は [抽選確率の変更](/addons/draw-weights) を参照してください。
 
 ### AnglerFishCaughtEvent
 
@@ -312,6 +337,21 @@ class MyListener : Listener {
     }
 }
 ```
+
+別の魚種に差し替える場合は、`caughtFish.copy(fish = ...)`を使わないでください。`copy`では魚種 ID だけが変わり、レアリティ・サイズ・価値は元の魚のまま残ります。
+差し替え先の魚を`FishDrawer#roll`で抽選し直し、`CaughtFish.of`で釣果を作り直します。
+
+```kotlin
+@EventHandler(ignoreCancelled = true)
+fun onFishCaught(event: AnglerFishCaughtEvent) {
+    val data = api.getFishManager().get(FishId("salmon")) ?: return
+    val caught = event.getCaughtFish()
+    val fish = api.getFishDrawer().roll(data)
+    event.setCaughtFish(CaughtFish.of(fish, caught.angler, caught.world))
+}
+```
+
+抽選の確率そのものを変えたい場合は、釣果を差し替えるよりも`AnglerFishDrawEvent`で重みを変更するほうが自然です。
 
 ### AnglerFishCaughtResultEvent
 
