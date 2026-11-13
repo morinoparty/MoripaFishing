@@ -1,7 +1,7 @@
 [versions]
 # paper と mock-bukkit のアーティファクト名 (mockbukkit-v<MC>) は必ず同時に更新する。
 # Dependabot はアーティファクト名を更新できないため、Paper の MC バージョンを上げるときは手動で合わせる。
-paper = "26.3.build.246-stable"
+paper = "26.3.build.248-stable"
 cloud = "2.1.0"
 cloudPaper = "2.0.1"
 serialization = "1.12.0"
