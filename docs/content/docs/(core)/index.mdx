@@ -58,13 +58,13 @@ MoripaFishing は **Core / Integration / Addon** の 3 層で構成されます�
 
 公式 Integration は次の 2 つです。
 
-- [WorldLifecycle](/docs/integration/world-lifecycle): 時刻・ワールドボーダー・スポーンの適用、ジェネレーターによるワールドの作成・アンロード、参加時テレポート
-- [Weather](/docs/integration/weather): Core が決定した天候のワールドへの適用と、`CLOUDY` におけるクライアント側バリア天井の送信
+- [WorldLifecycle](/integration/world-lifecycle): 時刻・ワールドボーダー・スポーンの適用、ジェネレーターによるワールドの作成・アンロード、参加時テレポート
+- [Weather](/integration/weather): Core が決定した天候のワールドへの適用と、`CLOUDY` におけるクライアント側バリア天井の送信
 
 Integration を導入しない限り、Core 単体ではワールドの実体を書き換えません。
-Addon は外部プラグインとして開発できるほか、本リポジトリにも [CatchAnnounce](/docs/addons/catch-announce) が同梱されています。
+Addon は外部プラグインとして開発できるほか、本リポジトリにも [CatchAnnounce](/addons/catch-announce) が同梱されています。
 
-詳細は [Integration とは](/docs/integration/overview) を参照してください。
+詳細は [Integration とは](/integration/overview) を参照してください。
 
 ```mermaid
 flowchart BT
@@ -86,11 +86,11 @@ flowchart BT
 ## サポート
 
 このプラグインは Paper (`paper-plugin.yml`) 専用です。Purpur など Paper 互換のサーバーでも動作しますが、Spigot には対応していません。
-対応する Minecraft バージョンや Java、依存プラグインなどの動作要件は [セットアップガイド](/docs/setup) を参照してください。
+対応する Minecraft バージョンや Java、依存プラグインなどの動作要件は [セットアップガイド](/setup) を参照してください。
 
 導入後の使い方は次のページに続きます。
 
-- [セットアップガイド](/docs/setup): 導入手順と初期設定
+- [セットアップガイド](/setup): 導入手順と初期設定
 - コマンド: ゲーム内から利用できるコマンドの一覧
 - フォーマット: 魚・レアリティ・ワールドなどの定義ファイルの書式
 

@@ -9,6 +9,7 @@ import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.config.climate.TimePolicy
 import party.morino.moripafishing.api.config.climate.WeatherPolicy
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
 import java.io.File
@@ -25,7 +26,7 @@ class WorldConfigStoreTest {
     fun `round trips every climate variant and an unmanaged border`() {
         val configs =
             listOf(
-                FishingWorldConfig(FishingWorldId("a"), name = mapOf(Locale.JAPAN to "えー"), border = null),
+                FishingWorldConfig(FishingWorldId("a"), name = mapOf(Locale.JAPAN to "えー"), world = WorldBinding.Managed(border = null)),
                 FishingWorldConfig(
                     FishingWorldId("b"),
                     climate =
@@ -42,6 +43,7 @@ class WorldConfigStoreTest {
                     FishingWorldId("d"),
                     climate = ClimateConfig(WeatherPolicy.Fixed(WeatherType.RAINY)),
                 ),
+                FishingWorldConfig(FishingWorldId("e"), world = WorldBinding.External(Key.key("minecraft", "overworld"))),
             )
         configs.forEach(store::save)
         assertEquals(configs, store.loadAll())
@@ -49,7 +51,7 @@ class WorldConfigStoreTest {
 
     @Test
     fun `an unmanaged border is written as null`() {
-        store.save(FishingWorldConfig(FishingWorldId("unmanaged"), border = null))
+        store.save(FishingWorldConfig(FishingWorldId("unmanaged"), world = WorldBinding.Managed(border = null)))
         val text = File(directory, "unmanaged.json").readText()
         assert(Regex("\"border\"\\s*:\\s*null").containsMatchIn(text)) { text }
     }
@@ -58,9 +60,12 @@ class WorldConfigStoreTest {
     fun `reads the documented format`() {
         File(directory, "default.json").writeText(
             """
-            { "id": "default", "name": {"ja_JP": "つりとぴあ"}, "generator": "void",
-              "spawn": {"x": 0.0, "y": 64.0, "z": 0.0, "yaw": 90.0, "pitch": 0.0},
-              "border": {"centerX": 0.0, "centerZ": 0.0, "size": 100.0},
+            { "id": "default", "name": {"ja_JP": "つりとぴあ"},
+              "world": {
+                "type": "managed", "generator": "void",
+                "spawn": {"x": 0.0, "y": 64.0, "z": 0.0, "yaw": 90.0, "pitch": 0.0},
+                "border": {"centerX": 0.0, "centerZ": 0.0, "size": 100.0}
+              },
               "climate": {
                 "weather": {"type": "external", "source": "myplugin:realistic"},
                 "time": {"type": "real_time"}
@@ -78,7 +83,12 @@ class WorldConfigStoreTest {
         File(directory, "broken.json").writeText("{ not json")
         File(directory, "mismatch.json").writeText("""{ "id": "other" }""")
         File(directory, "Bad Id.json").writeText("""{ "id": "Bad Id" }""")
-        File(directory, "badborder.json").writeText("""{ "id": "badborder", "border": {"size": -1.0} }""")
+        File(directory, "badborder.json").writeText(
+            """{ "id": "badborder", "world": {"type": "managed", "border": {"size": -1.0}} }""",
+        )
+        File(directory, "reserved.json").writeText(
+            """{ "id": "reserved", "world": {"type": "external", "key": "moripafishing:reserved"} }""",
+        )
         File(directory, "badkey.json").writeText(
             """{ "id": "badkey", "climate": {"weather": {"type": "external", "source": "Bad Key"}} }""",
         )

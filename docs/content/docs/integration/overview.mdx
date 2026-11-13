@@ -84,7 +84,7 @@ SPI はすべて `party.morino.moripafishing.api.core.world.spi` パッケージ
 |---|---|---|
 | `WorldStateApplier` | 登録された **全件** が呼ばれる | Core が決めた `WorldState` を Bukkit ワールドへ適用する。各実装は担当する項目だけを見る |
 | `WorldLifecycle` | **最優先の 1 件** だけが使われる | Bukkit ワールドの作成 (`createWorld`)・アンロード (`unloadWorld`)・ジェネレーター ID の列挙 |
-| `WeatherSource` | `key` が一致する **最優先の 1 件** | 天候の方針 `external` から参照される外部天候ソース。詳細は [API ガイド](/docs/addons/api-guide#weathersource-の登録) |
+| `WeatherSource` | `key` が一致する **最優先の 1 件** | 天候の方針 `external` から参照される外部天候ソース。詳細は [API ガイド](/addons/api-guide#weathersource-の登録) |
 
 ### `WorldState` の契約
 
@@ -157,14 +157,14 @@ Core は Bukkit ワールドへ一切書き込まないため、Core だけを�
 
 現時点で公式に提供されている Integration は以下です。
 
-- [`MoripaFishing-Integration-WorldLifecycle`](/docs/integration/world-lifecycle): 時刻・`ADVANCE_TIME`・ワールドボーダー・スポーン地点の適用と、ジェネレーターを使ったワールドの作成・アンロード
-- [`MoripaFishing-Integration-Weather`](/docs/integration/weather): 天候と `ADVANCE_WEATHER` の適用 (嵐の切り替えと CLOUDY のクライアント側バリア天井)
+- [`MoripaFishing-Integration-WorldLifecycle`](/integration/world-lifecycle): 時刻・`ADVANCE_TIME`・ワールドボーダー・スポーン地点の適用と、ジェネレーターを使ったワールドの作成・アンロード
+- [`MoripaFishing-Integration-Weather`](/integration/weather): 天候と `ADVANCE_WEATHER` の適用 (嵐の切り替えと CLOUDY のクライアント側バリア天井)
 
 ## 提供される Addon
 
 公式に提供されている Addon は以下です。
 
-- [`MoripaFishing-Addon-CatchAnnounce`](/docs/addons/catch-announce): 釣果のアナウンス
+- [`MoripaFishing-Addon-CatchAnnounce`](/addons/catch-announce): 釣果のアナウンス
 
 ## 命名規則
 

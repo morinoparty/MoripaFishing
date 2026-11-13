@@ -10,7 +10,7 @@ icon: Globe
 
 ## 前提条件
 
-ジェネレーター定義は [WorldLifecycle Integration](/docs/integration/world-lifecycle) が持つ内部形式で、Core は ID だけを扱います。
+ジェネレーター定義は [WorldLifecycle Integration](/integration/world-lifecycle) が持つ内部形式で、Core は ID だけを扱います。
 Integration を導入していない場合、Core はワールドを作成できません。
 `/mf world create` は `Failed to create world <id>.` を返し、起動後の未ロードワールドの作成も警告を出してスキップします。
 
@@ -72,7 +72,7 @@ JSON のパースは未知キーを無視する寛容なモードで行われる
 
 ## ジェネレーターの指定方法
 
-[ワールド設定](/docs/format/data/world) の `generator` にジェネレーター ID を指定します。既定値は `void` です。
+[ワールド設定](/format/data/world) の `world.generator` にジェネレーター ID を指定します。既定値は `void` です。
 `generator` はワールドを作成するときにのみ参照されます。
 
 コマンドからワールドを作成する場合は、生成時にジェネレーターを引数で指定します。

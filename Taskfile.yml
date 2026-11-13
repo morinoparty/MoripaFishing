@@ -4,11 +4,20 @@ version: '3'
 
 tasks:
   docs:
+    desc: Start docs development server
     dir: docs
     cmds:
       - pnpm install
       - pnpm dev
     silent: true
+
+  docs:build:
+    desc: Build docs as a static site (docs/out)
+    dir: docs
+    cmds:
+      - pnpm install
+      - pnpm build
+    silent: false
 
   check:
     cmds:

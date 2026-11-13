@@ -3,18 +3,21 @@
     "name": {
         "ja_JP": "つりとぴあ"
     },
-    "generator": "void",
-    "spawn": {
-        "x": 0.0,
-        "y": 64.0,
-        "z": 0.0,
-        "yaw": 90.0,
-        "pitch": 0.0
-    },
-    "border": {
-        "centerX": 0.0,
-        "centerZ": 0.0,
-        "size": 100.0
+    "world": {
+        "type": "managed",
+        "generator": "void",
+        "spawn": {
+            "x": 0.0,
+            "y": 64.0,
+            "z": 0.0,
+            "yaw": 90.0,
+            "pitch": 0.0
+        },
+        "border": {
+            "centerX": 0.0,
+            "centerZ": 0.0,
+            "size": 100.0
+        }
     },
     "climate": null
 }

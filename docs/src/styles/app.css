@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+/* fumadocs-ui の色を chlorophyll の colorPalette (既定は mori) に合わせる (トークンは tokens.css で定義される) */
+/* 本文色は chlorophyll の colorPalette.fg (step12 にパレットの色味 step11 を混ぜた色) を使う */
+/* 背景・補足テキスト・枠線などは MineAuth のドキュメント (mineauth.plugin.morino.party) と同じ見た目になるよう、パレットの段階を直接参照する */
+/* --color-fd-muted と --color-fd-border は MineAuth と同じく fumadocs-ui の既定値 (neutral.css) のままにする */
+/* ダークモードは提供しない (ライトテーマ固定) */
+:root {
+    --color-fd-background: var(--mpc-colors-color-palette-2);
+    --color-fd-secondary: var(--mpc-colors-color-palette-3);
+    --color-fd-secondary-hover: var(--mpc-colors-color-palette-4);
+
+    --color-fd-foreground: var(--mpc-colors-color-palette-fg);
+    /* chlorophyll に同じ値のトークンがないため、MineAuth の補足テキストの値をそのまま使う */
+    --color-fd-muted-foreground: #49454f;
+    --color-fd-secondary-foreground: var(--mpc-colors-color-palette-11);
+
+    --color-fd-primary: var(--mpc-colors-color-palette-fg);
+    --color-fd-primary-foreground: var(--mpc-colors-color-palette-11);
+
+    --color-fd-card: var(--mpc-colors-color-palette-1);
+    --color-fd-card-foreground: var(--mpc-colors-color-palette-fg);
+
+    --color-fd-popover: var(--mpc-colors-color-palette-2);
+    --color-fd-popover-foreground: var(--mpc-colors-color-palette-fg);
+
+    --color-fd-accent: var(--mpc-colors-color-palette-3);
+    --color-fd-accent-foreground: var(--mpc-colors-color-palette-fg);
+
+    --color-fd-ring: var(--mpc-colors-color-palette-4);
+}
+
+html {
+    scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+    margin-right: 0px !important;
+    --removed-body-scroll-bar-size: 0px !important;
+}
+
+/* 欧文は Satoshi、和文は源柔ゴシック */
+html,
+body {
+    font-family: "Satoshi", "GenJyuuGothicLP", system-ui, -apple-system, sans-serif;
+    font-weight: 500;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: "Satoshi", "GenJyuuGothicLP", system-ui, -apple-system, sans-serif;
+    font-weight: 700;
+}
+
+/* テキスト選択色 */
+::selection {
+    background-color: var(--mpc-colors-color-palette-5);
+    color: var(--mpc-colors-color-palette-12);
+}
+
+/* ---- サイドバーとモバイルのヘッダーのボタンを MineAuth のドキュメント (mineauth.plugin.morino.party) にそろえる ---- */
+/* fumadocs-ui の DocsLayout をそのまま使い、見た目の差分だけを上書きする (fumadocs-ui のバージョンは固定している) */
+
+/* アイコンボタン (サイドバーの折りたたみ・開閉、検索、Modrinth / GitHub) は 32px 四方にする */
+:is(#nd-sidebar, #nd-sidebar-mobile, #nd-subnav, [data-sidebar-panel])
+    :is(a, button)[aria-label]:not([data-radix-scroll-area-viewport] *) {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+}
+
+/* ボタンのアイコンは 16px、外部リンク (Modrinth / GitHub) のアイコンだけ 18px */
+:is(#nd-sidebar, #nd-sidebar-mobile, #nd-subnav, [data-sidebar-panel])
+    button[aria-label]:not([data-radix-scroll-area-viewport] *)
+    svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) a[aria-label]:not([data-radix-scroll-area-viewport] *) svg {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+/* デスクトップのサイドバー下部: アイコンリンクを枠で囲まず、区切り線の下に並べる */
+#nd-sidebar > div:has(> div > a[aria-label]) {
+    border-top: 1px solid var(--color-fd-border);
+}
+
+#nd-sidebar > div > div:has(> a[aria-label]) {
+    gap: 0.25rem;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+}
+
+/* ホバー時の背景は MineAuth と同じく accent の 90% にする (fumadocs-ui 16.19 の既定は 50%) */
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] :is(a, button):not([data-active="true"]):hover {
+    background-color: color-mix(in oklab, var(--color-fd-accent) 90%, transparent);
+}
+
+/* 選択中のページは Chlorophyll の solid 色で塗りつぶす */
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] a[data-active="true"] {
+    background-color: var(--mpc-colors-color-palette-solid);
+    color: var(--mpc-colors-color-palette-contrast);
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] a[data-active="true"]:hover {
+    background-color: var(--mpc-colors-color-palette-solid-emphasized);
+}
+
+/* コードブロックに MineAuth と同じ影を付ける (fumadocs-ui 16.19 では shadow-sm が外れている) */
+#nd-page figure.shiki {
+    @apply shadow-sm;
+}
+
+/* ---- MoripaFishing の本文用コンポーネント (src/components/ui の shadcn/ui 由来の部品) が使う色 ---- */
+/* fumadocs-ui の色 (--color-fd-*) に対応付け、ドキュメント全体と同じ配色にする */
+@theme inline {
+    --color-background: var(--color-fd-background);
+    --color-foreground: var(--color-fd-foreground);
+    --color-popover: var(--color-fd-popover);
+    --color-popover-foreground: var(--color-fd-popover-foreground);
+    --color-primary: var(--mpc-colors-color-palette-solid);
+    --color-primary-foreground: var(--mpc-colors-color-palette-contrast);
+    --color-muted-foreground: var(--color-fd-muted-foreground);
+    --color-accent: var(--color-fd-accent);
+    --color-accent-foreground: var(--color-fd-accent-foreground);
+    --color-border: var(--color-fd-border);
+    --color-input: var(--color-fd-border);
+    --color-ring: var(--color-fd-ring);
+    --color-destructive: oklch(0.577 0.245 27.325);
+}

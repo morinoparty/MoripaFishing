@@ -2,8 +2,10 @@ package party.morino.moripafishing.core.world
 
 import net.kyori.adventure.key.Key
 import party.morino.moripafishing.api.config.climate.ClimateConfig
+import party.morino.moripafishing.api.config.climate.TimePolicy
 import party.morino.moripafishing.api.config.climate.WeatherPolicy
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.spi.WorldState
 import party.morino.moripafishing.api.model.world.FishingWorldId
@@ -15,7 +17,7 @@ import java.time.ZonedDateTime
  * [FishingWorld] のコア実装。
  *
  * 設定と [WorldContext] から天候・時刻などの値を決定するだけで、Bukkit にはアクセスしない。
- * 決定した [WorldState] の適用は [WorldManagerImpl] が Integration に委ねる。
+ * 決定した [WorldState] の適用は [WorldManagerImpl] が Integration に委ねる (外部ワールドは適用しない)。
  */
 internal class FishingWorldImpl(
     config: FishingWorldConfig,
@@ -29,7 +31,8 @@ internal class FishingWorldImpl(
     @Volatile
     internal var observedWeather: WeatherType? = null
 
-    private val worldKey: Key = WorldKeys.of(config.id)
+    /** 対応する Bukkit ワールドのキー。キーが変わる設定は別インスタンスとして定義し直すため固定。 */
+    private val worldKey: Key = WorldKeys.of(config)
 
     override fun getId(): FishingWorldId = config.id
 
@@ -39,9 +42,10 @@ internal class FishingWorldImpl(
 
     override fun getWeather(): WeatherType = decideWeather(context.now()).weather
 
-    /** 設定を差し替える。ID は変えられない。メインスレッドから呼ぶ。 */
+    /** 設定を差し替える。ID と対応する Bukkit ワールドは変えられない。メインスレッドから呼ぶ。 */
     internal fun replaceConfig(newConfig: FishingWorldConfig) {
         require(newConfig.id == config.id) { "world id cannot be changed: ${config.id.value} -> ${newConfig.id.value}" }
+        require(WorldKeys.of(newConfig) == worldKey) { "bukkit world of world ${config.id.value} cannot be changed" }
         config = newConfig
     }
 
@@ -58,6 +62,7 @@ internal class FishingWorldImpl(
 
     /**
      * 指定時刻にこのワールドがあるべき状態 (全項目) を決める。
+     * 外部ワールドは MoripaFishing が変更しないため `null` を返す。
      *
      * @param now 決定の基準時刻
      * @param decision 天候の決定。決定済みの値を使い回す場合に渡す (外部ソースへの問い合わせを 1 回にするため)
@@ -65,7 +70,8 @@ internal class FishingWorldImpl(
     internal fun desiredState(
         now: ZonedDateTime,
         decision: WeatherDecision = decideWeather(now),
-    ): WorldState {
+    ): WorldState? {
+        val managed = config.world as? WorldBinding.Managed ?: return null
         val time = WorldClock.ticks(climate().time, now)
         return WorldState(
             worldId = config.id,
@@ -74,16 +80,24 @@ internal class FishingWorldImpl(
             doWeatherCycle = !decision.appliesToWorld,
             time = time,
             doDaylightCycle = time == null,
-            border = config.border,
-            spawn = config.spawn,
+            border = managed.border,
+            spawn = managed.spawn,
         )
     }
 
-    /** このワールドに適用される気候設定。 */
-    private fun climate(): ClimateConfig = config.climate ?: context.defaultClimate()
+    /** このワールドに適用される気候設定。外部ワールドの既定は実際の空と一致するバニラの天候・時刻。 */
+    private fun climate(): ClimateConfig =
+        config.climate ?: when (config.world) {
+            is WorldBinding.Managed -> context.defaultClimate()
+            is WorldBinding.External -> EXTERNAL_DEFAULT_CLIMATE
+        }
 
     private fun calendarDecision(
         policy: WeatherPolicy.Random,
         now: ZonedDateTime,
     ): WeatherDecision = WeatherDecision(WeatherCalendar(policy, config.id).at(now), true)
+
+    private companion object {
+        val EXTERNAL_DEFAULT_CLIMATE = ClimateConfig(weather = WeatherPolicy.Vanilla, time = TimePolicy.Vanilla)
+    }
 }

@@ -2,10 +2,12 @@ package party.morino.moripafishing.integrations.worldlifecycle
 
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.World
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import party.morino.moripafishing.api.MoripaFishingAPIProvider
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.event.angler.AnglerJoinTeleportEvent
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.FishingWorldId
@@ -15,7 +17,7 @@ import party.morino.moripafishing.api.model.world.LocationData
  * プレイヤー参加時に釣りワールドのスポーン地点へテレポートする。
  *
  * コア (`MoripaFishing`) の API は [MoripaFishingAPIProvider] から参加ごとに取得する。
- * テレポート先はコアの設定 (`FishingWorld.getConfig().spawn`) から決め、実行前に
+ * テレポート先は管理ワールドならコアの設定 (`WorldBinding.Managed.spawn`)、外部ワールドなら Bukkit ワールドのスポーン地点とし、実行前に
  * [AnglerJoinTeleportEvent] を発火して他プラグインからのキャンセルや行き先の変更を受け付ける。
  */
 class JoinTeleportListener(
@@ -34,8 +36,8 @@ class JoinTeleportListener(
 
         // 未定義の worldId (設定ミス等) や未ロードのワールドへはテレポートしない
         val fishingWorld = worldManager.getWorld(worldId) ?: return
-        if (Bukkit.getWorld(fishingWorld.getWorldKey()) == null) return
-        val spawn = fishingWorld.getConfig().spawn
+        val world = Bukkit.getWorld(fishingWorld.getWorldKey()) ?: return
+        val spawn = spawnOf(fishingWorld.getConfig().world, world)
 
         val angler = api.getAnglerManager().getAngler(AnglerId(player.uniqueId))
         // :api のクラスのコンストラクタは既定引数を省略せずに呼ぶ (WorldState の型の制約を参照)
@@ -49,4 +51,14 @@ class JoinTeleportListener(
         val location = Location(bukkitWorld, target.x, target.y, target.z, target.yaw.toFloat(), target.pitch.toFloat())
         player.teleport(location)
     }
+
+    /** 管理ワールドは設定のスポーン地点、外部ワールドは Bukkit ワールドのスポーン地点 (MoripaFishing は管理しない)。 */
+    private fun spawnOf(
+        binding: WorldBinding,
+        world: World,
+    ): Location =
+        when (binding) {
+            is WorldBinding.Managed -> binding.spawn.let { Location(world, it.x, it.y, it.z, it.yaw, it.pitch) }
+            is WorldBinding.External -> world.spawnLocation
+        }
 }

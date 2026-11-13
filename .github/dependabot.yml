@@ -9,7 +9,27 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  # ワークフローで SHA 固定しているアクション (setup-vp、setup-rclone など)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+
+  # docs/ (pnpm)。vite / vite-plus は docs/pnpm-workspace.yaml の catalog で管理している
+  # 更新時は同じファイルの minimumReleaseAgeExclude の版番号も合わせて更新すること
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    groups:
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      fumadocs:
+        patterns:
+          - "fumadocs-*"
+      vite-plus:
+        patterns:
+          - "vite"
+          - "vite-plus"

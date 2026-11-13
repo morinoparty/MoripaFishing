@@ -14,7 +14,7 @@
 - kotlinx.serialization / KAML
 - JUnit / MockBukkit
 - ktlint / detekt
-- Next.js + Fumadocs + MDX
+- Fumadocs + TanStack Start + Vite+ (`vp` によるビルド・フォーマット・リント) + MDX
 
 ## モジュール概要
 

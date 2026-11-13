@@ -1,12 +1,15 @@
 # Dependencies
 node_modules/
 
-# Build output
-.next/
+# Build output (公開するのは out/ のみ)
 out/
+dist/
+.output/
 
 # Generated source
 .source/
+.tanstack/
+styled-system/
 
 # Generated docs (CI-generated)
 public/dokka/

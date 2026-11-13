@@ -11,9 +11,9 @@ Core (`MoripaFishing`) に依存する公式 Integration。以下の機能を提
 - **ワールドの作成・アンロード** (`BukkitWorldLifecycle`): ジェネレーター定義を使った釣りワールドの作成と、削除時のアンロード
 - プレイヤーの **参加時テレポート**: 参加したプレイヤーを釣りワールドのスポーン地点へ移動
 
-Core 自体は Bukkit ワールドへ一切書き込みません。本 Integration と [Weather](/docs/integration/weather) を
+Core 自体は Bukkit ワールドへ一切書き込みません。本 Integration と [Weather](/integration/weather) を
 導入しない限り、ワールドの時刻・ゲームルール・スポーン・ボーダーは変更されません。
-仕組みの全体像は [Integration とは](/docs/integration/overview) を参照してください。
+仕組みの全体像は [Integration とは](/integration/overview) を参照してください。
 
 ## 導入
 
@@ -42,8 +42,8 @@ Core 自体は Bukkit ワールドへ一切書き込みません。本 Integrati
 | `border` | `null` でなければワールドボーダーの中心とサイズを設定する。`null` ならボーダーに触れない |
 | `spawn` | ワールドのスポーン地点がブロック座標または向き (yaw) で異なる場合だけ設定する (Paper はスポーンをブロック単位で保持するため) |
 
-時刻の計算 (実時刻同期・固定時刻) とゲームルールの値は Core が決めます。詳細は [気候の設定](/docs/format/config/climate#time) を参照してください。
-ボーダーを他のプラグインで管理したい場合は、ワールド設定の `border` を `null` にします ([ワールド設定](/docs/format/data/world))。
+時刻の計算 (実時刻同期・固定時刻) とゲームルールの値は Core が決めます。詳細は [気候の設定](/format/config/climate#time) を参照してください。
+ボーダーを他のプラグインで管理したい場合は、ワールド設定の `world.border` を `null` にします ([ワールド設定](/format/data/world))。
 
 ## ワールドの作成とアンロード
 
@@ -56,7 +56,7 @@ Core 自体は Bukkit ワールドへ一切書き込みません。本 Integrati
 
 Core は次の場面でこれらを呼びます。
 
-- サーバー起動後 (`ServerLoadEvent`): 定義済みで未ロードの釣りワールドを、ワールド設定の `generator` で作成する
+- サーバー起動後 (`ServerLoadEvent`): 定義済みで未ロードの管理ワールドを、ワールド設定の `world.generator` で作成する (外部ワールドは作成しない)
 - `/mf world create <id> <generator>`: 新しい釣りワールドを定義して作成する。補完候補は `getGeneratorIds()` から供給される
 - `/mf world delete <world>`: ロード済みの釣りワールドをアンロードしてから定義を削除する
 
@@ -89,20 +89,20 @@ Core は次の場面でこれらを呼びます。
 
 | フィールド | 型 | 説明 |
 |---|---|---|
-| `id` | string | ジェネレーター ID。ワールド設定の `generator` から参照される |
+| `id` | string | ジェネレーター ID。ワールド設定の `world.generator` から参照される |
 | `generator` | string? | `WorldCreator.generator()` に渡される文字列 (プラグイン名:ID) |
 | `type` | string? | `WorldType` 名 (`NORMAL` / `FLAT` / `LARGE_BIOMES` / `AMPLIFIED`) |
 | `biomeProvider` | string? | 全座標に同じバイオームを返す固定バイオーム名 (例: `minecraft:plains`) |
 | `generatorSetting` | string? | ジェネレーター設定文字列 |
 
 ディレクトリ内の JSON ファイルはすべて読み込まれるため、任意の JSON を置くだけでジェネレーターを追加できます。
-不正なファイルは警告を出して読み飛ばします。詳細は [ジェネレーター設定](/docs/format/data/generator) を参照してください。
+不正なファイルは警告を出して読み飛ばします。詳細は [ジェネレーター設定](/format/data/generator) を参照してください。
 
 ## 参加時テレポート
 
 プレイヤーがサーバーに参加した際、釣りワールドのスポーン地点へ自動でテレポートします。
 
-テレポート先は Core の公開 API (`WorldManager.getWorld(id).getConfig().spawn`) から参加のたびに取得します。
+テレポート先は参加のたびに決めます。管理ワールドでは Core の公開 API から取得したワールド設定の `world.spawn`、[外部ワールド](/format/data/world#既存のワールドで釣りをする) では Bukkit ワールドのスポーン地点を使います。
 
 設定は `plugins/MoripaFishing-Integration-WorldLifecycle/join-teleport.yml` に置きます (初回起動時に既定値が書き出されます)。
 
@@ -156,4 +156,4 @@ class MyPlugin : JavaPlugin() {
 }
 ```
 
-依存の宣言・型の制約・`WorldState` の契約は [Integration とは](/docs/integration/overview#integration-の作り方) を参照してください。
+依存の宣言・型の制約・`WorldState` の契約は [Integration とは](/integration/overview#integration-の作り方) を参照してください。

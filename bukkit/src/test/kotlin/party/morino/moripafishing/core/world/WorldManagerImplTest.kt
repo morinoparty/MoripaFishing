@@ -22,6 +22,7 @@ import org.mockbukkit.mockbukkit.plugin.PluginMock
 import party.morino.moripafishing.api.config.climate.ClimateConfig
 import party.morino.moripafishing.api.config.climate.WeatherPolicy
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.core.world.spi.WeatherSource
 import party.morino.moripafishing.api.core.world.spi.WorldLifecycle
 import party.morino.moripafishing.api.core.world.spi.WorldStateApplier
@@ -85,7 +86,7 @@ class WorldManagerImplTest {
         id: String,
         generator: String = "void",
         climate: ClimateConfig? = null,
-    ) = store.save(FishingWorldConfig(FishingWorldId(id), generator = generator, climate = climate))
+    ) = store.save(FishingWorldConfig(FishingWorldId(id), world = WorldBinding.Managed(generator = generator), climate = climate))
 
     private fun key(id: String): Key = Key.key("moripafishing", id)
 
@@ -153,7 +154,7 @@ class WorldManagerImplTest {
     fun `updateWorldConfig persists and pushes`() {
         startWith("updated")
         val world = manager.getWorld(FishingWorldId("updated"))!!
-        val changed = world.getConfig().copy(spawn = SpawnPoint(1.0, 2.0, 3.0), border = null)
+        val changed = world.getConfig().copy(world = WorldBinding.Managed(spawn = SpawnPoint(1.0, 2.0, 3.0), border = null))
 
         assertTrue(manager.updateWorldConfig(changed))
 
@@ -172,7 +173,7 @@ class WorldManagerImplTest {
         assertTrue(manager.createWorld(FishingWorldId("fresh"), "normal"))
 
         assertTrue(file("fresh").exists())
-        assertEquals("normal", manager.getWorld(FishingWorldId("fresh"))!!.getConfig().generator)
+        assertEquals(WorldBinding.Managed(generator = "normal"), manager.getWorld(FishingWorldId("fresh"))!!.getConfig().world)
         assertEquals(listOf("load:fresh", "create:fresh"), recorder.events)
         assertNotNull(applier.last("fresh"))
         assertEquals(setOf("void", "normal"), manager.getGeneratorIds())
@@ -355,7 +356,7 @@ class WorldManagerImplTest {
         define("quiet")
         load("quiet")
         manager.enable()
-        val changed = manager.getWorld(FishingWorldId("quiet"))!!.getConfig().copy(border = null)
+        val changed = manager.getWorld(FishingWorldId("quiet"))!!.getConfig().copy(world = WorldBinding.Managed(border = null))
 
         assertTrue(manager.updateWorldConfig(changed))
 

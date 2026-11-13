@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * 参加時テレポート機能の設定。
  *
- * テレポート先のスポーン地点はコアの公開 API (`WorldManager.getWorld(id).getConfig().spawn`) から取得する。
+ * テレポート先のスポーン地点は、管理ワールドならコアの公開 API (`WorldBinding.Managed.spawn`)、
+ * 外部ワールドなら Bukkit ワールドのスポーン地点から取得する。
  * 釣りワールドの Bukkit ワールドが未ロードの場合はテレポートしない。
  *
  * @property enabled 参加時テレポート機能自体の有効/無効
