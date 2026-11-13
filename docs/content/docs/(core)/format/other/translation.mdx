@@ -3,7 +3,6 @@ title: 翻訳
 icon: Languages
 ---
 
-import { TranslateTable } from "@/components/tables/translate-table";
 
 MoripaFishingの表示文言は、Adventureの`MiniMessageTranslationStore`（キーは`moripafishing:translations`）に登録され、`GlobalTranslator`経由で解決されます。そのため翻訳値にはMiniMessage記法をそのまま書けます。
 
@@ -95,7 +94,7 @@ moripa_fishing.fish.lore.default.angler=<white><gray>釣った人: </gray><angle
 
 #### 魚ごとの説明文
 
-魚設定の`lore`は翻訳キーとしては登録されず、アイテムを作る時点でMiniMessageとして解釈されます。既定の3行の後に、プレイヤーのロケールの`lore`（無ければ`defaultLocale`の`lore`）が続けて表示されます。上のプレースホルダーはここでも使えます。詳しくは[さかな](/docs/format/data/fish)を参照してください。
+魚設定の`lore`は翻訳キーとしては登録されず、アイテムを作る時点でMiniMessageとして解釈されます。既定の3行の後に、プレイヤーのロケールの`lore`（無ければ`defaultLocale`の`lore`）が続けて表示されます。上のプレースホルダーはここでも使えます。詳しくは[さかな](/format/data/fish)を参照してください。
 
 ### 仕組み
 

@@ -12,7 +12,7 @@ icon: Rocket
 | Minecraft | Paper 26.3 以降（開発とテストは Paper 26.3 で行っています） |
 | サーバー | Paper または Paper 互換サーバー（Purpur など） |
 | Java | 25 以降 |
-| 任意プラグイン | [WorldLifecycle 統合](/docs/integration/world-lifecycle)（釣りワールドの作成に必須）、[Weather 統合](/docs/integration/weather)、[Terra](https://modrinth.com/plugin/terra)（`terra` ジェネレーターを使う場合）。統合プラグインは MoripaFishing 本体に必須依存するため、本体と一緒に導入してください |
+| 任意プラグイン | [WorldLifecycle 統合](/integration/world-lifecycle)（釣りワールドの作成に必須）、[Weather 統合](/integration/weather)、[Terra](https://modrinth.com/plugin/terra)（`terra` ジェネレーターを使う場合）。統合プラグインは MoripaFishing 本体に必須依存するため、本体と一緒に導入してください |
 
 :::warning[注意]
 MoripaFishing は Paper プラグイン (`paper-plugin.yml`) として配布しています。Spigot サーバーには対応していません。
@@ -60,7 +60,7 @@ plugins/
 ```
 
 :::note
-釣りワールドを作成するには WorldLifecycle 統合プラグインが必要です。詳しくは [WorldLifecycle](/docs/integration/world-lifecycle) を参照してください。
+釣りワールドを作成するには WorldLifecycle 統合プラグインが必要です。詳しくは [WorldLifecycle](/integration/world-lifecycle) を参照してください。
 :::
 
 ### 3. サーバーの起動
@@ -87,7 +87,7 @@ plugins/MoripaFishing/
 ### config.json の基本設定
 
 `plugins/MoripaFishing/config.json` を編集して基本設定を行います。
-詳細は[コンフィグ](/docs/format/config)を参照してください。
+詳細は[コンフィグ](/format/config)を参照してください。
 
 主な設定項目:
 
@@ -100,7 +100,7 @@ plugins/MoripaFishing/
 プラグイン導入後、釣り用のワールドを作成します。
 
 :::warning[注意]
-ワールドの作成には [WorldLifecycle 統合プラグイン](/docs/integration/world-lifecycle) が必要です。未導入の場合、ジェネレーターの候補が表示されず、作成は `Failed to create world <id>.` で失敗します。
+ワールドの作成には [WorldLifecycle 統合プラグイン](/integration/world-lifecycle) が必要です。未導入の場合、ジェネレーターの候補が表示されず、作成は `Failed to create world <id>.` で失敗します。
 :::
 
 ```
@@ -137,9 +137,9 @@ plugins/MoripaFishing/
 
 `plugins/MoripaFishing/fish/` と `plugins/MoripaFishing/rarity/` に JSON ファイルを配置して、釣れる魚とレアリティを定義します。
 
-- 魚データのフォーマット: [魚データ](/docs/format/data/fish)
-- レアリティのフォーマット: [レアリティ](/docs/format/data/rarity)
-- ジェネレーターのフォーマット: [ジェネレーター](/docs/format/data/generator)
+- 魚データのフォーマット: [魚データ](/format/data/fish)
+- レアリティのフォーマット: [レアリティ](/format/data/rarity)
+- ジェネレーターのフォーマット: [ジェネレーター](/format/data/generator)
 
 ## 権限設定
 
@@ -162,4 +162,4 @@ plugins/MoripaFishing/
 /mf reload
 ```
 
-このコマンドはメイン設定、各釣りワールドの設定と状態、レアリティ、魚、翻訳ファイルの順に再読み込みします。詳しくは [管理コマンド](/docs/commands/admin) を参照してください。
+このコマンドはメイン設定、各釣りワールドの設定と状態、レアリティ、魚、翻訳ファイルの順に再読み込みします。詳しくは [管理コマンド](/commands/admin) を参照してください。

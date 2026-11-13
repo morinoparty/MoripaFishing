@@ -1,0 +1,2 @@
+/* chlorophyll (@morinoparty/chlorophyll-react) のデザイントークン。Panda CSS が panda.config.ts から展開する */
+@layer reset, base, tokens, recipes, utilities;

@@ -3,13 +3,12 @@ title: 天気のノイズ
 icon: CloudRain
 ---
 
-import { WeatherNoise } from "@/components/core/weather/weather-noise";
 
 ## 天気のノイズ
 
 天候の方針 `random` (`WeatherPolicy.Random`) は、乱数をそのまま引くのではなく、時間軸に沿ってなだらかに変化するノイズから天候を決めています。このページでは、そのノイズがどう作られ、どう天候へ変換されるかを説明し、パラメータを変えたときの傾向をシミュレーターで確かめられるようにしています。
 
-設定キーそのものの正式な説明は [気候の設定](/docs/format/config/climate#random) を参照してください。
+設定キーそのものの正式な説明は [気候の設定](/format/config/climate#random) を参照してください。
 
 ## ノイズの作り方
 

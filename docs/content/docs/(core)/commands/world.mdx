@@ -86,7 +86,6 @@ export const commandList = [
     }
 ];
 
-import { CommandList } from "@/components/commands/command-list";
 
 # コマンド
 
@@ -110,7 +109,7 @@ import { CommandList } from "@/components/commands/command-list";
 
 ### ワールドの削除について
 
-`delete` は釣りワールドの定義 (設定ファイル) を削除し、ディスク上のワールドフォルダーは残したままにします。実行後のメッセージにも、フォルダーが削除されていないことが明示されます。ロード済みのワールドを削除するには、[WorldLifecycle Integration](/docs/integration/world-lifecycle) によるアンロードが必要です。未ロードのワールドは Integration が無くても削除できます。[外部ワールド](/docs/format/data/world#既存のワールドで釣りをする) は登録を外すだけで、Bukkit ワールドはアンロードしません。
+`delete` は釣りワールドの定義 (設定ファイル) を削除し、ディスク上のワールドフォルダーは残したままにします。実行後のメッセージにも、フォルダーが削除されていないことが明示されます。ロード済みのワールドを削除するには、[WorldLifecycle Integration](/integration/world-lifecycle) によるアンロードが必要です。未ロードのワールドは Integration が無くても削除できます。[外部ワールド](/format/data/world#既存のワールドで釣りをする) は登録を外すだけで、Bukkit ワールドはアンロードしません。
 
 ### 設定コマンドについて
 

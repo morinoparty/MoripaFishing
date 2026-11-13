@@ -10,7 +10,7 @@ A fishing plugin for Minecraft servers. Fish, rarities, weather, time of day, an
 - **Extensible API**: Extend functionality from external plugins (Integrations / Addons) via the `api` module
 - **Admin commands**: Manage weather and world settings (`/mf weather`, `/mf world`, etc.)
 
-See the [documentation site](https://fishing.plugin.morino.party/category/-コマンド/) for the full command list.
+See the [documentation site](https://fishing.plugin.morino.party/commands/player/) for the full command list.
 
 Release artifacts are signed with GitHub Attestations, so their SLSA provenance can be verified. Run `gh attestation verify <jar-file> --owner morinoparty` to check.
 

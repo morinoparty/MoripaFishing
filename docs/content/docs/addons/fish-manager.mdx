@@ -6,7 +6,7 @@ icon: Fish
 [Dokka APIリファレンス](https://fishing.plugin.morino.party/dokka/api/party.morino.moripafishing.api.core.fish/-fish-manager/index.html)
 
 FishManagerは、魚データの登録・取得を行うマネージャーです。
-アドオンからは`MoripaFishingAPI#getFishManager()`でインスタンスを取得できます。APIの取得方法は[API利用ガイド](/docs/addons/api-guide)を参照してください。
+アドオンからは`MoripaFishingAPI#getFishManager()`でインスタンスを取得できます。APIの取得方法は[API利用ガイド](/addons/api-guide)を参照してください。
 
 ## 主なメソッド
 
@@ -18,7 +18,7 @@ FishManagerは、魚データの登録・取得を行うマネージャーです
 | `register(fish)` | `Unit` | 魚を登録する。同じIDの魚は置き換える |
 | `unregister(id)` | `Boolean` | 魚の登録を解除する。登録されていなかった場合は`false` |
 
-取得・登録で扱う型は`FishData`です。抽選済みのサイズや価値を含む`Fish`は別の型なので、混同しないよう注意してください。`FishData`のスキーマは[魚データの形式](/docs/format/data/fish)を参照してください。
+取得・登録で扱う型は`FishData`です。抽選済みのサイズや価値を含む`Fish`は別の型なので、混同しないよう注意してください。`FishData`のスキーマは[魚データの形式](/format/data/fish)を参照してください。
 
 `register(fish)`は登録前に検証を行い、レアリティが未登録・`item.material`がアイテムとして使えない・`worth`の計算式が不正のいずれかの場合は`IllegalArgumentException`を投げます。
 

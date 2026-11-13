@@ -11,9 +11,9 @@ Core が決めた **天候とゲームルール `ADVANCE_WEATHER`** を釣りワ
 Core は天候を **決定** するだけで、Bukkit ワールドへは書き込まない。
 本 Integration は `WorldStateApplier` (`WeatherApplier`) を `ServicesManager` に登録し、
 Core から届く `WorldState` のうち `weather` と `doWeatherCycle` だけを適用する。
-時刻・`ADVANCE_TIME`・スポーン・ボーダーは [WorldLifecycle](/docs/integration/world-lifecycle) が担う。
+時刻・`ADVANCE_TIME`・スポーン・ボーダーは [WorldLifecycle](/integration/world-lifecycle) が担う。
 
-仕組みの全体像は [Integration とは](/docs/integration/overview) を参照してほしい。
+仕組みの全体像は [Integration とは](/integration/overview) を参照してほしい。
 
 ## 天候ごとの適用内容
 
@@ -32,7 +32,7 @@ Core から届く `WorldState` のうち `weather` と `doWeatherCycle` だけ�
 
 `WorldState.doWeatherCycle` の値を、状態が届くたびにそのまま書き込む。
 値は Core が決め、ワールドへ天候を適用させるとき (`weather` が `null` でないとき) は `false`、
-それ以外は `true` になる。どの方針でどちらになるかは [気候の設定](/docs/format/config/climate) を参照してほしい。
+それ以外は `true` になる。どの方針でどちらになるかは [気候の設定](/format/config/climate) を参照してほしい。
 
 ## `weather` が `null` のとき
 

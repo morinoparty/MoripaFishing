@@ -53,7 +53,7 @@ dependencies {
 ```
 
 Integration 向けの SPI (`WorldStateApplier` / `WorldLifecycle` / `WeatherSource`) も同じ `moripafishing-api` に含まれます
-(`party.morino.moripafishing.api.core.world.spi` パッケージ)。Integration の作り方は [Integration とは](/docs/integration/overview) を参照してください。
+(`party.morino.moripafishing.api.core.world.spi` パッケージ)。Integration の作り方は [Integration とは](/integration/overview) を参照してください。
 
 ### SNAPSHOTビルド（JitPack）
 
@@ -238,7 +238,7 @@ worldManager.updateWorldConfig(
 
 ### ワールドを作成する
 
-ワールド作成の実体は [WorldLifecycle Integration](/docs/integration/world-lifecycle) が提供します。
+ワールド作成の実体は [WorldLifecycle Integration](/integration/world-lifecycle) が提供します。
 未導入の環境では `createWorld` が `false` を返し、`getGeneratorIds()` は空を返します。
 サーバーの起動完了 (`ServerLoadEvent`) 前に呼んだ `createWorld` も `false` を返すため、`onEnable` からではなく起動後に呼んでください。
 
@@ -252,7 +252,7 @@ val created = worldManager.createWorld(FishingWorldId("my_world"), "terra")
 ## WeatherSource の登録
 
 アドオンは `WeatherSource` を実装して独自の天候ソースを提供できます。
-Bukkit の `ServicesManager` に登録し、ワールドの気候で [`{"type": "external", "source": "<キー>"}`](/docs/format/config/climate#external) を指定すると、
+Bukkit の `ServicesManager` に登録し、ワールドの気候で [`{"type": "external", "source": "<キー>"}`](/format/config/climate#external) を指定すると、
 そのワールドの天候がアドオンに委ねられます。
 
 ```kotlin
@@ -355,7 +355,7 @@ class MyListener : Listener {
 }
 ```
 
-`CaughtFish` のフィールドは [CaughtFish](/docs/addons/caught-fish) を参照してください。
+`CaughtFish` のフィールドは [CaughtFish](/addons/caught-fish) を参照してください。
 
 ### ワールド関連のイベント
 

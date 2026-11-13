@@ -11,7 +11,7 @@ icon: CloudRain
 
 気候の設定は、天候の決め方 (`weather`) と時刻の決め方 (`time`) からなります。
 Core は設定に従って値を **決める** だけで、Bukkit ワールドへの **適用** は Integration が行います
-(天候は [Weather](/docs/integration/weather)、時刻は [WorldLifecycle](/docs/integration/world-lifecycle))。
+(天候は [Weather](/integration/weather)、時刻は [WorldLifecycle](/integration/world-lifecycle))。
 Integration が未導入でも、決めた天候は魚の抽選条件に使われます。
 
 ## Format
@@ -47,7 +47,7 @@ Integration が未導入でも、決めた天候は魚の抽選条件に使わ�
 ### random
 
 内蔵の天候カレンダーで天候を決め、ワールドへ適用させます (既定)。
-同じ設定・ワールド ID・時刻からは常に同じ天候が決まります。計算の詳細は [天候ノイズ](/docs/utilities/weather-noise) を参照してください。
+同じ設定・ワールド ID・時刻からは常に同じ天候が決まります。計算の詳細は [天候ノイズ](/utilities/weather-noise) を参照してください。
 
 ```json
 { "type": "random", "weights": { "SUNNY": 4, "CLOUDY": 1, "RAINY": 2, "THUNDERSTORM": 1 },
@@ -92,7 +92,7 @@ Integration が未導入でも、決めた天候は魚の抽選条件に使わ�
 ```
 
 ソースの `appliesToWorld` が `true` なら、その天候をワールドへ適用させます。`false` なら魚の抽選条件にのみ使い、ワールドの天候は変更させません。
-一致するソースが登録されていない間は、`random` の既定値で天候を決め、警告を一度だけ出します。ソースの登録方法は [API ガイド](/docs/addons/api-guide#weathersource-の登録) を参照してください。
+一致するソースが登録されていない間は、`random` の既定値で天候を決め、警告を一度だけ出します。ソースの登録方法は [API ガイド](/addons/api-guide#weathersource-の登録) を参照してください。
 
 ### 魚の天候とワールドへの適用
 
@@ -114,7 +114,7 @@ Weather Integration を導入しないでください。
 
 ## time
 
-時刻の決め方です。時刻と `ADVANCE_TIME` を Bukkit ワールドへ適用するのは [WorldLifecycle Integration](/docs/integration/world-lifecycle) です。
+時刻の決め方です。時刻と `ADVANCE_TIME` を Bukkit ワールドへ適用するのは [WorldLifecycle Integration](/integration/world-lifecycle) です。
 
 | `time.type` | 例 | ワールド時刻 | `ADVANCE_TIME` |
 |---|---|---|---|

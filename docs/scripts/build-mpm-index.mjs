@@ -58,9 +58,7 @@ for (const file of files) {
     // 配布元が中央の許可リストに収まっているかを検証する
     for (const repository of definition.repositories) {
         const actual = `${repository.type}:${repository.id}`.toLowerCase();
-        const allowed = ALLOWED_SOURCES.some(
-            (source) => source.toLowerCase() === actual,
-        );
+        const allowed = ALLOWED_SOURCES.some((source) => source.toLowerCase() === actual);
         if (!allowed) {
             errors.push(`${file}: 許可されていない配布元です (${actual})`);
         }
@@ -68,9 +66,9 @@ for (const file of files) {
 
     // クライアント側で落とされるフィールドは、ここでも出力しない。
     // $schema は手元のIDE補完用なので公開バンドルには含めない。
-    const { $schema, ...rest } = definition;
+    const { $schema: _schema, ...rest } = definition;
     rest.repositories = rest.repositories.map((repository) => {
-        const { downloadUrl, fileNameTemplate, ...repositoryRest } = repository;
+        const { downloadUrl: _downloadUrl, fileNameTemplate: _fileNameTemplate, ...repositoryRest } = repository;
         return repositoryRest;
     });
 
@@ -97,6 +95,4 @@ const index = {
 mkdirSync(dirname(outputFile), { recursive: true });
 writeFileSync(outputFile, `${JSON.stringify(index, null, 2)}\n`);
 
-console.log(
-    `✓ Generated mpm index with ${Object.keys(plugins).length} plugins`,
-);
+console.log(`✓ Generated mpm index with ${Object.keys(plugins).length} plugins`);
