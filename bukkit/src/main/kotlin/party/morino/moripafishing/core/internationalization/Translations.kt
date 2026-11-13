@@ -5,7 +5,6 @@ import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationSt
 import net.kyori.adventure.translation.GlobalTranslator
 import net.kyori.adventure.translation.Translator
 import party.morino.moripafishing.api.config.ConfigManager
-import party.morino.moripafishing.api.core.world.WorldManager
 import java.io.File
 import java.io.InputStream
 import java.util.Locale
@@ -18,18 +17,16 @@ import java.util.logging.Logger
  * 翻訳ディレクトリの `<locale>.properties` をすべて読み込み、同梱の既定値に上書きして登録する。
  * 続けて魚・レアリティ・ワールドの表示名を登録する。properties に同じキー・ロケールがある場合は properties を優先する。
  *
- * 魚とレアリティの表示名は、各マネージャーが [DisplayNameRegistry] として登録・削除する。
- * [load] 前に登録された表示名も保持し、[load] で反映する。ワールドの表示名は [load] 時に読み込む。
+ * 魚・レアリティ・ワールドの表示名は、各マネージャーが [DisplayNameRegistry] として登録・削除する。
+ * [load] 前に登録された表示名も保持し、[load] で反映する。
  *
  * @property directory 翻訳ファイルを置くディレクトリ
  * @property config 既定ロケールの参照先
- * @property worlds ワールドの表示名の参照先
  * @property logger 不正な翻訳ファイルの警告の出力先
  */
 internal class Translations(
     private val directory: File,
     private val config: ConfigManager,
-    private val worlds: WorldManager,
     private val logger: Logger,
 ) : DisplayNameRegistry {
     private var store: MiniMessageTranslationStore? = null
@@ -37,7 +34,7 @@ internal class Translations(
     /** 最後に読み込んだ properties の翻訳 (キー → ロケール → 値)。 */
     private var properties: Map<String, Map<Locale, String>> = emptyMap()
 
-    /** マネージャーから登録された魚・レアリティの表示名 (キー → ロケール → 表示名)。 */
+    /** マネージャーから登録された魚・レアリティ・ワールドの表示名 (キー → ロケール → 表示名)。 */
     private val dataNames = HashMap<String, Map<Locale, String>>()
 
     /**
@@ -53,7 +50,6 @@ internal class Translations(
         val nextProperties = loadProperties()
         nextProperties.forEach { (key, values) -> values.forEach { (locale, value) -> next.register(key, locale, value) } }
         dataNames.forEach { (key, names) -> next.registerAbsent(key, names) }
-        worlds.getWorlds().forEach { next.registerAbsent(it.getId().toTranslateKey(), it.getConfig().name) }
         close()
         GlobalTranslator.translator().addSource(next)
         store = next
@@ -65,7 +61,8 @@ internal class Translations(
         key: String,
         names: Map<Locale, String>,
     ) {
-        dataNames[key] = names
+        // 再読み込みのたびに全定義が登録されるため、変わらない表示名でストアを触らない
+        if (dataNames.put(key, names) == names) return
         store?.let { reregister(it, key) }
     }
 

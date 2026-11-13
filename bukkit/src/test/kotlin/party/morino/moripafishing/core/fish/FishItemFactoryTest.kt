@@ -23,7 +23,6 @@ import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.core.internationalization.Translations
 import party.morino.moripafishing.testing.FakeConfigManager
-import party.morino.moripafishing.testing.FakeWorldManager
 import party.morino.moripafishing.testing.fish
 import java.io.File
 import java.time.ZonedDateTime
@@ -68,7 +67,7 @@ class FishItemFactoryTest {
     ) {
         val tuna = fish("tuna", "common").copy(displayName = mapOf(Locale.JAPAN to "マグロ"))
         val translations =
-            Translations(directory, FakeConfigManager(), FakeWorldManager(), Logger.getAnonymousLogger())
+            Translations(directory, FakeConfigManager(), Logger.getAnonymousLogger())
         translations.register(tuna.id.toTranslateKey(), tuna.displayName)
         translations.register(RarityId("common").toTranslateKey(), mapOf(Locale.JAPAN to "コモン"))
         translations.load()

@@ -32,10 +32,12 @@ import party.morino.moripafishing.api.model.world.SpawnPoint
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.core.world.weather.WeatherCalendar
 import party.morino.moripafishing.testing.FakeConfigManager
+import party.morino.moripafishing.testing.FakeDisplayNameRegistry
 import java.io.File
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
+import java.util.Locale
 
 class WorldManagerImplTest {
     @TempDir
@@ -53,6 +55,7 @@ class WorldManagerImplTest {
     private val clock = MutableClock(Instant.parse("2026-11-12T00:00:00Z"))
     private val externalKey = Key.key("test", "external")
     private lateinit var source: FakeWeatherSource
+    private val names = FakeDisplayNameRegistry()
 
     @BeforeEach
     fun setUp() {
@@ -62,7 +65,7 @@ class WorldManagerImplTest {
         warnings = WarningRecorder()
         core.logger.addHandler(warnings)
         store = WorldConfigStore(directory, core.logger)
-        manager = WorldManagerImpl(core, FakeConfigManager(), store, clock)
+        manager = WorldManagerImpl(core, FakeConfigManager(), store, names, clock)
         applier = RecordingApplier()
         lifecycle = FakeLifecycle(server)
         source = FakeWeatherSource(externalKey, appliesToWorld = true, weather = WeatherType.SNOWY)
@@ -317,6 +320,25 @@ class WorldManagerImplTest {
         assertTrue(recorder.events.contains("load:new"))
         // 定義から外したワールドはアンロードしない
         assertNotNull(server.getWorld(key("old")))
+    }
+
+    @Test
+    fun `display names follow defining, updating, creating and deleting worlds`() {
+        startWith("named", "dropped")
+        val named = FishingWorldId("named")
+        assertEquals(setOf(named.toTranslateKey(), FishingWorldId("dropped").toTranslateKey()), names.names.keys)
+
+        val renamed = manager.getWorld(named)!!.getConfig().copy(name = mapOf(Locale.JAPAN to "改名"))
+        assertTrue(manager.updateWorldConfig(renamed))
+        assertEquals(mapOf(Locale.JAPAN to "改名"), names.names[named.toTranslateKey()])
+
+        assertTrue(manager.createWorld(FishingWorldId("fresh"), "void"))
+        assertTrue(names.names.containsKey(FishingWorldId("fresh").toTranslateKey()))
+
+        assertTrue(manager.deleteWorld(FishingWorldId("fresh")))
+        file("dropped").delete()
+        manager.reload()
+        assertEquals(setOf(named.toTranslateKey()), names.names.keys)
     }
 
     @Test

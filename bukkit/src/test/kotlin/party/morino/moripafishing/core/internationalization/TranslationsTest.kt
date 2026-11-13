@@ -11,18 +11,22 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
-import party.morino.moripafishing.api.config.world.FishingWorldConfig
+import org.mockbukkit.mockbukkit.MockBukkitExtension
 import party.morino.moripafishing.api.model.fish.FishId
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.core.fish.FishManagerImpl
+import party.morino.moripafishing.core.rarity.RarityManagerImpl
 import party.morino.moripafishing.testing.FakeConfigManager
-import party.morino.moripafishing.testing.FakeFishingWorld
-import party.morino.moripafishing.testing.FakeWorldManager
+import party.morino.moripafishing.testing.fish
+import party.morino.moripafishing.testing.rarity
 import java.io.File
 import java.util.Locale
 import java.util.logging.Logger
 
+@ExtendWith(MockBukkitExtension::class)
 class TranslationsTest {
     @TempDir
     lateinit var directory: File
@@ -32,9 +36,8 @@ class TranslationsTest {
 
     @BeforeEach
     fun setUp() {
-        val world = FakeFishingWorld(worldId, config = FishingWorldConfig(worldId, name = mapOf(Locale.JAPAN to "つりとぴあ")))
-        translations =
-            Translations(directory, FakeConfigManager(), FakeWorldManager(world), Logger.getAnonymousLogger())
+        translations = Translations(directory, FakeConfigManager(), Logger.getAnonymousLogger())
+        translations.register(worldId.toTranslateKey(), mapOf(Locale.JAPAN to "つりとぴあ"))
         translations.register(FishId("tuna").toTranslateKey(), mapOf(Locale.JAPAN to "tuna"))
         translations.register(RarityId("common").toTranslateKey(), mapOf(Locale.JAPAN to "common"))
     }
@@ -160,5 +163,25 @@ class TranslationsTest {
         assertEquals("gone", render(FishId("gone").toTranslatable(), Locale.JAPAN))
         assertEquals("gone", render(RarityId("gone").toTranslatable(), Locale.JAPAN))
         assertEquals("gone", render(FishingWorldId("gone").toTranslatable(), Locale.JAPAN))
+    }
+
+    @Test
+    fun `names of definitions registered through the managers after loading resolve until unregistered`() {
+        val logger = Logger.getAnonymousLogger()
+        val rarities = RarityManagerImpl(directory.resolve("rarity").apply { mkdirs() }, translations, logger)
+        val fishes = FishManagerImpl(directory.resolve("fish").apply { mkdirs() }, rarities, translations, logger)
+        rarities.reload()
+        fishes.reload()
+        translations.load()
+
+        rarities.register(rarity("event").copy(displayName = mapOf(Locale.JAPAN to "限定")))
+        fishes.register(fish("festival", "event").copy(displayName = mapOf(Locale.JAPAN to "祭りの魚")))
+        assertEquals("祭りの魚", render(FishId("festival").toTranslatable(), Locale.JAPAN))
+        assertEquals("限定", render(RarityId("event").toTranslatable(), Locale.JAPAN))
+
+        assertTrue(fishes.unregister(FishId("festival")))
+        assertTrue(rarities.unregister(RarityId("event")))
+        assertEquals("festival", render(FishId("festival").toTranslatable(), Locale.JAPAN))
+        assertEquals("event", render(RarityId("event").toTranslatable(), Locale.JAPAN))
     }
 }
