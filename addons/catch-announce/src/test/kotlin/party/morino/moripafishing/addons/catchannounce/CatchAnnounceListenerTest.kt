@@ -64,12 +64,12 @@ class CatchAnnounceListenerTest {
     private fun PlayerMock.nextPlain(): String? = nextComponentMessage()?.let { PlainTextComponentSerializer.plainText().serialize(it) }
 
     @Test
-    fun `placeholders are rendered with locale-independent size`() {
+    fun `placeholders are rendered with locale-independent size and the fish id as fallback`() {
         Locale.setDefault(Locale.GERMANY)
         val player = server.addPlayer()
         catchWith(CatchAnnounceConfig(messageFormat = "<angler>:<size>:<fish_name>"))
         val message = checkNotNull(player.nextComponentMessage())
-        assertEquals("Steve:12.35:", PlainTextComponentSerializer.plainText().serialize(message))
+        assertEquals("Steve:12.35:tuna", PlainTextComponentSerializer.plainText().serialize(message))
         val keys = message.iterable(ComponentIteratorType.DEPTH_FIRST).filterIsInstance<TranslatableComponent>().map { it.key() }
         assertEquals(listOf("moripa_fishing.fish.tuna.name"), keys)
     }

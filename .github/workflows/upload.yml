@@ -65,10 +65,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_PUBLISH_GPG_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_PUBLISH_GPG_PASSPHRASE }}
 
-      # ファイル名を変更
-      - name: Rename Bukkit JAR
-        run: mv ./bukkit/build/libs/bukkit-${{ env.PLUGIN_VERSION }}.jar ./bukkit/build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
-
+      # Paper プラグインの jar は Gradle が <paper-plugin.yml の name>_<version>.jar として出力する
       - name: Collect integration JARs
         run: ./.github/scripts/collect-module-jars.sh ./integrations ./release-integrations "${{ env.PLUGIN_VERSION }}"
 

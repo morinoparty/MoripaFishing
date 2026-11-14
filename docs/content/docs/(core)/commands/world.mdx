@@ -105,7 +105,7 @@ export const commandList = [
 
 ### ワールドの作成について
 
-`create` はジェネレーターの指定が必須で、省略できません。ジェネレーター ID の補完候補は WorldLifecycle Integration から取得します。Integration が導入されていない場合や、ID が不正・重複している場合、作成に失敗した場合、サーバーの起動が完了していない場合は `Failed to create world <id>. See the server log.` を返し、設定ファイルも残しません。失敗の理由はサーバーログに出ます。作成したワールドの表示名は次の `/mf reload` から使われます。
+`create` はジェネレーターの指定が必須で、省略できません。ジェネレーター ID の補完候補は WorldLifecycle Integration から取得します。Integration が導入されていない場合や、ID が不正・重複している場合、作成に失敗した場合、サーバーの起動が完了していない場合は `Failed to create world <id>. See the server log.` を返し、設定ファイルも残しません。失敗の理由はサーバーログに出ます。作成したワールドの表示名は、既定ロケールのワールド ID になります。
 
 ### ワールドの削除について
 

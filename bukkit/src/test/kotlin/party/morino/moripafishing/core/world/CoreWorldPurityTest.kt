@@ -19,6 +19,7 @@ import party.morino.moripafishing.api.config.world.WorldBinding
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.SpawnPoint
 import party.morino.moripafishing.testing.FakeConfigManager
+import party.morino.moripafishing.testing.FakeDisplayNameRegistry
 import java.io.File
 import java.time.Instant
 
@@ -53,7 +54,13 @@ class CoreWorldPurityTest {
         world.worldBorder.size = 500.0
         world.worldBorder.setCenter(-20.0, 40.0)
         manager =
-            WorldManagerImpl(plugin, FakeConfigManager(), store, MutableClock(Instant.parse("2026-11-12T00:00:00Z")))
+            WorldManagerImpl(
+                plugin,
+                FakeConfigManager(),
+                store,
+                FakeDisplayNameRegistry(),
+                MutableClock(Instant.parse("2026-11-12T00:00:00Z")),
+            )
         manager.enable()
         manager.start()
     }

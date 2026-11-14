@@ -70,7 +70,8 @@ icon: Globe
 ## 表示名の解決について
 
 `name` の表示名は、`<lang:moripa_fishing.world.<ワールドID>.name>` という翻訳キー経由で解決されます。
-翻訳はプラグインの有効化時と `/mf reload` で読み込まれるため、`/mf world create` で作ったワールドの表示名は次の `/mf reload` から使われます。
+ワールドの作成・削除や設定の変更 (`/mf world create`・`/mf world delete`・`WorldManager.updateWorldConfig` など) を行うと、表示名の翻訳もその場で更新されます。
+翻訳ファイル (`translation/<locale>.properties`) に同じキーがある場合は、翻訳ファイルの内容が優先されます。
 
 ## Bukkit ワールドへの適用について
 

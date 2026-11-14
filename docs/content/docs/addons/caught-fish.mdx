@@ -23,7 +23,31 @@ icon: Receipt
 
 `FishId`・`RarityId`・`FishingWorldId`はいずれも`value: String`を持つデータクラスで、専用のシリアライザによって文字列として直接シリアライズされます。生の識別子を取り出したい場合は`caughtFish.fish.value`のように`value`を参照してください。
 
-`fish`・`rarity`・`world`の各IDは、それぞれ`moripa_fishing.fish.<id>.name`、`moripa_fishing.rarity.<id>.name`、`moripa_fishing.world.<id>.name`という翻訳キーに対応しています。各IDの`toTranslateKey()`でこのキーを取得できるため、閲覧者のロケールに応じた表示名を解決したい場合は、その戻り値を`Component.translatable`に渡してください。
+`fish`・`rarity`・`world`の各IDは、それぞれ`moripa_fishing.fish.<id>.name`、`moripa_fishing.rarity.<id>.name`、`moripa_fishing.world.<id>.name`という翻訳キーに対応しています。閲覧者のロケールに応じて表示名を出し分けたい場合は、各IDの`toTranslatable()`が返すコンポーネントを使ってください。翻訳キーが登録されていない場合は、キーの代わりにIDが表示されます。翻訳キーそのものが必要な場合は`toTranslateKey()`で取得できます。
+
+```kotlin
+val message =
+    Component.text()
+        .append(caughtFish.fish.toTranslatable())
+        .append(Component.text(" ("))
+        .append(caughtFish.rarity.toTranslatable())
+        .append(Component.text(")"))
+        .build()
+```
+
+## 保存した釣果を扱うときの注意
+
+釣果履歴やランキングのように`CaughtFish`を保存しておく場合、後から参照したときには、その魚・レアリティ・ワールドの定義がすでに削除されていることがあります。期間限定の魚の定義を削除した場合などが該当します。
+
+- `FishManager.get(caughtFish.fish)`や`RarityManager.get(caughtFish.rarity)`は`null`を返すことがあるため、必ず`null`を扱ってください。
+- 削除された定義の表示名は翻訳から外れます（翻訳ファイルで同じキーを定義している場合は、その翻訳が引き続き使われます）。`toTranslatable()`を使っていれば、この場合もIDが表示されます。`Component.translatable(id.toTranslateKey())`を直接使うと、翻訳キーがそのまま表示されたり、何も表示されなかったりします。
+
+```kotlin
+// 定義が削除されている場合は null になる
+val rarityWeight = api.getRarityManager().get(caughtFish.rarity)?.weight
+```
+
+定義の削除が Core と釣果アイテムに与える影響は[期間限定の魚を終了する](/format/data/fish#期間限定の魚を終了する)を参照してください。
 
 ## 生成
 

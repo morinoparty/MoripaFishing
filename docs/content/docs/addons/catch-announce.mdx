@@ -14,8 +14,8 @@ icon: Megaphone
 
 ## 導入
 
-1. サーバーの `plugins/` にリリースの `MoripaFishing-catch-announce-<version>.jar` を配置する（`MoripaFishing-Addon-CatchAnnounce` は
-   プラグイン名であってファイル名ではない）。
+1. サーバーの `plugins/` にリリースの `MoripaFishing-Addon-CatchAnnounce_<version>.jar` を配置する（ファイル名は
+   プラグイン名 `MoripaFishing-Addon-CatchAnnounce` とバージョンからなる）。
 2. サーバーを起動する。`paper-plugin.yml` で `MoripaFishing` を必須依存（`Load.BEFORE`, `required = true`）として宣言しているため、
    Core より後にロードされる。Core が導入されていない場合、この Addon は読み込まれない。
 3. 初回起動時に `plugins/MoripaFishing-Addon-CatchAnnounce/config.yml` が生成される。
@@ -60,7 +60,7 @@ LuckPerms などの権限プラグインで明示的に付与する必要があ�
 - `<world_name>`: 釣り場ワールド名。翻訳キー `moripa_fishing.world.<ワールドID>.name` として展開される
 - `<timestamp>`: 釣った日時。ISO 8601 形式の文字列がそのまま入り、整形やロケール対応は行われない
 
-翻訳が登録されていないキーは、翻訳されずにキー文字列がそのまま表示される。
+翻訳が登録されていない場合（定義を削除した魚など）は、翻訳キーの代わりに魚・レアリティ・ワールドの ID が表示される。
 メッセージ全体は MiniMessage として解釈されるため、色や装飾に加えて hover / click などのタグも利用できる。
 
 :::warning[注意]

@@ -27,6 +27,7 @@ import party.morino.moripafishing.api.core.world.spi.WorldStateApplier
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
 import party.morino.moripafishing.testing.FakeConfigManager
+import party.morino.moripafishing.testing.FakeDisplayNameRegistry
 import java.io.File
 import java.time.Instant
 import java.util.Locale
@@ -58,7 +59,14 @@ class ExternalWorldTest {
         warnings = WarningRecorder()
         core.logger.addHandler(warnings)
         store = WorldConfigStore(directory, core.logger)
-        manager = WorldManagerImpl(core, FakeConfigManager(), store, MutableClock(Instant.parse("2026-11-12T00:00:00Z")))
+        manager =
+            WorldManagerImpl(
+                core,
+                FakeConfigManager(),
+                store,
+                FakeDisplayNameRegistry(),
+                MutableClock(Instant.parse("2026-11-12T00:00:00Z")),
+            )
         applier = RecordingApplier()
         lifecycle = FakeLifecycle(server)
         server.servicesManager.register(WorldStateApplier::class.java, applier, owner, ServicePriority.Normal)

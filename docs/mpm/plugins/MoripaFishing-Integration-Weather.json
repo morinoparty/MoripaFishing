@@ -6,7 +6,7 @@
         {
             "type": "github",
             "id": "morinoparty/MoripaFishing",
-            "fileNameRegex": "MoripaFishing-weather-.*\\.jar$",
+            "fileNameRegex": "^MoripaFishing-Integration-Weather_.+\\.jar$",
             "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
             "latest": {
                 "useUpstreamLabel": true,

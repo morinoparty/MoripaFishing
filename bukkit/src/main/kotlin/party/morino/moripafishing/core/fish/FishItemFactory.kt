@@ -53,14 +53,14 @@ internal class FishItemFactory(
         val item = ItemStack(checkNotNull(Material.matchMaterial(data.item.material)))
         val placeholders =
             mapOf(
-                "rarity" to GlobalTranslator.render(Component.translatable(fish.rarity.toTranslateKey()), locale),
+                "rarity" to GlobalTranslator.render(fish.rarity.toTranslatable(), locale),
                 "size" to Component.text(String.format(Locale.ROOT, "%.2f", fish.size)),
                 "angler" to Component.text(anglerName),
-                "world" to GlobalTranslator.render(Component.translatable(fish.world.toTranslateKey()), locale),
+                "world" to GlobalTranslator.render(fish.world.toTranslatable(), locale),
                 "timestamp" to Component.text(fish.timestamp.toString()),
             )
         item.editMeta { meta ->
-            meta.displayName(GlobalTranslator.render(Component.translatable(fish.fish.toTranslateKey()), locale).withoutItalic())
+            meta.displayName(GlobalTranslator.render(fish.fish.toTranslatable(), locale).withoutItalic())
             meta.lore(lore(data, placeholders, locale))
             if (data.item.customModelData.isNotEmpty()) {
                 val component = meta.customModelDataComponent

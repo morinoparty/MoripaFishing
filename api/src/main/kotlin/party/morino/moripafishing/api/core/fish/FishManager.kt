@@ -13,6 +13,7 @@ import party.morino.moripafishing.api.model.rarity.RarityId
 interface FishManager {
     /**
      * 魚を登録する。同じ ID の魚は置き換える。
+     * `displayName` は翻訳キー `moripa_fishing.fish.<id>.name` として即座に登録される (翻訳ファイルに同じキーがあればそちらを優先する)。
      *
      * @param fish 登録する魚
      * @throws IllegalArgumentException レアリティが未登録・不明な Material・不正な価値式の場合
@@ -21,6 +22,7 @@ interface FishManager {
 
     /**
      * 魚の登録を解除する。
+     * 表示名の翻訳キーも登録を解除する。
      *
      * @param id 解除する魚の ID
      * @return 解除した場合 `true`、登録されていなかった場合 `false`

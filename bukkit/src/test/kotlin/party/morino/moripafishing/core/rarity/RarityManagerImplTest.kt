@@ -9,8 +9,10 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.core.world.WarningRecorder
+import party.morino.moripafishing.testing.FakeDisplayNameRegistry
 import party.morino.moripafishing.testing.rarity
 import java.io.File
+import java.util.Locale
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -24,11 +26,12 @@ class RarityManagerImplTest {
             level = Level.WARNING
             addHandler(warnings)
         }
+    private val names = FakeDisplayNameRegistry()
     private lateinit var manager: RarityManagerImpl
 
     @BeforeEach
     fun setUp() {
-        manager = RarityManagerImpl(directory, logger)
+        manager = RarityManagerImpl(directory, names, logger)
     }
 
     private fun write(
@@ -104,5 +107,25 @@ class RarityManagerImplTest {
         assertEquals(2.0, manager.get(RarityId("common"))?.weight)
         assertTrue(manager.unregister(RarityId("common")))
         assertNull(manager.get(RarityId("common")))
+    }
+
+    @Test
+    fun `reload syncs display names and drops the names of removed rarities`() {
+        manager.register(rarity("event"))
+        write("common.json", rarityJson("common"))
+        manager.reload()
+        assertEquals(mapOf(RarityId("common").toTranslateKey() to mapOf(Locale.JAPAN to "common")), names.names)
+        directory.resolve("common.json").delete()
+        manager.reload()
+        assertTrue(names.names.isEmpty())
+    }
+
+    @Test
+    fun `register and unregister sync the display name`() {
+        val key = RarityId("event").toTranslateKey()
+        manager.register(rarity("event").copy(displayName = mapOf(Locale.JAPAN to "イベント")))
+        assertEquals(mapOf(Locale.JAPAN to "イベント"), names.names[key])
+        manager.unregister(RarityId("event"))
+        assertNull(names.names[key])
     }
 }

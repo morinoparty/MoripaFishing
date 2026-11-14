@@ -1,6 +1,5 @@
 package party.morino.moripafishing.command
 
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
@@ -44,7 +43,7 @@ internal class WorldCommand(
                 }
             sender.sendRichMessage(
                 "<green>- <name> (<id>) <key> [$kind, $state]",
-                Placeholder.component("name", Component.translatable(world.getId().toTranslateKey())),
+                Placeholder.component("name", world.getId().toTranslatable()),
                 idOf(world.getId()),
                 Placeholder.unparsed("key", world.getWorldKey().asString()),
             )
