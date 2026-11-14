@@ -13,7 +13,14 @@ plugins {
 }
 
 // Paper プラグインとして配布するモジュール (shadowJar を配布物にする)
-val paperPluginModules = setOf(":bukkit", ":integrations:weather", ":integrations:world-lifecycle", ":addons:catch-announce")
+val paperPluginModules =
+    setOf(
+        ":bukkit",
+        ":integrations:weather",
+        ":integrations:world-lifecycle",
+        ":addons:catch-announce",
+        ":addons:chum",
+    )
 
 // subprojects {} 内の `libs` はサブプロジェクト側のアクセサに解決され、評価前で未登録のため、ルートのカタログを捕捉しておく
 val catalog = libs

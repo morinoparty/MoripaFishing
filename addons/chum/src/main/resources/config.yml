@@ -1,0 +1,37 @@
+# MoripaFishing-Addon-Chum の設定
+# 詳細: https://fishing.plugin.morino.party/addons/chum
+#
+# 魚やレアリティの ID は、サーバーに登録されているものに書き換えてください。
+# 登録されていない ID は、撒き餌が使われたときにログへ 1 度だけ警告して無視します。
+
+# 有効な全ての撒き餌の倍率を掛け合わせた後の、レアリティごと・魚ごとの倍率の上限 (1 以上)
+maxMultiplier: 100.0
+
+chums:
+  # 周囲で rare レアリティが釣れやすくなる撒き餌
+  rare_chum:
+    item:
+      material: PUFFERFISH
+      name: "<aqua>レアな撒き餌"
+      lore:
+        - "<gray>右クリックで撒くと、周囲 16 ブロックで"
+        - "<gray>5 分間 rare の魚が釣れやすくなります"
+    scope: AREA
+    radius: 16.0
+    durationSeconds: 300
+    rarityMultipliers:
+      rare: 2.0
+
+  # 使った本人の次の 3 回の釣果まで、餌限定の魚 golden_carp が釣れるようになる餌
+  golden_bait:
+    item:
+      material: GOLDEN_CARROT
+      name: "<gold>黄金の練り餌"
+      lore:
+        - "<gray>右クリックで付けると、次の 3 回の釣果まで"
+        - "<gray>黄金の鯉が釣れるようになります"
+    scope: ANGLER
+    charges: 3
+    durationSeconds: 600
+    fishWeights:
+      golden_carp: 5.0

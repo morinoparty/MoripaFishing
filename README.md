@@ -23,6 +23,7 @@ Release artifacts are signed with GitHub Attestations, so their SLSA provenance 
 | `integrations/weather` | Add-on plugin for weather control |
 | `integrations/world-lifecycle` | Add-on plugin for world generation integration |
 | `addons/catch-announce` | Catch-announcement feature split out as an Addon |
+| `addons/chum` | Addon for chum and bait items that change fish draw weights |
 | `docs` | Documentation site built with Fumadocs (Next.js) |
 
 ## Tech stack
