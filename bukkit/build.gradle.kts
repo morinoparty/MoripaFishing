@@ -52,8 +52,12 @@ sourceSets.main {
     resources.srcDir(generatePaperLibraries)
 }
 
+// paper-plugin.yml のプラグイン名。配布する JAR のファイル名にも使う
+val pluginName = rootProject.name
+
 tasks {
     shadowJar {
+        archiveFileName = "${pluginName}_${project.version}.jar"
         // Paper が実行時に取得するので同梱しない
         dependencies {
             exclude { !isBundled(it.moduleGroup, it.moduleVersion) }
@@ -74,7 +78,7 @@ tasks {
 sourceSets.main {
     resourceFactory {
         paperPluginYaml {
-            name = rootProject.name
+            name = pluginName
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "$group.moripafishing.MoripaFishing"

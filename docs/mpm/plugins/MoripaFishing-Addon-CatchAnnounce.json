@@ -6,7 +6,7 @@
         {
             "type": "github",
             "id": "morinoparty/MoripaFishing",
-            "fileNameRegex": "MoripaFishing-catch-announce-.*\\.jar$",
+            "fileNameRegex": "^MoripaFishing-Addon-CatchAnnounce_.+\\.jar$",
             "versionModifier": "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
             "latest": {
                 "useUpstreamLabel": true,

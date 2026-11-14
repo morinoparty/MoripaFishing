@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://fishing.plugin.morino.party/
+    about: For usage questions, please check the documentation first. 使い方の質問はまずドキュメントをご確認ください。

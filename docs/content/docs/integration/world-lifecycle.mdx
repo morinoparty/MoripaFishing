@@ -17,8 +17,8 @@ Core 自体は Bukkit ワールドへ一切書き込みません。本 Integrati
 
 ## 導入
 
-1. `plugins/` に Core とリリースの `MoripaFishing-world-lifecycle-<version>.jar` を配置する
-   (プラグイン名は `MoripaFishing-Integration-WorldLifecycle`)。
+1. `plugins/` に Core とリリースの `MoripaFishing-Integration-WorldLifecycle_<version>.jar` を配置する
+   (ファイル名はプラグイン名 `MoripaFishing-Integration-WorldLifecycle` とバージョンからなる)。
 2. サーバーを起動する。本 Integration は Core に必須依存しているため
    (`paper-plugin.yml` の `server("MoripaFishing", Load.BEFORE, required = true)`)、Core の後にロードされます。
    Core が無いと本 Integration は起動しません。
