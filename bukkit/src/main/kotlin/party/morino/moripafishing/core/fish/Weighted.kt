@@ -14,10 +14,13 @@ internal fun <T> List<T>.pickWeighted(
 ): T? {
     val candidates = filter { weight(it) > 0.0 }
     if (candidates.isEmpty()) return null
-    val target = random.nextDouble() * candidates.sumOf(weight)
+    // 合計が溢れる場合だけ最大の重みで正規化する (通常の経路は割らずに従来と同じ結果にする)
+    val total = candidates.sumOf(weight)
+    val scale = if (total.isFinite()) 1.0 else candidates.maxOf(weight)
+    val target = random.nextDouble() * if (scale == 1.0) total else candidates.sumOf { weight(it) / scale }
     var accumulated = 0.0
     for (candidate in candidates) {
-        accumulated += weight(candidate)
+        accumulated += weight(candidate) / scale
         if (target < accumulated) return candidate
     }
     // 浮動小数点の丸めで選ばれなかった場合

@@ -34,4 +34,15 @@ class WeightedTest {
             assertEquals(weight / 10.0, counts.getValue(key).toDouble() / draws, 0.01, "frequency of $key")
         }
     }
+
+    @Test
+    fun `weights whose sum overflows still follow the weights`() {
+        val weights = mapOf("a" to Double.MAX_VALUE / 2, "b" to Double.MAX_VALUE, "c" to Double.MAX_VALUE / 2)
+        val random = Random(42)
+        val draws = 100_000
+        val counts = (1..draws).groupingBy { weights.keys.toList().pickWeighted(random) { weights.getValue(it) } }.eachCount()
+        assertEquals(0.25, counts.getValue("a").toDouble() / draws, 0.01)
+        assertEquals(0.5, counts.getValue("b").toDouble() / draws, 0.01)
+        assertEquals(0.25, counts.getValue("c").toDouble() / draws, 0.01)
+    }
 }

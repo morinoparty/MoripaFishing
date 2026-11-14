@@ -8,6 +8,7 @@ import party.morino.moripafishing.api.core.world.FishingWorld
 import party.morino.moripafishing.api.core.world.WorldManager
 import party.morino.moripafishing.api.model.angler.AnglerId
 import party.morino.moripafishing.api.model.world.LocationData
+import party.morino.moripafishing.core.world.toLocationData
 
 /**
  * [Angler] の実装。値は呼び出しのたびに Bukkit から取得する。
@@ -28,8 +29,7 @@ internal class AnglerImpl(
     override fun getLocation(): LocationData? {
         val player = player() ?: return null
         val world = worlds.getWorldByKey(player.world.key) ?: return null
-        val location = player.location
-        return LocationData(world.getId(), location.x, location.y, location.z, location.yaw.toDouble(), location.pitch.toDouble())
+        return player.location.toLocationData(world.getId())
     }
 
     override fun getAudience(): Audience = player() ?: Audience.empty()

@@ -1,5 +1,6 @@
 package party.morino.moripafishing.core.fish
 
+import party.morino.moripafishing.api.core.fish.FishDrawPool
 import party.morino.moripafishing.api.core.fish.FishDrawer
 import party.morino.moripafishing.api.core.fish.FishManager
 import party.morino.moripafishing.api.core.rarity.RarityManager
@@ -14,8 +15,8 @@ import java.util.random.RandomGenerator
 /**
  * [FishDrawer] の実装。
  *
- * 条件を満たす魚がいるレアリティだけを候補にしてレアリティを抽選し、その中から魚を抽選する。
- * 実行時に登録解除されたレアリティの魚は抽選されない。
+ * 抽選の候補は [FishDrawPool] が決める。[draw] は重みが正の魚がいるレアリティを重み付きで抽選し、その中から魚を抽選する。
+ * 実行時に登録解除されたレアリティの魚は候補にならない。
  *
  * @property fishes 魚の定義
  * @property rarities レアリティの定義
@@ -28,15 +29,16 @@ internal class FishDrawerImpl(
     private val worlds: WorldManager,
     private val random: RandomGenerator = Random(),
 ) : FishDrawer {
-    override fun draw(world: FishingWorldId): Fish? {
-        val weather = worlds.getWorld(world)?.getWeather()
-        val eligible =
-            fishes
-                .getAll()
-                .filter { it.enabled && it.weight > 0.0 && it.conditions.matches(world, weather) }
-                .groupBy { it.rarity }
-        val rarity = rarities.getAll().filter { it.id in eligible }.pickWeighted(random) { it.weight } ?: return null
-        val data = eligible.getValue(rarity.id).pickWeighted(random) { it.weight } ?: return null
+    override fun createPool(world: FishingWorldId): FishDrawPool =
+        FishDrawPool(world, worlds.getWorld(world)?.getWeather(), rarities.getAll(), fishes.getAll())
+
+    override fun draw(pool: FishDrawPool): Fish? {
+        val rarity =
+            pool.getRarities().pickWeighted(random) { rarity ->
+                // 重みが正の魚がいないレアリティは選ばない
+                if (pool.getFishes(rarity.id).any { pool.getFishWeight(it.id) > 0.0 }) pool.getRarityWeight(rarity.id) else 0.0
+            } ?: return null
+        val data = pool.getFishes(rarity.id).pickWeighted(random) { pool.getFishWeight(it.id) } ?: return null
         return roll(data, rarity)
     }
 

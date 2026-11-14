@@ -1,0 +1,167 @@
+---
+title: 抽選確率の変更
+icon: Scale
+---
+
+[Dokka APIリファレンス](https://fishing.plugin.morino.party/dokka/api/party.morino.moripafishing.api.core.fish/-fish-draw-pool/index.html)
+
+アドオンは、魚を抽選する直前に発火する`AnglerFishDrawEvent`を購読して、そのつりびとのその 1 回の抽選に限って確率を変更できます。
+撒き餌で特定のレアリティを釣れやすくする、特別な餌を付けたときだけ釣れる魚を用意する、といった仕組みをアドオン側で実装できます。
+
+## イベントの流れ
+
+釣りワールドで魚が掛かると、Core は次の順に処理します。
+
+1. `FishDrawer#createPool(world)`で、その釣りワールドの抽選の候補（`FishDrawPool`）を作る
+2. `AnglerFishDrawEvent`を発火する。リスナーは候補の重みを変更できる
+3. 変更後の重みでレアリティと魚を抽選し、サイズと価値を決める
+4. `AnglerFishCaughtEvent`を発火する。釣果の差し替えやキャンセルができる
+5. 釣果をアイテム化し、`AnglerFishCaughtResultEvent`を発火する
+
+`AnglerFishDrawEvent`はメインスレッドで同期的に発火し、キャンセルはできません。候補が空の場合でも発火します。
+全ての重みを 0 にすると抽選結果が無くなり、Core は魚を差し替えずにバニラのドロップをそのまま残します。この場合、後続の`AnglerFishCaughtEvent`は発火しません。
+
+| メソッド | 戻り値 | 説明 |
+|---|---|---|
+| `getAngler()` | `Angler` | 釣りをしたつりびと |
+| `getWorld()` | `FishingWorld` | 釣りをしている釣りワールド |
+| `getHookLocation()` | `LocationData` | 釣り針の位置 |
+| `getPool()` | `FishDrawPool` | 抽選の候補。重みの変更がこの抽選に反映される |
+
+## FishDrawPool
+
+`FishDrawPool`は 1 回の抽選の候補と、その重みを保持します。候補になるのは次の条件をすべて満たす魚です。
+
+- `enabled`が`true`である
+- 所属するレアリティが登録されている
+- `conditions`（天候・ワールド）を満たしている
+
+この条件は絶対で、候補にない魚を後から加えることはできません。天候が条件に合わない魚を釣らせたい場合は、魚の定義の`conditions`を見直してください。
+レアリティは、候補の魚を 1 匹以上持つものだけが候補になります。
+
+重みの初期値は、レアリティの`weight`と魚の`weight`です。抽選はこれまでと同じ 2 段階で行います。
+まず重みが正で、重みが正の魚を 1 匹以上持つレアリティの中からレアリティを選び、次にそのレアリティの中から魚を選びます。重みを変更しなければ、抽選結果はイベントを導入する前と変わりません。
+
+| メソッド | 戻り値 | 説明 |
+|---|---|---|
+| `getWorld()` / `getWeather()` | `FishingWorldId` / `WeatherType?` | 抽選する釣りワールドと、候補の判定に使った天候 |
+| `getRarities()` | `List<RarityData>` | 候補のレアリティ |
+| `getFishes()` / `getFishes(rarity)` | `List<FishData>` | 候補の魚の全体、または指定したレアリティの候補の魚 |
+| `getRarityWeight(rarity)` / `getFishWeight(fish)` | `Double` | 現在の重み。候補外なら 0 |
+| `setRarityWeight(rarity, weight)` / `setFishWeight(fish, weight)` | `Boolean` | 重みを設定する |
+| `multiplyRarityWeight(rarity, factor)` / `multiplyFishWeight(fish, factor)` | `Boolean` | 重みに倍率を掛ける |
+| `multiplyFishProbability(fish, factor)` | `Boolean` | 魚が釣れる全体の確率を倍率どおりに変える |
+| `getProbability(fish)` | `Double` | 現在の重みで、その魚が釣れる全体の確率 |
+| `isEmpty()` | `Boolean` | 候補の魚が 1 匹もいなければ`true` |
+
+変更系のメソッドは、候補外の ID を渡すと何もせずに`false`を返します。
+重みと倍率は有限かつ 0 以上でなければならず、負の値・`NaN`・無限大を渡すと`IllegalArgumentException`を投げます。検証は変更の前に行うため、例外を投げた呼び出しは何も変更しません。
+計算結果が`Double.MAX_VALUE`を超える場合は`Double.MAX_VALUE`に丸めます。
+
+`isEmpty()`は候補の魚がいるかどうかだけを判定します。候補が重み 0 の魚だけの場合、`isEmpty()`は`false`ですが、抽選結果は無くなります。
+
+## 重みの倍率と確率の倍率
+
+`multiplyRarityWeight`と`multiplyFishWeight`は重みをそのまま掛けるだけなので、魚が釣れる全体の確率は倍率どおりには変わりません。
+全体の確率を倍率どおりに変えたい場合は`multiplyFishProbability`を使います。
+
+なお、レアリティは重みが正の魚を 1 匹以上持つ間だけ抽選対象になります。
+レアリティ内で最後の重みが正の魚を`setFishWeight`や`multiplyFishWeight`で 0 にすると、そのレアリティは抽選対象から外れ、他の全てのレアリティの確率が上がります。
+逆に、重みが正の魚がいないレアリティの魚に`setFishWeight`で重みを与えると、そのレアリティが抽選対象に加わり、他の全てのレアリティの確率が下がります。
+魚の重みの変更がレアリティ内の割合だけにとどまるのは、この出入りが起きない場合に限られます。
+
+次の構成で、魚`a`の確率を 2 倍にする場合を比べます。
+
+| レアリティ | レアリティの重み | 魚と重み | 魚の確率 |
+|---|---|---|---|
+| `common` | 90 | `c`: 1 | `c`: 0.9 |
+| `rare` | 10 | `a`: 1、`b`: 1 | `a`: 0.05、`b`: 0.05 |
+
+- `multiplyFishWeight(a, 2.0)`は、`rare`の中での`a`の割合だけを 1/2 から 2/3 に変えます。`rare`が選ばれる確率は 0.1 のままなので、`a`の確率は約 0.0667 になり、2 倍にはなりません。
+- `multiplyRarityWeight(rare, 2.0)`は、`rare`の重みを 20 にします。`rare`が選ばれる確率は 20 / 110 ≒ 0.1818 になり、`a`と`b`の確率はどちらも約 0.0909 になります。
+- `multiplyFishProbability(a, 2.0)`は、`a`の確率をちょうど 0.1 にします。
+
+`multiplyFishProbability`は、魚の重みとそのレアリティの重みの 2 つだけを変更し、他の全ての候補の確率を互いの比を保ったまま一律に増減させます。
+現在の確率を`P`、魚のレアリティが選ばれる確率を`p`、目標の確率を`P' = factor × P`とし、他の候補に掛かる係数を`c = (1 - P') / (1 - P)`とすると、魚の重みを`(P' / P) / c`倍、レアリティの重みを`(1 / c - 1 + p) / p`倍にします。
+
+上の例では`P = 0.05`、`p = 0.1`、`P' = 0.1`、`c = 0.9 / 0.95`なので、`a`の重みは 1 から 19/9（約 2.111）に、`rare`の重みは 10 から 140/9（約 15.56）になります。
+その結果、`a`の確率は 0.1 に、`b`と`c`の確率は元の値の`c`倍（`b`は約 0.0474、`c`は約 0.8526）になります。
+
+次の場合は特別に扱います。
+
+- 確率が 0 の魚（重み 0 の魚や、重み 0 のレアリティの魚）は何も変更しません。重みを与えるには`setFishWeight`を使います。
+- 倍率 0 は魚の重みを 0 にします。同じレアリティに重みが正の他の魚がいる場合は、他の候補の比を保つようにレアリティの重みも下げます。レアリティ内で唯一の魚の場合、レアリティの重みは変えません。
+- 魚がレアリティ内で唯一の重みが正の魚の場合は、レアリティの重みだけを変えます。
+- 他に抽選対象が無く確率がすでに 1 の場合は、確率を移す先が無いため、正の倍率では何も変更しません。
+- `P'`が 1 以上になる場合は確率を 1 に丸め、同じレアリティの他の魚と他のレアリティの重みを 0 にします。
+
+複数のリスナーが同じ候補を変更する場合、変更は呼び出した順に積み重なります。確率の倍率は、呼び出した時点の確率に対して掛かります。
+
+## 餌限定の魚
+
+魚の定義で`weight`を 0 にした魚は、重み 0 の候補として`FishDrawPool`に含まれます。通常の抽選では釣れませんが、リスナーが`setFishWeight`で重みを与えると釣れるようになります。
+特定の餌を付けたときだけ釣れる魚は、次のように実装できます。
+
+```kotlin
+@EventHandler
+fun onDraw(event: AnglerFishDrawEvent) {
+    if (hasGoldenBait(event.getAngler())) {
+        event.getPool().setFishWeight(FishId("golden_carp"), 5.0)
+    }
+}
+```
+
+レアリティの重みが 0 の場合、そのレアリティは魚の重みだけでは抽選対象になりません。必要に応じて`setRarityWeight`も設定してください。
+一方、レアリティの他の魚がすべて重み 0 の場合は、この魚に重みを与えた時点でレアリティ全体が抽選対象に加わり、他の全てのレアリティの確率が下がります。
+
+## 実装例: 撒き餌
+
+撒き餌を使ったつりびとに対して、一定時間`rare`レアリティを釣れやすくする例です。
+重みの変更はそのつりびとのその抽選だけに反映されるため、他のつりびとの確率には影響しません。
+
+```kotlin
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import party.morino.moripafishing.api.event.fishing.AnglerFishDrawEvent
+import party.morino.moripafishing.api.model.angler.AnglerId
+import party.morino.moripafishing.api.model.rarity.RarityId
+import java.time.Instant
+
+class ChumListener : Listener {
+    // 撒き餌の効果が切れる時刻
+    private val chummedUntil = mutableMapOf<AnglerId, Instant>()
+
+    fun useChum(angler: AnglerId) {
+        chummedUntil[angler] = Instant.now().plusSeconds(60)
+    }
+
+    @EventHandler
+    fun onDraw(event: AnglerFishDrawEvent) {
+        val until = chummedUntil[event.getAngler().getId()] ?: return
+        if (Instant.now().isAfter(until)) return
+        // rare レアリティが選ばれやすくなる。候補に rare がいなければ何もしない
+        event.getPool().multiplyRarityWeight(RarityId("rare"), 2.0)
+    }
+}
+```
+
+変更後の確率を確認したい場合は`getProbability`を使います。全ての候補の確率の合計は、抽選対象があれば 1、無ければ 0 です。
+
+```kotlin
+val pool = event.getPool()
+pool.getFishes().forEach { fish ->
+    logger.info("${fish.id.value}: ${"%.4f".format(pool.getProbability(fish.id))}")
+}
+```
+
+## イベント外での抽選
+
+`FishDrawer`を使えば、アドオンが任意のタイミングで同じ手順の抽選を実行できます。`createPool`で作った候補の重みを変更してから`draw`に渡します。
+この場合`AnglerFishDrawEvent`は発火しません。
+
+```kotlin
+val drawer = api.getFishDrawer()
+val pool = drawer.createPool(FishingWorldId("default"))
+pool.multiplyFishProbability(FishId("tuna"), 3.0)
+val fish = drawer.draw(pool) ?: return
+```

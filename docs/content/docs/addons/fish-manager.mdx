@@ -37,19 +37,24 @@ FishManagerは起動時と`/mf reload`のたびに、`fish/`配下のJSONを読�
 
 | メソッド | 戻り値 | 説明 |
 |---|---|---|
-| `draw(world)` | `Fish?` | 指定した釣りワールドの条件でレアリティ・魚種・サイズ・価値を抽選する。候補が無ければ`null` |
+| `createPool(world)` | `FishDrawPool` | 指定した釣りワールドの現在の天候と魚の条件から、抽選の候補を作る |
+| `draw(pool)` | `Fish?` | 候補の現在の重みでレアリティ・魚種・サイズ・価値を抽選する。抽選対象が無ければ`null` |
 | `roll(data)` | `Fish` | 魚種を指定してサイズと価値だけを抽選する。レアリティが未登録なら`IllegalArgumentException` |
 
-`draw(world)`は次の手順で魚を決定します。
+抽選は次の手順で魚を決定します。
 
-1. **候補の絞り込み** — `enabled`が`true`で`weight`が0より大きく、`conditions.world`と`conditions.weather`を満たす魚だけを候補にする
-2. **レアリティ抽選** — 候補の魚がいるレアリティだけを対象に、各レアリティの`weight`に基づいて重み付き抽選する
-3. **魚種抽選** — 選ばれたレアリティの候補から`FishData.weight`に基づいて重み付き抽選する
-4. **サイズと価値の決定** — 平均を`(min + max) / 2`、標準偏差を`(max - min) / 6`とする正規分布からサイズを生成して`min`〜`max`に丸め、価値の計算式で価値を求める
+1. **候補の作成（`createPool`）** — `enabled`が`true`で、レアリティが登録されていて、`conditions.world`と`conditions.weather`を満たす魚を候補にする。`weight`が 0 の魚も重み 0 の候補として含まれる。重みの初期値はレアリティと魚の`weight`
+2. **重みの変更** — Core の釣りでは、ここで`AnglerFishDrawEvent`が発火し、リスナーが候補の重みを変更できる
+3. **レアリティ抽選（`draw`）** — 重みが正で、重みが正の魚が 1 匹以上いるレアリティだけを対象に、レアリティの重みに基づいて重み付き抽選する
+4. **魚種抽選** — 選ばれたレアリティの候補から、魚の重みに基づいて重み付き抽選する
+5. **サイズと価値の決定** — 平均を`(min + max) / 2`、標準偏差を`(max - min) / 6`とする正規分布からサイズを生成して`min`〜`max`に丸め、価値の計算式で価値を求める
 
 `conditions.world`と`conditions.weather`はどちらも空であれば「条件なし」として扱われます。天候が分からない釣りワールド（未定義のワールドなど）では、天候条件付きの魚は候補から外れます。
 
+候補の重みの変更方法は [抽選確率の変更](/addons/draw-weights) を参照してください。
+
 ```kotlin
-val fish = api.getFishDrawer().draw(FishingWorldId("default")) ?: return
+val drawer = api.getFishDrawer()
+val fish = drawer.draw(drawer.createPool(FishingWorldId("default"))) ?: return
 logger.info("${fish.data.id.value}: ${fish.size}cm, ${fish.worth}")
 ```

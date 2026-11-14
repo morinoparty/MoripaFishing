@@ -13,6 +13,7 @@ import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.Plugin
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,21 +25,28 @@ import org.mockbukkit.mockbukkit.ServerMock
 import org.mockbukkit.mockbukkit.entity.PlayerMock
 import party.morino.moripafishing.api.config.world.FishingWorldConfig
 import party.morino.moripafishing.api.config.world.WorldBinding
+import party.morino.moripafishing.api.core.fish.FishDrawer
 import party.morino.moripafishing.api.event.fishing.AnglerFishCaughtEvent
+import party.morino.moripafishing.api.event.fishing.AnglerFishDrawEvent
 import party.morino.moripafishing.api.model.fish.CaughtFish
 import party.morino.moripafishing.api.model.fish.Fish
 import party.morino.moripafishing.api.model.fish.FishId
+import party.morino.moripafishing.api.model.rarity.RarityId
 import party.morino.moripafishing.api.model.world.FishingWorldId
+import party.morino.moripafishing.api.model.world.LocationData
 import party.morino.moripafishing.core.angler.AnglerManagerImpl
+import party.morino.moripafishing.core.fish.FishDrawerImpl
 import party.morino.moripafishing.core.fish.FishItemFactory
 import party.morino.moripafishing.core.world.WorldKeys
 import party.morino.moripafishing.core.world.mockWorld
 import party.morino.moripafishing.testing.FakeConfigManager
 import party.morino.moripafishing.testing.FakeFishManager
 import party.morino.moripafishing.testing.FakeFishingWorld
+import party.morino.moripafishing.testing.FakeRarityManager
 import party.morino.moripafishing.testing.FakeWorldManager
 import party.morino.moripafishing.testing.fish
 import party.morino.moripafishing.testing.rarity
+import java.util.Random
 
 @ExtendWith(MockBukkitExtension::class)
 class PlayerFishingListenerTest {
@@ -54,6 +62,7 @@ class PlayerFishingListenerTest {
     private lateinit var plugin: Plugin
     private lateinit var player: PlayerMock
     private lateinit var listener: PlayerFishingListener
+    private lateinit var worlds: FakeWorldManager
 
     @BeforeEach
     fun setUp() {
@@ -66,9 +75,14 @@ class PlayerFishingListenerTest {
                 externalId,
                 config = FishingWorldConfig(externalId, world = WorldBinding.External(Key.key("minecraft", "survival"))),
             )
-        val anglers = AnglerManagerImpl(FakeWorldManager(FakeFishingWorld(worldId), external))
-        listener = PlayerFishingListener(anglers, drawer, fishes, FishItemFactory(plugin, FakeConfigManager()), plugin.logger)
+        worlds = FakeWorldManager(FakeFishingWorld(worldId), external)
+        listener = listenerWith(drawer)
     }
+
+    private fun listenerWith(
+        drawer: FishDrawer,
+        catalog: FakeFishManager = fishes,
+    ) = PlayerFishingListener(AnglerManagerImpl(worlds), drawer, catalog, FishItemFactory(plugin, FakeConfigManager()), plugin.logger)
 
     private fun fishEvent(): Pair<PlayerFishEvent, Item> {
         val drop = player.world.dropItem(player.location, ItemStack(Material.COD))
@@ -78,6 +92,9 @@ class PlayerFishingListenerTest {
 
     private fun record(onCaught: (AnglerFishCaughtEvent) -> Unit = {}): CaughtEventRecorder =
         CaughtEventRecorder(onCaught).also { server.pluginManager.registerEvents(it, plugin) }
+
+    private fun recordDraws(onDraw: (AnglerFishDrawEvent) -> Unit = {}): DrawEventRecorder =
+        DrawEventRecorder(onDraw).also { server.pluginManager.registerEvents(it, plugin) }
 
     private fun caughtFishOf(drop: Item): CaughtFish? =
         drop.itemStack.itemMeta.persistentDataContainer
@@ -92,6 +109,33 @@ class PlayerFishingListenerTest {
         assertEquals(Material.COD, drop.itemStack.type)
         assertEquals(FishId("tuna"), caughtFishOf(drop)?.fish)
         assertEquals(listOf(caughtFishOf(drop)), recorder.results)
+    }
+
+    @Test
+    fun `the draw event carries the context and fires before the draw`() {
+        val drawnBefore = mutableListOf<Int>()
+        val recorder = recordDraws { drawnBefore += drawer.drawnPools.size }
+        val (event, _) = fishEvent()
+        val hook = event.hook.location
+        listener.onPlayerFish(event)
+        val draw = recorder.events.single()
+        assertEquals(listOf(0), drawnBefore)
+        assertEquals(player.uniqueId, draw.getAngler().getId().value)
+        assertEquals(worldId, draw.getWorld().getId())
+        assertEquals(LocationData(worldId, hook.x, hook.y, hook.z, hook.yaw.toDouble(), hook.pitch.toDouble()), draw.getHookLocation())
+        assertSame(draw.getPool(), drawer.drawnPools.single())
+        assertEquals(worldId, draw.getPool().getWorld())
+    }
+
+    @Test
+    fun `weights changed by a draw listener affect the draw`() {
+        val rarities = FakeRarityManager(rarity("common", weight = 1_000.0), rarity("rare", weight = 1.0))
+        val catalog = FakeFishManager(tuna, fish("bream", "rare"))
+        val listener = listenerWith(FishDrawerImpl(catalog, rarities, worlds, Random(1)), catalog)
+        recordDraws { it.getPool().setRarityWeight(RarityId("common"), 0.0) }
+        val recorder = record()
+        repeat(20) { listener.onPlayerFish(fishEvent().first) }
+        assertEquals(List(20) { FishId("bream") }, recorder.results.map { it.fish })
     }
 
     @Test
@@ -126,9 +170,12 @@ class PlayerFishingListenerTest {
     @Test
     fun `a null draw keeps the vanilla drop`() {
         drawer.fish = null
+        val draws = recordDraws()
         val recorder = record()
         val (event, drop) = fishEvent()
         listener.onPlayerFish(event)
+        assertEquals(1, draws.events.size)
+        assertFalse(event.isCancelled)
         assertEquals(null, caughtFishOf(drop))
         assertTrue(recorder.results.isEmpty())
     }
