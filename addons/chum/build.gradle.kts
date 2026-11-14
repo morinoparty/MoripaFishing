@@ -19,10 +19,17 @@ dependencies {
     testImplementation(project(":api"))
 }
 
+// paper-plugin.yml のプラグイン名。配布する JAR のファイル名にも使う
+val pluginName = "MoripaFishing-Addon-Chum"
+
+tasks.shadowJar {
+    archiveFileName = "${pluginName}_${project.version}.jar"
+}
+
 sourceSets.main {
     resourceFactory {
         paperPluginYaml {
-            name = "MoripaFishing-Addon-Chum"
+            name = pluginName
             version = project.version.toString()
             website = "https://fishing.plugin.morino.party"
             main = "party.morino.moripafishing.addons.chum.ChumPlugin"
