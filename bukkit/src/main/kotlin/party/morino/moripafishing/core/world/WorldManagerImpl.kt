@@ -20,6 +20,7 @@ import party.morino.moripafishing.api.event.world.FishingWorldUnloadEvent
 import party.morino.moripafishing.api.event.world.FishingWorldWeatherChangeEvent
 import party.morino.moripafishing.api.model.world.FishingWorldId
 import party.morino.moripafishing.api.model.world.WeatherType
+import party.morino.moripafishing.core.internationalization.DisplayNameRegistry
 import party.morino.moripafishing.core.world.weather.VanillaWeatherCache
 import java.time.Clock
 import java.time.ZoneId
@@ -49,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @property plugin コアプラグイン
  * @property configManager `config.json` の参照先
  * @property store 釣りワールド設定ファイルの読み書き
+ * @property names ワールドの表示名の登録先。定義の追加・変更・削除のたびに同期する
  * @property clock 現在時刻の取得元 (テストで差し替える)
  */
 @Suppress("TooManyFunctions") // WorldManager (公開 API) と WorldContext (Listener 向け) の実装を 1 か所で状態ごと管理するため
@@ -56,6 +58,7 @@ internal class WorldManagerImpl(
     private val plugin: Plugin,
     private val configManager: ConfigManager,
     private val store: WorldConfigStore,
+    private val names: DisplayNameRegistry,
     private val clock: Clock = Clock.systemUTC(),
 ) : WorldManager,
     WorldContext {
@@ -167,7 +170,7 @@ internal class WorldManagerImpl(
         if (created) {
             FishingWorldCreateEvent(id).callEvent()
         } else {
-            worlds.remove(id)
+            forget(id)
             store.delete(id)
         }
         return created
@@ -191,7 +194,7 @@ internal class WorldManagerImpl(
             plugin.logger.warning("Cannot delete fishing world ${id.value}: the Bukkit world could not be unloaded")
             return false
         }
-        worlds.remove(id)
+        forget(id)
         store.delete(id)
         FishingWorldDeletedEvent(id).callEvent()
         return true
@@ -209,7 +212,7 @@ internal class WorldManagerImpl(
         }
         if (world.getConfig() != config) {
             store.save(config)
-            world.replaceConfig(config)
+            replaceConfig(world, config)
             if (started && isLoaded(world)) push(world)
         }
         return true
@@ -223,13 +226,13 @@ internal class WorldManagerImpl(
     override fun reload() {
         checkMainThread("reload")
         val definitions = withoutKeyConflicts(store.loadAll()).associateBy { it.id }
-        worlds.keys.retainAll(definitions.keys)
+        (worlds.keys - definitions.keys).forEach(::forget)
         val added = mutableListOf<FishingWorldImpl>()
         definitions.values.forEach { config ->
             val existing = worlds[config.id]
             // 対応する Bukkit ワールドが変わった定義は新しいワールドとして扱う
             if (existing != null && existing.getWorldKey() == WorldKeys.of(config)) {
-                existing.replaceConfig(config)
+                replaceConfig(existing, config)
             } else {
                 added += define(config)
             }
@@ -263,7 +266,22 @@ internal class WorldManagerImpl(
     private fun define(config: FishingWorldConfig): FishingWorldImpl {
         val world = FishingWorldImpl(config, this)
         worlds[config.id] = world
+        names.register(config.id.toTranslateKey(), config.name)
         return world
+    }
+
+    private fun replaceConfig(
+        world: FishingWorldImpl,
+        config: FishingWorldConfig,
+    ) {
+        world.replaceConfig(config)
+        names.register(config.id.toTranslateKey(), config.name)
+    }
+
+    /** 定義から外し、表示名も外す。 */
+    private fun forget(id: FishingWorldId) {
+        worlds.remove(id)
+        names.unregister(id.toTranslateKey())
     }
 
     /**

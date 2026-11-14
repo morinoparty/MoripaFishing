@@ -33,12 +33,12 @@ internal class MoripaFishingCore(
 ) : MoripaFishingAPI {
     private val paths = PluginPaths(plugin.dataFolder)
     private val config = ConfigManagerImpl(paths.config)
-    private val rarities = RarityManagerImpl(paths.rarity, plugin.logger)
-    private val fishes = FishManagerImpl(paths.fish, rarities, plugin.logger)
-    private val worlds = WorldManagerImpl(plugin, config, WorldConfigStore(paths.world, plugin.logger))
+    private val translations = Translations(paths.translation, config, plugin.logger)
+    private val worlds = WorldManagerImpl(plugin, config, WorldConfigStore(paths.world, plugin.logger), translations)
+    private val rarities = RarityManagerImpl(paths.rarity, translations, plugin.logger)
+    private val fishes = FishManagerImpl(paths.fish, rarities, translations, plugin.logger)
     private val anglers = AnglerManagerImpl(worlds)
     private val drawer = FishDrawerImpl(fishes, rarities, worlds)
-    private val translations = Translations(paths.translation, config, fishes, rarities, worlds, plugin.logger)
     private val items = FishItemFactory(plugin, config)
 
     /** プラグインのロガー。 */
