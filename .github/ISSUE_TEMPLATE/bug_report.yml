@@ -1,0 +1,81 @@
+name: Bug report
+description: Report something in MoripaFishing that does not work as expected.
+labels: [bug, not-reviewed]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in the sections below as far as you can.
+        日本語での記入も歓迎します。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Describe the problem you ran into.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps that lead to the problem.
+      placeholder: |
+        1. Add this fish definition to ...
+        2. Run `/...`
+        3. Cast a rod in the world ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Describe what you expected to happen instead.
+  - type: input
+    id: version
+    attributes:
+      label: MoripaFishing version
+      description: All modules are released with the same version.
+      placeholder: e.g. 0.1.24
+    validations:
+      required: true
+  - type: checkboxes
+    id: modules
+    attributes:
+      label: Installed modules
+      description: Select every MoripaFishing module installed on the server.
+      options:
+        - label: Core
+        - label: "Integration: Weather"
+        - label: "Integration: WorldLifecycle"
+        - label: "Addon: CatchAnnounce"
+  - type: textarea
+    id: paper-version
+    attributes:
+      label: Paper version
+      description: Paste the output of `/version`.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: java-version
+    attributes:
+      label: Java version
+      placeholder: e.g. 25
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant config / JSON
+      description: Paste the related fish, rarity, world or other config files. This is automatically formatted as code.
+      render: json
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Paste related server logs or stack traces. This is automatically formatted as code.
+      render: shell
+  - type: checkboxes
+    id: searched
+    attributes:
+      label: Existing issues
+      options:
+        - label: I searched existing issues and did not find a duplicate.
