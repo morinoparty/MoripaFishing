@@ -19,7 +19,7 @@
         "@tanstack/react-router": "1.170.46",
         "@tanstack/react-start": "1.169.5",
         "clsx": "^2.1.1",
-        "echarts": "^5.6.0",
+        "echarts": "^6.1.0",
         "echarts-for-react": "^3.0.2",
         "fumadocs-core": "16.19.0",
         "fumadocs-mdx": "15.6.0",
